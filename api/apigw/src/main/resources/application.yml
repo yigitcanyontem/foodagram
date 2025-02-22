@@ -1,0 +1,64 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: api-gateway
+  zipkin:
+    base-url: http://localhost:9411
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:5173"
+            allowedHeaders: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - DELETE
+              - PUT
+              - PATCH
+              - OPTIONS
+      routes:
+        - id: users
+          uri: lb://USERS
+          predicates:
+            - Path=/api/v1/user/**
+        - id: users_profile
+          uri: lb://USERS
+          predicates:
+            - Path=/api/v1/user-profile/**
+        - id: auth
+          uri: lb://AUTH
+          predicates:
+            - Path=/api/v1/auth/**
+        - id: notification
+          uri: lb://NOTIFICATION
+          predicates:
+            - Path=/api/v1/notification/**
+        - id: cache
+          uri: lb://CACHE
+          predicates:
+            - Path=/api/v1/cache/**
+        - id: content
+          uri: lb://CONTENT
+          predicates:
+            - Path=/api/v1/content/**
+management:
+  tracing:
+    enabled: true
+    sampler:
+      probability: 1.0
+
+eureka:
+  instance:
+    appname: apigw
+  client:
+    enabled: true
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+    fetch-registry: true
+    register-with-eureka: true

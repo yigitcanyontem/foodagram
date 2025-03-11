@@ -17,6 +17,9 @@
 	<modules>
 		<module>apigw</module>
 		<module>clients</module>
+		<module>auth</module>
+		<module>amqp</module>
+		<module>user</module>
 	</modules>
 	<packaging>pom</packaging>
 

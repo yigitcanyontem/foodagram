@@ -7,6 +7,9 @@
         <option value="$PROJECT_DIR$/api/pom.xml" />
         <option value="$PROJECT_DIR$/api/eureka-server/pom.xml" />
         <option value="$PROJECT_DIR$/api/validator/pom.xml" />
+        <option value="$PROJECT_DIR$/api/auth/pom.xml" />
+        <option value="$PROJECT_DIR$/api/amqp/pom.xml" />
+        <option value="$PROJECT_DIR$/api/user/pom.xml" />
       </list>
     </option>
   </component>

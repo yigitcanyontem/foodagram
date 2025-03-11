@@ -1,10 +1,10 @@
 package com.foodagram.clients.users.dto;
 
-import com.foodagram.clients.users.profile.UsersProfileDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import com.foodagram.clients.users.profile.UsersProfileDto;
 
 @Getter
 @Setter

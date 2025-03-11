@@ -1,7 +1,7 @@
 package com.foodagram.clients.users.dto;
 
-import com.foodagram.clients.users.enums.Role;
 import lombok.*;
+import com.foodagram.clients.users.enums.Role;
 
 import java.util.Date;
 

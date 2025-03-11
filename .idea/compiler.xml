@@ -7,19 +7,25 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="validator" />
         <module name="apigw" />
         <module name="clients" />
+        <module name="auth" />
+        <module name="amqp" />
+        <module name="validator" />
         <module name="eureka-server" />
+        <module name="user" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="amqp" options="-parameters" />
       <module name="apigw" options="-parameters" />
+      <module name="auth" options="-parameters" />
       <module name="clients" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
       <module name="foodagram" options="" />
+      <module name="user" options="-parameters" />
       <module name="validator" options="-parameters" />
     </option>
   </component>

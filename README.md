@@ -68,7 +68,7 @@
 
 ### Project Architecture
  <a href="https://github.com/yigitcanyontem/foodagram">
-    <img src="files/foodagram_architecture.png" alt="Logo" width="1000px" height="auto">
+    <img src="files/foodagram_architecture.png" alt="Logo" height="auto">
   </a>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

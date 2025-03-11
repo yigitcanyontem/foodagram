@@ -1,4 +1,4 @@
-package com.foodagram.clients.dto;
+package com.foodagram.clients.shared.dto;
 
 import lombok.*;
 

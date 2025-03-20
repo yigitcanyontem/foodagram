@@ -75,6 +75,8 @@ public class UsersService {
         newUser = usersRepository.saveAndFlush(newUser);
         user.setId(newUser.getId());
 
+        usersProfileService.createDefaultProfile(newUser.getId());
+
         rabbitMQMessageProducer.publish(
                 new NotificationCreateDto(user.getId(), "User created"),
                 "internal.exchange",

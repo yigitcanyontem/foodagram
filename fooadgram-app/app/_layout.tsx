@@ -42,6 +42,7 @@ import ProfilePage from "@/app/pages/profile_page";
 import BookmarkedPage from "@/app/pages/bookmarked_page";
 import CreatePostPage from "@/app/pages/create_post_page";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import EditProfilePage from "@/app/pages/edit_profile_page";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -105,6 +106,7 @@ export default function RootLayout() {
                         <Stack.Screen name="Profile" component={ProfilePage}/>
                         <Stack.Screen name="Login" component={LoginPage}/>
                         <Stack.Screen name="Register" component={RegisterPage}/>
+                        <Stack.Screen name="EditProfilePage" component={EditProfilePage}/>
                     </Stack.Navigator>
                 </ThemeProvider>
                 <Toast/>

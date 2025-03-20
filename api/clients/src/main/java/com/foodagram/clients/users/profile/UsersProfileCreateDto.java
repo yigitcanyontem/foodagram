@@ -23,7 +23,6 @@ public class UsersProfileCreateDto {
     private String jobTitle;
     private Date birthDate;
     private Date createdAt;
-    private String linkedinProfile;
-    private String githubProfile;
-    private String mediumProfile;
+    private String instagramProfile;
+    private String facebookProfile;
 }

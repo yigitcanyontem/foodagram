@@ -77,9 +77,8 @@ public class UsersProfileService {
         usersProfile.setWebsite(createDto.getWebsite());
         usersProfile.setJobTitle(createDto.getJobTitle());
         usersProfile.setBirthDate(createDto.getBirthDate());
-        usersProfile.setLinkedinProfile(createDto.getLinkedinProfile());
-        usersProfile.setGithubProfile(createDto.getGithubProfile());
-        usersProfile.setMediumProfile(createDto.getMediumProfile());
+        usersProfile.setFacebookProfile(createDto.getFacebookProfile());
+        usersProfile.setInstagramProfile(createDto.getInstagramProfile());
         usersProfile.setFollowersCount(0);
         usersProfile.setFollowingCount(0);
         return usersProfile;
@@ -95,9 +94,8 @@ public class UsersProfileService {
         existingProfile.setWebsite(updateDto.getWebsite());
         existingProfile.setJobTitle(updateDto.getJobTitle());
         existingProfile.setBirthDate(updateDto.getBirthDate());
-        existingProfile.setLinkedinProfile(updateDto.getLinkedinProfile());
-        existingProfile.setGithubProfile(updateDto.getGithubProfile());
-        existingProfile.setMediumProfile(updateDto.getMediumProfile());
+        existingProfile.setFacebookProfile(updateDto.getFacebookProfile());
+        existingProfile.setInstagramProfile(updateDto.getInstagramProfile());
     }
 
     private UsersProfileDto mapDomainToDto(UsersProfile usersProfile) {
@@ -118,9 +116,8 @@ public class UsersProfileService {
                 .website(usersProfile.getWebsite())
                 .jobTitle(usersProfile.getJobTitle())
                 .birthDate(usersProfile.getBirthDate())
-                .linkedinProfile(usersProfile.getLinkedinProfile())
-                .githubProfile(usersProfile.getGithubProfile())
-                .mediumProfile(usersProfile.getMediumProfile())
+                .instagramProfile(usersProfile.getInstagramProfile())
+                .facebookProfile(usersProfile.getFacebookProfile())
                 .followersCount(usersProfile.getFollowersCount() != null ? usersProfile.getFollowersCount() : 0)
                 .followingCount(usersProfile.getFollowingCount() != null ? usersProfile.getFollowingCount() : 0)
                 .build();
@@ -153,4 +150,24 @@ public class UsersProfileService {
         }
     }
 
+    public void createDefaultProfile(Integer id) {
+        UsersProfile usersProfile = new UsersProfile();
+        usersProfile.setUsersId(usersRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("User does not exist")
+        ));
+        usersProfile.setFirstName("");
+        usersProfile.setLastName("");
+        usersProfile.setProfilePictureUrl("");
+        usersProfile.setBannerPictureUrl("");
+        usersProfile.setBio("");
+        usersProfile.setCity("");
+        usersProfile.setCountry("");
+        usersProfile.setWebsite("");
+        usersProfile.setJobTitle("");
+        usersProfile.setBirthDate(null);
+        usersProfile.setFacebookProfile("");
+        usersProfile.setInstagramProfile("");
+
+        usersProfileRepository.saveAndFlush(usersProfile);
+    }
 }

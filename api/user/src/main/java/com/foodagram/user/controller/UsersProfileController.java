@@ -66,7 +66,7 @@ public class UsersProfileController {
     }
 
     @PutMapping()
-    public ResponseEntity<UsersProfileDto> save(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, @RequestBody UsersProfileUpdateDto updateDto) {
+    public ResponseEntity<UsersProfileDto> update(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, @RequestBody UsersProfileUpdateDto updateDto) {
         try {
             UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
 

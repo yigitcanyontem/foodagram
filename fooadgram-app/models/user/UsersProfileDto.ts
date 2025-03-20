@@ -12,9 +12,8 @@ export interface UsersProfileDto {
     jobTitle: string;
     birthDate: Date;
     createdAt: Date;
-    linkedinProfile: string;
-    githubProfile: string;
-    mediumProfile: string;
+    instagramProfile: string;
+    facebookProfile: string;
     followingCount: number;
     followersCount: number;
 }

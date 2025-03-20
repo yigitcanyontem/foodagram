@@ -1,6 +1,6 @@
 import {Button, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {useNavigation} from "@react-navigation/native";
-import React from "react";
+import React, {useEffect} from "react";
 import {useAppContext} from "@/context/AppContext";
 import FGTabBar from "@/app/shared/FGTabBar";
 import shared_styles from "@/shared_styles";
@@ -8,13 +8,37 @@ import {Label, Separator} from "@rn-primitives/select";
 import PostsSection from "@/app/shared/profile/PostsSection";
 import {CookingPot, Grid2X2} from "lucide-react-native";
 import RecipesSection from "@/app/shared/profile/RecipesSection";
+import {UserService} from "@/services/user-service";
+import {UsersCompleteDto} from "@/models/user/UsersCompleteDto";
 
 
 const ProfilePage = () => {
     const navigation = useNavigation();
     const {setUserData, userData} = useAppContext()
     const [chosenSection, setChosenSection] = React.useState('posts');
+    const [userProfile, setUserProfile] = React.useState<UsersCompleteDto>(null);
 
+    const getUserProfile = async () => {
+        try {
+            const userProfileResponse = await UserService.getLoggedInUser(userData);
+            setUserProfile(userProfileResponse);
+        } catch (error) {
+            console.error("Failed to fetch user profile", error);
+        }
+    };
+
+    useEffect(() => {
+        getUserProfile();
+    }, [userData]);  // Added dependency array
+
+    const logout = async () => {
+        try {
+            setUserData(null);
+            navigation.navigate("Login");
+        } catch (error) {
+            console.error("Logout failed", error);
+        }
+    }
     return (
         <View style={shared_styles.body_container}>
             <ScrollView contentContainerStyle={styles.container}>
@@ -36,13 +60,13 @@ const ProfilePage = () => {
                                         fontWeight: "medium",
                                         marginBottom: 10
                                     }}>
-                                    Yigit Can Yontem
+                                    {userProfile?.user?.username || 'Username'}
                                 </Label>
                             </View>
 
                             <View
                                 style={[shared_styles.row, {flex: 1, marginLeft: 20, justifyContent: "space-between"}]}>
-                                <View style={[shared_styles.column, {alignItems: "center"}]}>
+                                <TouchableOpacity style={[shared_styles.column, {alignItems: "center"}]}>
                                     <Label
                                         style={{fontSize: 15, fontWeight: "bold"}}>
                                         54
@@ -51,40 +75,45 @@ const ProfilePage = () => {
                                         style={{fontSize: 15, fontWeight: "medium"}}>
                                         Posts
                                     </Label>
-                                </View>
-                                <View style={[shared_styles.column, {alignItems: "center"}]}>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={[shared_styles.column, {alignItems: "center"}]}>
                                     <Label
                                         style={{fontSize: 15, fontWeight: "bold"}}>
-                                        834
+                                        {userProfile?.profile?.followersCount || 0}
                                     </Label>
                                     <Label
                                         style={{fontSize: 15, fontWeight: "medium"}}>
                                         Followers
                                     </Label>
-                                </View>
+                                </TouchableOpacity>
 
-                                <View style={[shared_styles.column, {alignItems: "center"}]}>
+                                <TouchableOpacity style={[shared_styles.column, {alignItems: "center"}]}>
                                     <Label
                                         style={{fontSize: 15, fontWeight: "bold"}}>
-                                        162
+                                        {userProfile?.profile?.followingCount || 0}
                                     </Label>
                                     <Label
                                         style={{fontSize: 15, fontWeight: "medium"}}>
                                         Following
                                     </Label>
-                                </View>
+                                </TouchableOpacity>
                             </View>
                         </View>
                     </View>
 
-                    <View style={[shared_styles.row, shared_styles.paddingH_20, {marginTop: 20}]}>
+                    <View style={[shared_styles.column, shared_styles.paddingH_20, {marginTop: 20}]}>
                         <Label
                             style={{fontSize: 15, fontFamily: 'Poppins', fontWeight: "medium", marginBottom: 10}}>
-                            DŞ' 21 - ABU CENG
+                            {userProfile?.profile?.firstName ? (userProfile?.profile?.firstName + ' ' + userProfile?.profile?.lastName) : ''}
                         </Label>
+                        <Label
+                            style={{fontSize: 15, fontFamily: 'Poppins', fontWeight: "medium", marginBottom: 10}}>
+                            {userProfile?.profile?.bio || ''}
+                        </Label>
+
                     </View>
 
-                    <View style={[shared_styles.row, shared_styles.paddingH_20, {marginTop: 20}]}>
+                    <View style={[shared_styles.row, shared_styles.paddingH_20, {marginTop: 20, gap: 10}]}>
                         <TouchableOpacity style={shared_styles.transparent_button} onPress={() => {
                             navigation.navigate("EditProfilePage")
                         }}>
@@ -92,6 +121,15 @@ const ProfilePage = () => {
                                 Edit Profile
                             </Text>
                         </TouchableOpacity>
+
+                        <TouchableOpacity style={shared_styles.logout_button} onPress={() => {
+                            logout()
+                        }}>
+                            <Text style={shared_styles.button_text}>
+                                Logout
+                            </Text>
+                        </TouchableOpacity>
+
                     </View>
 
                     <View
@@ -148,8 +186,7 @@ const ProfilePage = () => {
 
                     <View
                         style={[shared_styles.bottom_border_separator,
-                            {
-                            }]}
+                            {}]}
                     />
 
                     {

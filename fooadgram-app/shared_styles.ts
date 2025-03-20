@@ -99,6 +99,17 @@ const shared_styles = StyleSheet.create({
         height: 60,
         borderRadius: 5
     },
+    logout_button: {
+        backgroundColor: '#fac6c6',
+        borderWidth: 1,
+        borderColor: '#FF3B30',
+        paddingVertical: 8,
+        borderRadius: 5,
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        flex: 1
+    }
 
 });
 

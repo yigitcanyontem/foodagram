@@ -38,7 +38,7 @@ const RegisterPage = () => {
                 topOffset: 60,
             });
             setError(null);
-            navigation.navigate("Login");
+            navigation.navigate("Home");
         } catch (err) {
             Toast.show({
                 type: 'error',

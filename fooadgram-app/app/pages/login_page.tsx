@@ -41,11 +41,13 @@ const LoginPage = () => {
             const authResponse = await AuthService.authenticate({ username: email, password });
             setError(null);
 
-            setUserData({
+            const userData = {
                 token: authResponse.accessToken,
                 email: authResponse.user.email,
                 username: authResponse.user.username,
-            });
+            };
+
+            await setUserData(userData);
 
             Toast.show({
                 type: 'success',
@@ -55,7 +57,7 @@ const LoginPage = () => {
                 topOffset: 60,
             });
 
-            // navigation.navigate("Home");
+            navigation.navigate("Home");
         } catch (err) {
             Toast.show({
                 type: 'error',
@@ -69,11 +71,11 @@ const LoginPage = () => {
     };
 
     return (
-        <View style={shared_styles.body_container}>
+        <View style={[shared_styles.body_container, {paddingBottom: 0}]}>
             <ScrollView contentContainerStyle={styles.container} >
                 <Text style={styles.title}>Login</Text>
                 <Text style={styles.subtitle}>Login to your account</Text>
-                <AuthInput label="Email" value={email} onChangeText={setEmail} placeholder="Enter your email" />
+                <AuthInput label="Email" value={email} onChangeText={setEmail} placeholder="Enter your email"  secureTextEntry={false}/>
                 <AuthInput label="Password" value={password} onChangeText={setPassword} secureTextEntry placeholder="Enter your password" />
                 {error && <Text style={styles.errorText}>{error}</Text>}
                 <TouchableOpacity style={styles.button} onPress={handleLogin}>
@@ -83,7 +85,6 @@ const LoginPage = () => {
                     Don't have an account? <Text style={styles.link} onPress={() => navigation.navigate("Register")}>Create account</Text>
                 </Text>
             </ScrollView>
-            <FGTabBar/>
         </View>
     );
 };

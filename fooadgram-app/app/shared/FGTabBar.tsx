@@ -32,7 +32,7 @@ export default function FGTabBar() {
             flexDirection: 'row',
             justifyContent: 'space-around',
             padding: 10,
-            backgroundColor: '#FFF',
+            backgroundColor: '#FAFAFA',
             borderColor: '#8E8E8E',
             borderTopWidth: 0.4,
             position: 'absolute',
@@ -44,12 +44,6 @@ export default function FGTabBar() {
                 const isFocused = activeIndex === index;
                 const onPress = () => {
                     if (!isFocused) {
-                        Toast.show({
-                            type: 'info',
-                            text1: `Navigating to ${route.name}`,
-                            position: 'top',
-                            topOffset: 60,
-                        });
                         navigation.navigate(route.name);
                     }
                 };
@@ -65,7 +59,7 @@ export default function FGTabBar() {
                         }}
                     >
                         <route.icon
-                            color={isFocused ? '#673ab7' : '#8E8E8E'}
+                            color={isFocused ? '#000000' : '#8E8E8E'}
                             style={{
                                 marginBottom: 5,
                                 marginTop: 5,

@@ -1,4 +1,4 @@
-import {createStaticNavigation, DarkTheme, DefaultTheme, ThemeProvider} from '@react-navigation/native';
+import {createStaticNavigation, DarkTheme, DefaultTheme, ThemeProvider, useNavigation} from '@react-navigation/native';
 import {useFonts} from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import {StatusBar} from 'expo-status-bar';
@@ -36,6 +36,12 @@ import {AppProvider} from "@/context/AppContext";
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import HomeScreen from "@/app/(tabs)";
 import FGTabBar from "@/app/shared/FGTabBar";
+import HomePage from "@/app/pages/home_page";
+import ExplorePage from "@/app/pages/explore_page";
+import ProfilePage from "@/app/pages/profile_page";
+import BookmarkedPage from "@/app/pages/bookmarked_page";
+import CreatePostPage from "@/app/pages/create_post_page";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -64,17 +70,23 @@ export default function RootLayout() {
         Poppins_900Black,
         Poppins_900Black_Italic,
     });
+    const [userLoggedIn, setUserLoggedIn] = React.useState(false);
 
     useEffect(() => {
         if (loaded) {
             SplashScreen.hideAsync();
+            checkUserLoggedIn();
         }
     }, [loaded]);
+
+    const checkUserLoggedIn = async () => {
+        const storedUserData = await AsyncStorage.getItem("userData");
+        setUserLoggedIn(!!storedUserData);
+    }
 
     if (!loaded) {
         return null;
     }
-    const Tab = createBottomTabNavigator();
 
 
     return (
@@ -86,6 +98,11 @@ export default function RootLayout() {
                             header: ({navigation, route}) => <Header title={route.name}/>,
                         }}
                     >
+                        <Stack.Screen name="Home" component={HomePage}/>
+                        <Stack.Screen name="Explore" component={ExplorePage}/>
+                        <Stack.Screen name="CreatePost" component={CreatePostPage}/>
+                        <Stack.Screen name="Bookmarked" component={BookmarkedPage}/>
+                        <Stack.Screen name="Profile" component={ProfilePage}/>
                         <Stack.Screen name="Login" component={LoginPage}/>
                         <Stack.Screen name="Register" component={RegisterPage}/>
                     </Stack.Navigator>

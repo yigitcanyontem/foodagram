@@ -52,7 +52,7 @@ const RegisterPage = () => {
     };
 
     return (
-        <View style={shared_styles.body_container}>
+        <View style={[shared_styles.body_container, {paddingBottom: 0}]}>
             <ScrollView contentContainerStyle={styles.container} >
                 <Text style={styles.title}>Register</Text>
                 <Text style={styles.subtitle}>Create a new account</Text>
@@ -67,7 +67,6 @@ const RegisterPage = () => {
                     Already have an account? <Text style={styles.link} onPress={() => navigation.navigate("Login")}>Login here</Text>
                 </Text>
             </ScrollView>
-            <FGTabBar/>
         </View>
     );
 };

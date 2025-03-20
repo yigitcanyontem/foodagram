@@ -4,6 +4,7 @@ import {View, Text, TouchableOpacity, StyleSheet, Image} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {HeartIcon, MessageSquareIcon} from "lucide-react-native";
 import NotificationIcon from "@/icons/NotificationIcon";
+import MessageIcon from "@/icons/MessageIcon";
 
 export default function Header({title}) {
     const navigation = useNavigation();
@@ -17,9 +18,12 @@ export default function Header({title}) {
                 </Text>
             </TouchableOpacity>
 
-            <View style={styles.row}>
+            <View style={[styles.row, {gap: 20}]}>
                 <TouchableOpacity>
                     <NotificationIcon fill={'#8E8E8E'} width={25} height={25}/>
+                </TouchableOpacity>
+                <TouchableOpacity>
+                    <MessageIcon fill={'#8E8E8E'} width={25} height={25}/>
                 </TouchableOpacity>
             </View>
         </View>

@@ -10,6 +10,8 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import {AuthService} from "@/services/auth-service";
+import Toast from "react-native-toast-message";
+import {useAppContext} from "@/context/AppContext";
 
 export const AuthInput = ({ label, value, onChangeText, secureTextEntry, placeholder }) => (
     <View style={styles.inputContainer}>
@@ -30,17 +32,36 @@ const LoginPage = () => {
     const [password, setPassword] = useState("");
     const [error, setError] = useState(null);
     const navigation = useNavigation();
-    // const { toast } = useToast();
+    const { setUserData, userData } = useAppContext()
 
     const handleLogin = async () => {
         try {
-            await AuthService.authenticate({ username: email, password });
-            // toast({ title: "Login successful" });
+            const authResponse = await AuthService.authenticate({ username: email, password });
             setError(null);
-            navigation.navigate("Home");
+
+            setUserData({
+                token: authResponse.accessToken,
+                email: authResponse.user.email,
+                username: authResponse.user.username,
+            });
+
+            Toast.show({
+                type: 'success',
+                text1: 'Login successful',
+                text2: 'Welcome ' + userData.username,
+                position: 'top',
+                topOffset: 60,
+            });
+
+            // navigation.navigate("Home");
         } catch (err) {
-            console.error(err);
-            // toast({ title: "Error while logging in" });
+            Toast.show({
+                type: 'error',
+                text1: "Error while logging in",
+                text2: "Please check your credentials.",
+                position: 'top',
+                topOffset: 60,
+            });
             setError("Login failed. Please check your credentials.");
         }
     };

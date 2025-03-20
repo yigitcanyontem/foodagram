@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import {AuthService} from "@/services/auth-service";
+import Toast from "react-native-toast-message";
 
 const AuthInput = ({ label, value, onChangeText, secureTextEntry, placeholder }) => (
     <View style={styles.inputContainer}>
@@ -23,16 +24,27 @@ const RegisterPage = () => {
     const [username, setUsername] = useState("");
     const [error, setError] = useState(null);
     const navigation = useNavigation();
-    // const { toast } = useToast();
 
     const handleRegister = async () => {
         try {
             await AuthService.register({ email, password, username });
-            // toast({ title: "Registration successful" });
+            Toast.show({
+                type: 'success',
+                text1: 'Register successful',
+                text2: 'Welcome aboard!',
+                position: 'top',
+                topOffset: 60,
+            });
             setError(null);
             navigation.navigate("Login");
         } catch (err) {
-            // toast({ title: "Error while registering" });
+            Toast.show({
+                type: 'error',
+                text1: "Registration failed. Please try again",
+                text2: "Please check your details.",
+                position: 'top',
+                topOffset: 60,
+            });
             setError("Registration failed. Please try again.");
         }
     };
@@ -58,10 +70,10 @@ const RegisterPage = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: "center",
         alignItems: "center",
         padding: 20,
         backgroundColor: "#fff",
+        paddingTop: 150,
     },
     title: {
         fontSize: 24,

@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import {View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import {AuthService} from "@/services/auth-service";
 import Toast from "react-native-toast-message";
+import shared_styles from "@/shared_styles";
+import FGTabBar from "@/app/shared/FGTabBar";
 
 const AuthInput = ({ label, value, onChangeText, secureTextEntry, placeholder }) => (
     <View style={styles.inputContainer}>
@@ -50,19 +52,22 @@ const RegisterPage = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Register</Text>
-            <Text style={styles.subtitle}>Create a new account</Text>
-            <AuthInput label="Username" value={username} onChangeText={setUsername} placeholder="Enter your username" />
-            <AuthInput label="Email" value={email} onChangeText={setEmail} placeholder="Enter your email" />
-            <AuthInput label="Password" value={password} onChangeText={setPassword} secureTextEntry placeholder="Enter your password" />
-            {error && <Text style={styles.errorText}>{error}</Text>}
-            <TouchableOpacity style={styles.button} onPress={handleRegister}>
-                <Text style={styles.buttonText}>Register</Text>
-            </TouchableOpacity>
-            <Text style={styles.loginText}>
-                Already have an account? <Text style={styles.link} onPress={() => navigation.navigate("Login")}>Login here</Text>
-            </Text>
+        <View style={shared_styles.body_container}>
+            <ScrollView contentContainerStyle={styles.container} >
+                <Text style={styles.title}>Register</Text>
+                <Text style={styles.subtitle}>Create a new account</Text>
+                <AuthInput label="Username" value={username} onChangeText={setUsername} placeholder="Enter your username" />
+                <AuthInput label="Email" value={email} onChangeText={setEmail} placeholder="Enter your email" />
+                <AuthInput label="Password" value={password} onChangeText={setPassword} secureTextEntry placeholder="Enter your password" />
+                {error && <Text style={styles.errorText}>{error}</Text>}
+                <TouchableOpacity style={styles.button} onPress={handleRegister}>
+                    <Text style={styles.buttonText}>Register</Text>
+                </TouchableOpacity>
+                <Text style={styles.loginText}>
+                    Already have an account? <Text style={styles.link} onPress={() => navigation.navigate("Login")}>Login here</Text>
+                </Text>
+            </ScrollView>
+            <FGTabBar/>
         </View>
     );
 };

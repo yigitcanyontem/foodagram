@@ -1,8 +1,8 @@
-import {DarkTheme, DefaultTheme, ThemeProvider} from '@react-navigation/native';
+import {createStaticNavigation, DarkTheme, DefaultTheme, ThemeProvider} from '@react-navigation/native';
 import {useFonts} from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import {StatusBar} from 'expo-status-bar';
-import {useEffect} from 'react';
+import React, {useEffect} from 'react';
 import 'react-native-reanimated';
 
 import {useColorScheme} from '@/hooks/useColorScheme';
@@ -33,6 +33,9 @@ import {
 } from '@expo-google-fonts/poppins';
 import Toast from "react-native-toast-message";
 import {AppProvider} from "@/context/AppContext";
+import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
+import HomeScreen from "@/app/(tabs)";
+import FGTabBar from "@/app/shared/FGTabBar";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -71,6 +74,8 @@ export default function RootLayout() {
     if (!loaded) {
         return null;
     }
+    const Tab = createBottomTabNavigator();
+
 
     return (
         <SafeAreaView style={{flex: 1}}>

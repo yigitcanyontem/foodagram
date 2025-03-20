@@ -1,4 +1,5 @@
 server:
+#  address: 192.168.0.26
   port: 8083
 
 spring:

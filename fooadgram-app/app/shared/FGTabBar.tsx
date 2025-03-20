@@ -1,5 +1,5 @@
 import {Text, TouchableOpacity, View} from 'react-native';
-import {Home, User} from 'lucide-react-native';
+import {BadgePlus, BookmarkCheck, Home, House, Search, User} from 'lucide-react-native';
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useNavigation, useRoute} from "@react-navigation/native";
 import Toast from "react-native-toast-message";
@@ -17,11 +17,11 @@ export default function FGTabBar() {
 
     // Define your routes
     const routes = [
-        {key: 'Home', name: 'Home', icon: HomeIcon},
-        {key: 'Explore', name: 'Explore', icon: SearchIcon},
-        {key: 'CreatePost', name: 'CreatePost', icon: CreatePostIcon},
-        {key: 'Bookmarked', name: 'Bookmarked', icon: BookMarkIcon},
-        {key: 'Profile', name: 'Profile', icon: UserIcon},
+        {key: 'Home', name: 'Home', icon: House},
+        {key: 'Explore', name: 'Explore', icon: Search},
+        {key: 'CreatePost', name: 'CreatePost', icon: BadgePlus},
+        {key: 'Bookmarked', name: 'Bookmarked', icon: BookmarkCheck},
+        {key: 'Profile', name: 'Profile', icon: User},
     ];
 
     // Get the current active index dynamically

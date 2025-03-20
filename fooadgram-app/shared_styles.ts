@@ -79,7 +79,26 @@ const shared_styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 2,
         flexWrap: 'wrap'
-    }
+    },
+    recipes_container: {
+        display: 'flex',
+        flexDirection: 'column'
+    },
+    recipe_container: {
+        display: 'flex',
+        flexDirection: 'row',
+        gap: 10,
+        borderBottomWidth: 0.4,
+        borderBottomColor: '#8E8E8E',
+        flexBasis: '100%',
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+    },
+    recipe_image: {
+        width: 60,
+        height: 60,
+        borderRadius: 5
+    },
 
 });
 

@@ -5,12 +5,15 @@ import {useAppContext} from "@/context/AppContext";
 import FGTabBar from "@/app/shared/FGTabBar";
 import shared_styles from "@/shared_styles";
 import {Label, Separator} from "@rn-primitives/select";
-import PostsSection from "@/app/shared/PostsSection";
+import PostsSection from "@/app/shared/profile/PostsSection";
+import {CookingPot, Grid2X2} from "lucide-react-native";
+import RecipesSection from "@/app/shared/profile/RecipesSection";
 
 
 const ProfilePage = () => {
     const navigation = useNavigation();
     const {setUserData, userData} = useAppContext()
+    const [chosenSection, setChosenSection] = React.useState('posts');
 
     return (
         <View style={shared_styles.body_container}>
@@ -101,18 +104,46 @@ const ProfilePage = () => {
                     />
 
                     <View style={[shared_styles.row, shared_styles.paddingH_20, {
-                        justifyContent: "space-around",
+                        justifyContent: "space-evenly",
                         alignItems: "center",
-                        paddingVertical: 10,
+                        paddingVertical: 5,
                     }]}>
-                        <Label
-                            style={{fontSize: 15, fontFamily: 'Poppins', fontWeight: "medium"}}>
-                            Posts
-                        </Label>
-                        <Label
-                            style={{fontSize: 15, fontFamily: 'Poppins', fontWeight: "medium"}}>
-                            Recipes
-                        </Label>
+                        <TouchableOpacity
+                            onPress={() => {
+                                setChosenSection('posts');
+                            }}
+                        >
+                            <Grid2X2
+                                width={24}
+                                height={24}
+                                color={chosenSection == 'posts' ? '#000000' : '#8E8E8E'}
+                                style={{
+                                    marginBottom: 5,
+                                    marginTop: 5,
+                                    marginLeft: 5,
+                                    marginRight: 5,
+                                }}
+                            />
+                        </TouchableOpacity>
+                        <TouchableOpacity>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => {
+                                setChosenSection('recipes');
+                            }}
+                        >
+                            <CookingPot
+                                width={24}
+                                height={24}
+                                color={chosenSection == 'recipes' ? '#000000' : '#8E8E8E'}
+                                style={{
+                                    marginBottom: 5,
+                                    marginTop: 5,
+                                    marginLeft: 5,
+                                    marginRight: 5,
+                                }}
+                            />
+                        </TouchableOpacity>
                     </View>
 
                     <View
@@ -121,7 +152,12 @@ const ProfilePage = () => {
                             }]}
                     />
 
-                    <PostsSection/>
+                    {
+                        chosenSection == 'posts' ?
+                            <PostsSection/>
+                            :
+                            <RecipesSection/>
+                    }
                 </View>
 
             </ScrollView>

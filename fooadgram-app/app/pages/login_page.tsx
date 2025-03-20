@@ -1,19 +1,14 @@
-import {Animated, ScrollView} from 'react-native';
-import {NavigationProp} from "@react-navigation/native";
-import {Label} from "@rn-primitives/select";
+import {ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {NavigationProp, useNavigation} from "@react-navigation/native";
+import React, {useState} from "react";
+import {AuthService} from "@/services/auth-service";
+import Toast from "react-native-toast-message";
+import {useAppContext} from "@/context/AppContext";
+import shared_styles from "@/shared_styles";
 
 type LoginPageProps = {
     navigation: NavigationProp<any>;
 };
-
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import {AuthService} from "@/services/auth-service";
-import Toast from "react-native-toast-message";
-import {useAppContext} from "@/context/AppContext";
-import FGTabBar from "@/app/shared/FGTabBar";
-import shared_styles from "@/shared_styles";
 
 export const AuthInput = ({ label, value, onChangeText, secureTextEntry, placeholder }) => (
     <View style={styles.inputContainer}>

@@ -91,7 +91,7 @@ public class FileService {
     }
 
     // Delete file from MinIO and DB
-    public void deleteFile(Long fileId) {
+    public void deleteFile(UUID fileId) {
         try {
             Files file = fileRepository.findById(fileId)
                     .orElseThrow(() -> new RuntimeException("File not found"));

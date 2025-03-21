@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @EqualsAndHashCode
@@ -15,12 +16,12 @@ import java.util.Date;
 @NoArgsConstructor
 @RedisHash("users")
 public class UsersHash {
-    private Integer id;
+    private UUID id;
     private String username;
     private String password;
     @Id
     private String email;
     private String role;
     private boolean enabled;
-    private Date createdAt;
+    private LocalDateTime createdDate;
 }

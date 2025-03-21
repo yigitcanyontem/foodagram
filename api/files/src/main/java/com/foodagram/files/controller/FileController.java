@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/files")
@@ -51,7 +52,7 @@ public class FileController {
 
     // Delete file
     @DeleteMapping("/{fileId}")
-    public ResponseEntity<String> deleteFile(@PathVariable Long fileId) {
+    public ResponseEntity<String> deleteFile(@PathVariable UUID fileId) {
         fileService.deleteFile(fileId);
         return ResponseEntity.ok("File deleted: " + fileId);
     }

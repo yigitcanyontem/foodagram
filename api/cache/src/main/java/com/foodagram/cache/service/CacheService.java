@@ -27,7 +27,7 @@ public class CacheService{
                 hash.getPassword(),
                 Role.valueOf(hash.getRole()),
                 hash.isEnabled(),
-                hash.getCreatedAt()
+                hash.getCreatedDate()
         )).orElse(null);
     }
 
@@ -40,7 +40,7 @@ public class CacheService{
                 user.getEmail(),
                 user.getRole().toString(),
                 user.isEnabled(),
-                user.getCreatedAt()
+                user.getCreatedDate()
         ));
         log.info("User saved with id: {}", usersHash.getId());
     }

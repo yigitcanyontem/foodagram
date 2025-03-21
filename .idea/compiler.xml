@@ -8,6 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="apigw" />
+        <module name="cache" />
         <module name="clients" />
         <module name="auth" />
         <module name="amqp" />
@@ -22,6 +23,7 @@
       <module name="amqp" options="-parameters" />
       <module name="apigw" options="-parameters" />
       <module name="auth" options="-parameters" />
+      <module name="cache" options="-parameters" />
       <module name="clients" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
       <module name="foodagram" options="" />

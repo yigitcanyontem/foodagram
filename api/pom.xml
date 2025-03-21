@@ -20,6 +20,7 @@
 		<module>auth</module>
 		<module>amqp</module>
 		<module>user</module>
+		<module>cache</module>
 	</modules>
 	<packaging>pom</packaging>
 

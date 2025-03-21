@@ -10,6 +10,7 @@
         <option value="$PROJECT_DIR$/api/auth/pom.xml" />
         <option value="$PROJECT_DIR$/api/amqp/pom.xml" />
         <option value="$PROJECT_DIR$/api/user/pom.xml" />
+        <option value="$PROJECT_DIR$/api/cache/pom.xml" />
       </list>
     </option>
   </component>

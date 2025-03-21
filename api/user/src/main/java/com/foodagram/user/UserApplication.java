@@ -8,7 +8,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
         basePackageClasses = {
                 com.foodagram.clients.users.UsersClient.class,
                 com.foodagram.clients.notification.NotificationClient.class,
-                com.foodagram.clients.auth.AuthClient.class
+                com.foodagram.clients.auth.AuthClient.class,
+                com.foodagram.clients.cache.CacheClient.class
         }
 )
 @SpringBootApplication(

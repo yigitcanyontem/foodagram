@@ -1,0 +1,45 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: cache
+  cache:
+    type: redis
+    host: localhost
+    port: 6379
+    timeout: 6000
+  cloud:
+    compatibility-verifier:
+      enabled: false
+  zipkin:
+    base-url: http://localhost:9411
+  rabbitmq:
+    addresses: localhost:5672
+
+
+management:
+  tracing:
+    enabled: true
+    sampler:
+      probability: 1.0
+
+
+eureka:
+  instance:
+    appname: cache
+  client:
+    enabled: true
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+    fetch-registry: true
+    register-with-eureka: true
+
+
+rabbitmq:
+  exchanges:
+    internal: internal.exchange
+  queues:
+    user-cache: user-cache.queue
+  routing-keys:
+    internal-cache: internal.cache.routing-key

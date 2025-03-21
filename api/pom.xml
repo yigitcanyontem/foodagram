@@ -21,6 +21,7 @@
 		<module>amqp</module>
 		<module>user</module>
 		<module>cache</module>
+		<module>files</module>
 	</modules>
 	<packaging>pom</packaging>
 

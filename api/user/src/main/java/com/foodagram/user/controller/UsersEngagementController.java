@@ -33,7 +33,7 @@ public class UsersEngagementController {
             return ResponseEntity.ok().build();
         }catch (Exception e) {
             log.error("Error while saving user profile: {}", e.getMessage());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -50,7 +50,7 @@ public class UsersEngagementController {
             return ResponseEntity.ok().build();
         }catch (Exception e) {
             log.error("Error while updating user profile: {}", e.getMessage());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

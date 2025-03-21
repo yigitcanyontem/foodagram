@@ -1,5 +1,6 @@
 package com.foodagram.files.controller;
 
+import com.foodagram.clients.files.FilesDto;
 import com.foodagram.files.entity.Files;
 import com.foodagram.files.service.FileService;
 import org.springframework.http.ResponseEntity;
@@ -18,36 +19,28 @@ public class FileController {
 
     public FileController(FileService fileService) {
         this.fileService = fileService;
-        this.fileService.createBucket();
     }
 
     // Upload file
     @PostMapping("/upload")
-    public ResponseEntity<Files> uploadFile(
+    public ResponseEntity<FilesDto> uploadFile(
             @RequestParam("file") MultipartFile file,
             @RequestParam("ownerService") String ownerService,
             @RequestParam("ownerEntity") String ownerEntity,
-            @RequestParam("ownerId") String ownerId
+            @RequestParam("ownerId") String ownerId,
+            @RequestParam("fileName") String fileName
     ) {
-        Files fileEntity = fileService.uploadFile(file, ownerService, ownerEntity, ownerId);
-        return ResponseEntity.ok(fileEntity);
-    }
-
-    // Get files by owner
-    @GetMapping("/by-owner")
-    public ResponseEntity<List<Files>> getFilesByOwner(
-            @RequestParam("ownerService") String ownerService,
-            @RequestParam("ownerEntity") String ownerEntity,
-            @RequestParam("ownerId") String ownerId
-    ) {
-        return ResponseEntity.ok(fileService.getFilesByOwner(ownerService, ownerEntity, ownerId));
+        try {
+            return ResponseEntity.ok(fileService.uploadFile(file, ownerService, ownerEntity, ownerId, fileName));
+        }catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
     }
 
     // Download file
-    @GetMapping("/{fileName}/download")
-    public ResponseEntity<InputStream> downloadFile(@PathVariable String fileName) {
-        InputStream fileStream = fileService.downloadFile(fileName);
-        return ResponseEntity.ok().body(fileStream);
+    @GetMapping("/{fileID}/download")
+    public ResponseEntity<FilesDto> downloadFile(@PathVariable UUID fileID) {
+        return ResponseEntity.ok().body(fileService.downloadFile(fileID));
     }
 
     // Delete file
@@ -55,11 +48,5 @@ public class FileController {
     public ResponseEntity<String> deleteFile(@PathVariable UUID fileId) {
         fileService.deleteFile(fileId);
         return ResponseEntity.ok("File deleted: " + fileId);
-    }
-
-    // List all files
-    @GetMapping("/list")
-    public ResponseEntity<List<Files>> listFiles() {
-        return ResponseEntity.ok(fileService.listFiles());
     }
 }

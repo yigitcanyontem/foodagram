@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -14,8 +15,6 @@ import java.util.Date;
 public class UsersProfileCreateDto {
     private String firstName;
     private String lastName;
-    private String profilePictureUrl;
-    private String bannerPictureUrl;
     private String bio;
     private String city;
     private String country;

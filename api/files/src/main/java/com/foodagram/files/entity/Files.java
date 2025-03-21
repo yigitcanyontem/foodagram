@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "file_name_unique",
-                        columnNames = {"file_name","file_path"}
+                        columnNames = {"file_name"}
                 )
         }
 )

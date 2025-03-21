@@ -1,16 +1,28 @@
 package com.foodagram.clients.files;
 
-import com.foodagram.clients.notification.NotificationCreateDto;
-import com.foodagram.clients.notification.NotificationDto;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.UUID;
 
 @FeignClient(
         name = "files"
 )
 public interface FilesClient {
+    @PostMapping(path = "/files/upload", consumes = "multipart/form-data")
+    ResponseEntity<FilesDto> uploadFile(
+            @RequestPart("file") MultipartFile file,
+            @RequestParam("ownerService") String ownerService,
+            @RequestParam("ownerEntity") String ownerEntity,
+            @RequestParam("ownerId") String ownerId,
+            @RequestParam("fileName") String fileName
+    );
 
+    @GetMapping("/files/{fileID}/download")
+    ResponseEntity<FilesDto> downloadFile(@PathVariable("fileID") UUID fileId);
+
+    @DeleteMapping("/files/{fileId}")
+    ResponseEntity<String> deleteFile(@PathVariable("fileId") UUID fileId);
 }

@@ -3,8 +3,7 @@ export interface UsersProfileDto {
     usersId: number;
     firstName: string;
     lastName: string;
-    profilePictureUrl: string;
-    bannerPictureUrl: string;
+    profilePictureID: string;
     bio: string;
     city: string;
     country: string;
@@ -16,4 +15,5 @@ export interface UsersProfileDto {
     facebookProfile: string;
     followingCount: number;
     followersCount: number;
+    profilePicture: Blob;
 }

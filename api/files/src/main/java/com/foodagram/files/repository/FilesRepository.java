@@ -5,10 +5,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 
 @Repository
 public interface FilesRepository extends JpaRepository<Files, UUID> {
     List<Files> findByOwnerServiceAndOwnerEntityAndOwnerId(String ownerService, String ownerEntity, String ownerId);
+
+    Optional<Files> findByFileName(String fileName);
+
+    Optional<Files> findByFileNameAndFilePath(String fileName, String filePath);
 }

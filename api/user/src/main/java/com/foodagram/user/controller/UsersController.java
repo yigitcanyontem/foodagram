@@ -1,15 +1,15 @@
 package com.foodagram.user.controller;
 
+import com.foodagram.clients.users.dto.UserRegisterDTO;
+import com.foodagram.clients.users.dto.UsersCompleteDto;
+import com.foodagram.clients.users.dto.UsersDto;
+import com.foodagram.user.service.UsersService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.foodagram.clients.users.dto.UserRegisterDTO;
-import com.foodagram.clients.users.dto.UsersCompleteDto;
-import com.foodagram.clients.users.dto.UsersDto;
-import com.foodagram.user.service.UsersService;
 
 import java.util.UUID;
 
@@ -26,7 +26,7 @@ public class UsersController {
             return new ResponseEntity<>(usersService.getLoggedInUser(jwtToken), HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching logged in user: {}", e.getMessage());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
        }
     }
 
@@ -36,7 +36,7 @@ public class UsersController {
             return new ResponseEntity<>(usersService.getUsersByUsername(username), HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching user profile by username: {}", e.getMessage());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -46,7 +46,7 @@ public class UsersController {
             return new ResponseEntity<>(usersService.getUserById(id), HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching user profile by user id: {}", e.getMessage());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -56,7 +56,7 @@ public class UsersController {
             return new ResponseEntity<>(usersService.getUserByEmail(email), HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching user profile by email: {}", e.getMessage());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -66,7 +66,7 @@ public class UsersController {
             return new ResponseEntity<>(usersService.save(user), HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching user profile by user id: {}", e.getMessage());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -74,5 +74,6 @@ public class UsersController {
     public boolean userExists(@RequestBody UserRegisterDTO user) {
         return usersService.userExists(user);
     }
+
 
 }

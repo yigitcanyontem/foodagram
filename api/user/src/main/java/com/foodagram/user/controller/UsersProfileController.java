@@ -12,6 +12,7 @@ import com.foodagram.clients.users.profile.UsersProfileDto;
 import com.foodagram.clients.users.profile.UsersProfileUpdateDto;
 import com.foodagram.user.service.UsersProfileService;
 import com.foodagram.user.util.UsersUtil;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -31,7 +32,7 @@ public class UsersProfileController {
             return new ResponseEntity<>(usersProfileService.getUsersProfileByUsersId(user.getId()), HttpStatus.OK);
         }catch (Exception e) {
             log.error("Error while fetching user from token: {}", e.getMessage());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -41,7 +42,7 @@ public class UsersProfileController {
             return new ResponseEntity<>(usersProfileService.getUsersProfileByUsersId(userId), HttpStatus.OK);
         }catch (Exception e) {
             log.error("Error while fetching user profile by user id: {}", e.getMessage());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -51,7 +52,7 @@ public class UsersProfileController {
             return new ResponseEntity<>(usersProfileService.getUsersProfileByEmail(email), HttpStatus.OK);
         }catch (Exception e) {
             log.error("Error while fetching user profile by email: {}", e.getMessage());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -63,7 +64,7 @@ public class UsersProfileController {
             return new ResponseEntity<>(usersProfileService.save(createDto, user), HttpStatus.OK);
         }catch (Exception e) {
             log.error("Error while saving user profile: {}", e.getMessage());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -75,7 +76,7 @@ public class UsersProfileController {
             return new ResponseEntity<>(usersProfileService.update(updateDto, user), HttpStatus.OK);
         }catch (Exception e) {
             log.error("Error while updating user profile: {}", e.getMessage());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -87,7 +88,21 @@ public class UsersProfileController {
             return ResponseEntity.ok().build();
         }catch (Exception e) {
             log.error("Error while deleting user profile: {}", e.getMessage());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/upload-profile-picture")
+    public ResponseEntity<Void> uploadProfilePicture(
+            @RequestParam("file") MultipartFile file,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken
+    ) {
+        try {
+            UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
+            usersProfileService.uploadProfilePicture(file,user);
+            return ResponseEntity.ok().build();
+        }catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
         }
     }
 

@@ -15,8 +15,7 @@ public class UsersProfileDto {
     private UUID usersId;
     private String firstName;
     private String lastName;
-    private String profilePictureUrl;
-    private String bannerPictureUrl;
+    private UUID profilePictureID;
     private String bio;
     private String city;
     private String country;
@@ -27,4 +26,5 @@ public class UsersProfileDto {
     private String facebookProfile;
     private long followingCount;
     private long followersCount;
+    private byte[] profilePicture;
 }

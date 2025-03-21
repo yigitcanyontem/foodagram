@@ -10,6 +10,7 @@ import {CookingPot, Grid2X2} from "lucide-react-native";
 import RecipesSection from "@/app/shared/profile/RecipesSection";
 import {UserService} from "@/services/user-service";
 import {UsersCompleteDto} from "@/models/user/UsersCompleteDto";
+import { useBase64Image } from "@/hooks/useBase64Image";
 
 
 const ProfilePage = () => {
@@ -17,7 +18,7 @@ const ProfilePage = () => {
     const {setUserData, userData} = useAppContext()
     const [chosenSection, setChosenSection] = React.useState('posts');
     const [userProfile, setUserProfile] = React.useState<UsersCompleteDto>(null);
-
+    const {getBase64Uri} = useBase64Image();
     const getUserProfile = async () => {
         try {
             const userProfileResponse = await UserService.getLoggedInUser(userData);
@@ -46,7 +47,10 @@ const ProfilePage = () => {
                     <View style={[shared_styles.row, shared_styles.paddingH_20]}>
                         <View style={shared_styles.profilePicContainer}>
                             <Image
-                                source={{uri: 'https://yigitcanyontem.github.io/static/media/profile_pic_new.b19522920f58b549fdcd.jpg'}}
+                                source={
+                                userProfile?.profile?.profilePicture ? { uri: getBase64Uri(userProfile.profile.profilePicture)}
+                                    : require('@/assets/images/dummy-profile.jpeg')
+                                }
                                 style={shared_styles.profilePic}
                             />
                         </View>

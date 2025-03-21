@@ -1,7 +1,6 @@
 export interface UsersProfileUpdateDto {
     firstName: string;
     lastName: string;
-    profilePictureUrl: string;
     bio: string;
     city: string;
     country: string;

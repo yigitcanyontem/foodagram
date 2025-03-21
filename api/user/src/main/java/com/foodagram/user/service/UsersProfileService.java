@@ -1,6 +1,8 @@
 package com.foodagram.user.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.foodagram.clients.files.FilesClient;
+import com.foodagram.clients.files.FilesDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import com.foodagram.clients.users.profile.UsersProfileUpdateDto;
 import com.foodagram.user.domain.UsersProfile;
 import com.foodagram.user.repository.UsersProfileRepository;
 import com.foodagram.user.repository.UsersRepository;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 import java.util.UUID;
@@ -24,6 +27,7 @@ public class UsersProfileService {
     private final UsersProfileRepository usersProfileRepository;
     private final UsersRepository usersRepository;
     private final ObjectMapper objectMapper;
+    private final FilesClient filesClient;
 
     public UsersProfileDto getUsersProfileByEmail(String email) {
         return mapDomainToDto(usersProfileRepository.findUsersProfileByUsersIdEmail(email).orElse(null));
@@ -70,8 +74,7 @@ public class UsersProfileService {
         ));
         usersProfile.setFirstName(createDto.getFirstName());
         usersProfile.setLastName(createDto.getLastName());
-        usersProfile.setProfilePictureUrl(createDto.getProfilePictureUrl());
-        usersProfile.setBannerPictureUrl(createDto.getBannerPictureUrl());
+        usersProfile.setProfilePictureID(null);
         usersProfile.setBio(createDto.getBio());
         usersProfile.setCity(createDto.getCity());
         usersProfile.setCountry(createDto.getCountry());
@@ -88,7 +91,6 @@ public class UsersProfileService {
     private void updateExistingProfile(UsersProfile existingProfile, UsersProfileUpdateDto updateDto) {
         existingProfile.setFirstName(updateDto.getFirstName());
         existingProfile.setLastName(updateDto.getLastName());
-        existingProfile.setProfilePictureUrl(updateDto.getProfilePictureUrl());
         existingProfile.setBio(updateDto.getBio());
         existingProfile.setCity(updateDto.getCity());
         existingProfile.setCountry(updateDto.getCountry());
@@ -109,8 +111,7 @@ public class UsersProfileService {
                 .usersId(usersProfile.getUsersId().getId())
                 .firstName(usersProfile.getFirstName())
                 .lastName(usersProfile.getLastName())
-                .profilePictureUrl(usersProfile.getProfilePictureUrl())
-                .bannerPictureUrl(usersProfile.getBannerPictureUrl())
+                .profilePictureID(usersProfile.getProfilePictureID())
                 .bio(usersProfile.getBio())
                 .city(usersProfile.getCity())
                 .country(usersProfile.getCountry())
@@ -121,7 +122,21 @@ public class UsersProfileService {
                 .facebookProfile(usersProfile.getFacebookProfile())
                 .followersCount(usersProfile.getFollowersCount() != null ? usersProfile.getFollowersCount() : 0)
                 .followingCount(usersProfile.getFollowingCount() != null ? usersProfile.getFollowingCount() : 0)
+                .profilePicture(getUserProfilePicture(usersProfile.getProfilePictureID()))
                 .build();
+    }
+
+    private byte[] getUserProfilePicture(UUID profilePictureID) {
+        try {
+            if (profilePictureID == null) {
+                return null;
+            }
+
+            return filesClient.downloadFile(profilePictureID).getBody().getFileData();
+        }catch (Exception e) {
+            log.error("Error while fetching user profile picture: {}", e.getMessage());
+            return null;
+        }
     }
 
     public void delete(UsersDto usersProfile) {
@@ -158,8 +173,7 @@ public class UsersProfileService {
         ));
         usersProfile.setFirstName("");
         usersProfile.setLastName("");
-        usersProfile.setProfilePictureUrl("");
-        usersProfile.setBannerPictureUrl("");
+        usersProfile.setProfilePictureID(null);
         usersProfile.setBio("");
         usersProfile.setCity("");
         usersProfile.setCountry("");
@@ -170,5 +184,33 @@ public class UsersProfileService {
         usersProfile.setInstagramProfile("");
 
         usersProfileRepository.saveAndFlush(usersProfile);
+    }
+
+    public void updateProfilePicture(UUID userId, UUID pictureId) {
+        UsersProfile usersProfile = usersProfileRepository.findUsersProfileByUsersIdId(userId).orElseThrow(
+                () -> new IllegalArgumentException("User does not exist")
+        );
+        usersProfile.setProfilePictureID(pictureId);
+        usersProfileRepository.saveAndFlush(usersProfile);
+    }
+
+    public void uploadProfilePicture(MultipartFile file, UsersDto user) {
+        try {
+            FilesDto filesDto = filesClient.uploadFile(
+                    file,
+                    "users",
+                    "UsersProfile",
+                    user.getId().toString(),
+                    "users/profile-picture/"+user.getId().toString()
+            ).getBody();
+
+            if (filesDto != null) {
+                updateProfilePicture(user.getId(), filesDto.getId());
+            } else {
+                log.error("Error uploading profile picture: File upload failed");
+            }
+        }catch (Exception e) {
+            log.error("Error uploading profile picture: {}", e.getMessage());
+        }
     }
 }

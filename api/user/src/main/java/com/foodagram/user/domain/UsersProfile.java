@@ -9,6 +9,7 @@ import com.foodagram.clients.users.dto.UserRegisterDTO;
 import com.foodagram.clients.users.enums.Role;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -36,8 +37,7 @@ public class UsersProfile extends BaseEntity {
 
     private String firstName;
     private String lastName;
-    private String profilePictureUrl;
-    private String bannerPictureUrl;
+    private UUID profilePictureID;
     private String bio;
     private String city;
     private String country;

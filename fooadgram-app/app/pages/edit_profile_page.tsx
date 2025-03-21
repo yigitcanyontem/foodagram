@@ -1,11 +1,15 @@
-import {Text, Button, ScrollView, StyleSheet, TextInput, View} from 'react-native';
+import {Button, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {useNavigation} from "@react-navigation/native";
 import React, {useEffect, useState} from "react";
 import {useAppContext} from "@/context/AppContext";
 import FGTabBar from "@/app/shared/FGTabBar";
 import shared_styles from "@/shared_styles";
 import {UserService} from "@/services/user-service";
-import {UsersProfileUpdateDto} from "@/models/user/UsersProfileUpdateDto";
+import {UsersCompleteDto} from "@/models/user/UsersCompleteDto";
+import RNDateTimePicker from "@react-native-community/datetimepicker";
+import * as ImagePicker from 'expo-image-picker';
+import {ImagePickerAsset} from "expo-image-picker/src/ImagePicker.types";
+import {useBase64Image} from "@/hooks/useBase64Image";
 
 const EditProfilePage = () => {
     const navigation = useNavigation();
@@ -13,7 +17,6 @@ const EditProfilePage = () => {
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
-        profilePictureUrl: "",
         bio: "",
         city: "",
         country: "",
@@ -23,17 +26,21 @@ const EditProfilePage = () => {
         instagramProfile: "",
         facebookProfile: ""
     });
-    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [open, setOpen] = useState(false)
+    const [userProfile, setUserProfile] = React.useState<UsersCompleteDto>(null);
+    const [date, setDate] = useState(new Date())
+    const [profilePicture, setProfilePicture] = useState<ImagePickerAsset>(null);
+    const {getBase64Uri} = useBase64Image();
 
     useEffect(() => {
         const fetchUserData = async () => {
             try {
                 const response = await UserService.getLoggedInUser(userData)
+                setUserProfile(response);
                 setFormData(
                     {
                         firstName: response.profile.firstName,
                         lastName: response.profile.lastName,
-                        profilePictureUrl: response.profile.profilePictureUrl,
                         bio: response.profile.bio,
                         city: response.profile.city,
                         country: response.profile.country,
@@ -56,10 +63,31 @@ const EditProfilePage = () => {
         setFormData({...formData, [key]: value});
     };
 
+    const handleProfilePictureChange = async () => {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permissionResult.granted) {
+            alert("Permission to access media library is required!");
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 4],
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            setProfilePicture(result.assets[0]);
+        }
+    };
+
     const onSubmit = async (data) => {
         try {
+            if (profilePicture) {
+                await UserService.uploadProfilePicture(profilePicture, userData);
+            }
             const response = await UserService.updateUserProfile(data, userData);
-            setUserData(response);
             navigation.navigate("Profile");
         } catch (error) {
             console.error("Error updating profile:", error);
@@ -69,6 +97,27 @@ const EditProfilePage = () => {
     return (
         <View style={shared_styles.body_container}>
             <ScrollView contentContainerStyle={styles.container}>
+                <View style={[shared_styles.profilePicContainer, {
+                    justifyContent: "center",
+                    alignItems: "center",
+                    flex: 1
+                }]}>
+                    <TouchableOpacity
+                        onPress={handleProfilePictureChange}
+                    >
+                        <Image
+                            source={
+                                profilePicture
+                                    ? { uri: profilePicture.uri }  // Show newly selected image
+                                    : userProfile?.profile?.profilePicture
+                                        ? { uri: getBase64Uri(userProfile.profile.profilePicture) }  // Show saved profile picture
+                                        : require('@/assets/images/dummy-profile.jpeg')  // Show default image
+                            }
+                            style={shared_styles.profilePic}
+                        />
+                    </TouchableOpacity>
+                </View>
+
                 <Text>First Name</Text>
                 <TextInput
                     style={styles.input}
@@ -80,12 +129,6 @@ const EditProfilePage = () => {
                     style={styles.input}
                     value={formData.lastName}
                     onChangeText={(text) => handleChange("lastName", text)}
-                />
-                <Text>Profile Picture URL</Text>
-                <TextInput
-                    style={styles.input}
-                    value={formData.profilePictureUrl}
-                    onChangeText={(text) => handleChange("profilePictureUrl", text)}
                 />
                 <Text>Bio</Text>
                 <TextInput
@@ -119,7 +162,25 @@ const EditProfilePage = () => {
                     onChangeText={(text) => handleChange("jobTitle", text)}
                 />
                 <Text>Birth Date</Text>
-                <Button title="Select Date" onPress={() => setShowDatePicker(true)} />
+                <Text>
+                    {date.toLocaleDateString()}
+                </Text>
+                <Button title="Select Date" onPress={() => setOpen(true)} />
+
+                {
+                    open && (
+                        <RNDateTimePicker
+                            value={date}
+                            onChange={(_, selectedDate) => {
+                                const currentDate = selectedDate || date;
+                                setOpen(false);
+                                setDate(currentDate);
+                                handleChange("birthDate", currentDate)
+                            }
+                            }
+                        />
+                    )
+                }
 
                 <Text>Instagram Profile</Text>
                 <TextInput
@@ -133,7 +194,7 @@ const EditProfilePage = () => {
                     value={formData.facebookProfile}
                     onChangeText={(text) => handleChange("facebookProfile", text)}
                 />
-                <Button title="Update Profile" onPress={() => onSubmit(formData)} />
+                <Button title="Update Profile" onPress={() => onSubmit(formData)}/>
             </ScrollView>
             <FGTabBar/>
         </View>

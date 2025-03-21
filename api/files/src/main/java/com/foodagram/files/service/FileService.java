@@ -1,20 +1,19 @@
 package com.foodagram.files.service;
 
+import com.foodagram.clients.files.FilesDto;
 import com.foodagram.files.entity.Files;
 import com.foodagram.files.repository.FilesRepository;
 import io.minio.*;
-import io.minio.errors.*;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStream;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FileService {
@@ -24,7 +23,7 @@ public class FileService {
     @Value("${minio.bucketName}")
     private String bucketName;
 
-    // Ensure the bucket exists
+    @PostConstruct
     public void createBucket() {
         try {
             boolean found = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
@@ -37,16 +36,17 @@ public class FileService {
     }
 
     // Upload a file
-    public Files uploadFile(MultipartFile file, String ownerService, String ownerEntity, String ownerId) {
+    public FilesDto uploadFile(MultipartFile file, String ownerService, String ownerEntity, String ownerId, String fileName) {
         try {
-            String uniqueFileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            String filePath = bucketName + "/" + uniqueFileName;
-            uniqueFileName = uniqueFileName.replaceAll(" ", "_");
+            String filePath = bucketName + "/" + fileName;
+            fileName = fileName.replaceAll(" ", "_");
+
+            deleteIfExists(fileName);
 
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(bucketName)
-                            .object(uniqueFileName)
+                            .object(fileName)
                             .stream(file.getInputStream(), file.getSize(), -1)
                             .contentType(file.getContentType())
                             .build()
@@ -56,7 +56,7 @@ public class FileService {
 
             // Save file metadata in DB
             Files fileEntity = Files.builder()
-                    .fileName(uniqueFileName)
+                    .fileName(fileName)
                     .filePath(fileUrl)
                     .contentType(file.getContentType())
                     .fileSize(file.getSize())
@@ -65,26 +65,35 @@ public class FileService {
                     .ownerId(ownerId)
                     .build();
 
-            return fileRepository.save(fileEntity);
+            return convertToDto(fileRepository.save(fileEntity));
         } catch (Exception e) {
             throw new RuntimeException("File upload failed: " + e.getMessage());
         }
     }
 
-    // Get file by owner details
-    public List<Files> getFilesByOwner(String ownerService, String ownerEntity, String ownerId) {
-        return fileRepository.findByOwnerServiceAndOwnerEntityAndOwnerId(ownerService, ownerEntity, ownerId);
-    }
-
     // Download file
-    public InputStream downloadFile(String fileName) {
+    public FilesDto downloadFile(UUID fileID) {
         try {
-            return minioClient.getObject(
+            Files file = fileRepository.findById(fileID)
+                    .orElseThrow(() -> new RuntimeException("File not found"));
+            GetObjectResponse response = minioClient.getObject(
                     GetObjectArgs.builder()
                             .bucket(bucketName)
-                            .object(fileName)
+                            .object(file.getFileName())
                             .build()
             );
+
+            return FilesDto.builder()
+                    .id(file.getId())
+                    .fileName(file.getFileName())
+                    .filePath(file.getFilePath())
+                    .contentType(file.getContentType())
+                    .fileSize(file.getFileSize())
+                    .ownerService(file.getOwnerService())
+                    .ownerEntity(file.getOwnerEntity())
+                    .ownerId(file.getOwnerId())
+                    .fileData(response.readAllBytes())
+                    .build();
         } catch (Exception e) {
             throw new RuntimeException("Error downloading file: " + e.getMessage());
         }
@@ -109,9 +118,38 @@ public class FileService {
         }
     }
 
-    // List all files from DB
-    public List<Files> listFiles() {
-        return fileRepository.findAll();
+    private FilesDto convertToDto(Files file) {
+        return FilesDto.builder()
+                .id(file.getId())
+                .fileName(file.getFileName())
+                .filePath(file.getFilePath())
+                .contentType(file.getContentType())
+                .fileSize(file.getFileSize())
+                .ownerService(file.getOwnerService())
+                .ownerEntity(file.getOwnerEntity())
+                .ownerId(file.getOwnerId())
+                .build();
+    }
+
+    private void deleteIfExists(String fileName) {
+        try {
+            fileRepository.findByFileName(fileName)
+                    .ifPresent(file -> {
+                        try {
+                            minioClient.removeObject(
+                                    RemoveObjectArgs.builder()
+                                            .bucket(bucketName)
+                                            .object(fileName)
+                                            .build()
+                            );
+                        } catch (Exception e) {
+                            log.error("Error deleting file from MinIO: {}", e.getMessage());
+                        }
+                        fileRepository.delete(file);
+                    });
+        } catch (Exception e) {
+            // Ignore if the file does not exist
+        }
     }
 
 }

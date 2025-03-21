@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {useNavigation} from "@react-navigation/native";
+import Toast from "react-native-toast-message";
+import {UserService} from "@/services/user-service";
 
 interface AppContextType {
     userData: any;
@@ -20,8 +22,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 const storedUserData = await AsyncStorage.getItem("userData");
                 if (storedUserData) {
                     setUserData(JSON.parse(storedUserData));
+                    validateToken(JSON.parse(storedUserData));
+                }else {
+                    navigation.navigate("Login");
                 }
             } catch (error) {
+                logout();
                 navigation.navigate("Login");
             }
         };
@@ -29,6 +35,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         loadUserData();
     }, []);
 
+    const validateToken = async (userData: any) => {
+        const user = UserService.getLoggedInUser(userData);
+        if (!user.username) {
+            Toast.show({
+                type: "error",
+                text1: "Session expired",
+                text2: "Please login again.",
+                position: "bottom",
+            })
+            logout();
+            navigation.navigate("Login");
+        }else{
+            Toast.show({
+                type: "success",
+                text1: "Session valid",
+                text2: "Welcome back!" + user.username,
+                position: "bottom",
+            })
+        }
+    }
     // Function to update user data and store it in AsyncStorage
     const updateUserData = async (data: any) => {
         try {

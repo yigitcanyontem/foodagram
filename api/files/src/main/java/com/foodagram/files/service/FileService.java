@@ -1,7 +1,10 @@
 package com.foodagram.files.service;
 
+import com.foodagram.files.entity.Files;
+import com.foodagram.files.repository.FilesRepository;
 import io.minio.*;
 import io.minio.errors.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -10,18 +13,16 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class FileService {
-
     private final MinioClient minioClient;
-    
+    private final FilesRepository fileRepository;
+
     @Value("${minio.bucketName}")
     private String bucketName;
-
-    public FileService(MinioClient minioClient) {
-        this.minioClient = minioClient;
-    }
 
     // Ensure the bucket exists
     public void createBucket() {
@@ -36,25 +37,46 @@ public class FileService {
     }
 
     // Upload a file
-    public String uploadFile(MultipartFile file) {
+    public Files uploadFile(MultipartFile file, String ownerService, String ownerEntity, String ownerId) {
         try {
-            String fileName = file.getOriginalFilename();
-            fileName = fileName.replaceAll(" ", "_");
+            String uniqueFileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            String filePath = bucketName + "/" + uniqueFileName;
+            uniqueFileName = uniqueFileName.replaceAll(" ", "_");
+
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(bucketName)
-                            .object(fileName)
+                            .object(uniqueFileName)
                             .stream(file.getInputStream(), file.getSize(), -1)
                             .contentType(file.getContentType())
                             .build()
             );
-            return "http://localhost:9000/" + bucketName + "/" + fileName; // File URL
+
+            String fileUrl = "http://localhost:9000/" + filePath;
+
+            // Save file metadata in DB
+            Files fileEntity = Files.builder()
+                    .fileName(uniqueFileName)
+                    .filePath(fileUrl)
+                    .contentType(file.getContentType())
+                    .fileSize(file.getSize())
+                    .ownerService(ownerService)
+                    .ownerEntity(ownerEntity)
+                    .ownerId(ownerId)
+                    .build();
+
+            return fileRepository.save(fileEntity);
         } catch (Exception e) {
             throw new RuntimeException("File upload failed: " + e.getMessage());
         }
     }
 
-    // Download a file
+    // Get file by owner details
+    public List<Files> getFilesByOwner(String ownerService, String ownerEntity, String ownerId) {
+        return fileRepository.findByOwnerServiceAndOwnerEntityAndOwnerId(ownerService, ownerEntity, ownerId);
+    }
+
+    // Download file
     public InputStream downloadFile(String fileName) {
         try {
             return minioClient.getObject(
@@ -68,37 +90,28 @@ public class FileService {
         }
     }
 
-    // Delete a file
-    public void deleteFile(String fileName) {
+    // Delete file from MinIO and DB
+    public void deleteFile(Long fileId) {
         try {
+            Files file = fileRepository.findById(fileId)
+                    .orElseThrow(() -> new RuntimeException("File not found"));
+
             minioClient.removeObject(
                     RemoveObjectArgs.builder()
                             .bucket(bucketName)
-                            .object(fileName)
+                            .object(file.getFileName())
                             .build()
             );
+
+            fileRepository.delete(file);
         } catch (Exception e) {
             throw new RuntimeException("Error deleting file: " + e.getMessage());
         }
     }
 
-    // List all files in the bucket
-    public List<String> listFiles() {
-        try {
-            return StreamSupport.stream(
-                            minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).build()).spliterator(),
-                            false
-                    )
-                    .map(result -> {
-                        try {
-                            return result.get().objectName();
-                        } catch (Exception e) {
-                            throw new RuntimeException("Error listing files: " + e.getMessage());
-                        }
-                    })
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            throw new RuntimeException("Error retrieving file list: " + e.getMessage());
-        }
+    // List all files from DB
+    public List<Files> listFiles() {
+        return fileRepository.findAll();
     }
+
 }

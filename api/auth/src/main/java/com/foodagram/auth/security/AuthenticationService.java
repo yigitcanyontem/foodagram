@@ -99,7 +99,7 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
                 .enabled(true)
-                .createdAt(Date.from(LocalDateTime.now().toInstant(java.time.ZoneOffset.UTC)))
+                .createdDate(LocalDateTime.now())
                 .build();
         UsersDto savedUser = usersClient.save(user).getBody();
         var jwtToken = jwtService.generateToken(user);

@@ -1,7 +1,9 @@
 package com.foodagram.clients.notification;
 
+import java.util.UUID;
+
 public record NotificationCreateDto(
-        Integer userId,
+        UUID userId,
         String message
 ) {
 }

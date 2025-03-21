@@ -9,7 +9,7 @@ export interface UsersProfileCreateDto {
     website: string;
     jobTitle: string;
     birthDate: Date;
-    createdAt: Date;
+    createdDate: Date;
     instagramProfile: string;
     facebookProfile: string;
 }

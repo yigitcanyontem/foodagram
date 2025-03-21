@@ -3,6 +3,7 @@ package com.foodagram.clients.users.profile;
 import lombok.*;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -10,8 +11,8 @@ import java.util.Date;
 @NoArgsConstructor
 @Builder
 public class UsersProfileDto {
-    private Integer id;
-    private Integer usersId;
+    private UUID id;
+    private UUID usersId;
     private String firstName;
     private String lastName;
     private String profilePictureUrl;
@@ -22,7 +23,6 @@ public class UsersProfileDto {
     private String website;
     private String jobTitle;
     private Date birthDate;
-    private Date createdAt;
     private String instagramProfile;
     private String facebookProfile;
     private long followingCount;

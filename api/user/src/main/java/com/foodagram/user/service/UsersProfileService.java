@@ -15,6 +15,7 @@ import com.foodagram.user.repository.UsersProfileRepository;
 import com.foodagram.user.repository.UsersRepository;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -28,15 +29,15 @@ public class UsersProfileService {
         return mapDomainToDto(usersProfileRepository.findUsersProfileByUsersIdEmail(email).orElse(null));
     }
 
-    public UsersProfileDto getUsersProfileByUsersId(Integer id) {
+    public UsersProfileDto getUsersProfileByUsersId(UUID id) {
         return mapDomainToDto(usersProfileRepository.findUsersProfileByUsersIdId(id).orElse(null));
     }
 
-    public boolean existsByUsersId(Integer id) {
+    public boolean existsByUsersId(UUID id) {
         return usersProfileRepository.existsByUsersIdId(id);
     }
 
-    public UsersProfile getByUsersID(Integer id) {
+    public UsersProfile getByUsersID(UUID id) {
         return usersProfileRepository.findUsersProfileByUsersIdId(id).orElse(null);
     }
 
@@ -62,7 +63,7 @@ public class UsersProfileService {
         return mapDomainToDto(usersProfileRepository.saveAndFlush(existingProfile));
     }
 
-    private UsersProfile createUsersProfileFromCreateDto(UsersProfileCreateDto createDto, Integer userId) {
+    private UsersProfile createUsersProfileFromCreateDto(UsersProfileCreateDto createDto, UUID userId) {
         UsersProfile usersProfile = new UsersProfile();
         usersProfile.setUsersId(usersRepository.findById(userId).orElseThrow(
                 () -> new IllegalArgumentException("User does not exist")
@@ -150,7 +151,7 @@ public class UsersProfileService {
         }
     }
 
-    public void createDefaultProfile(Integer id) {
+    public void createDefaultProfile(UUID id) {
         UsersProfile usersProfile = new UsersProfile();
         usersProfile.setUsersId(usersRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("User does not exist")

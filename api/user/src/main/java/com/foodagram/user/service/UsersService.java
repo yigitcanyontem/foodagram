@@ -13,6 +13,8 @@ import com.foodagram.clients.users.profile.UsersProfileDto;
 import com.foodagram.user.domain.Users;
 import com.foodagram.user.repository.UsersRepository;
 
+import java.util.UUID;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -31,7 +33,7 @@ public class UsersService {
                 .role(user.getRole())
                 .password(user.getPassword())
                 .enabled(user.isEnabled())
-                .createdAt(user.getCreatedAt())
+                .createdDate(user.getCreatedDate())
                 .build();
     }
 
@@ -44,11 +46,11 @@ public class UsersService {
                 .role(user.getRole())
                 .password(user.getPassword())
                 .enabled(user.isEnabled())
-                .createdAt(user.getCreatedAt())
+                .createdDate(user.getCreatedDate())
                 .build();
     }
 
-    public UsersDto getUserById(Integer id) {
+    public UsersDto getUserById(UUID id) {
         Users user = usersRepository.findById(id).orElseThrow(
                 () -> new RuntimeException("User not found")
         );
@@ -59,7 +61,7 @@ public class UsersService {
                 .role(user.getRole())
                 .password(user.getPassword())
                 .enabled(user.isEnabled())
-                .createdAt(user.getCreatedAt())
+                .createdDate(user.getCreatedDate())
                 .build();
     }
 
@@ -70,7 +72,6 @@ public class UsersService {
                 .role(user.getRole())
                 .password(user.getPassword())
                 .enabled(user.isEnabled())
-                .createdAt(user.getCreatedAt())
                 .build();
         newUser = usersRepository.saveAndFlush(newUser);
         user.setId(newUser.getId());

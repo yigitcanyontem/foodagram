@@ -5,6 +5,7 @@ import {AuthService} from "@/services/auth-service";
 import Toast from "react-native-toast-message";
 import shared_styles from "@/shared_styles";
 import FGTabBar from "@/app/shared/FGTabBar";
+import {useAppContext} from "@/context/AppContext";
 
 const AuthInput = ({ label, value, onChangeText, secureTextEntry, placeholder }) => (
     <View style={styles.inputContainer}>
@@ -26,10 +27,20 @@ const RegisterPage = () => {
     const [username, setUsername] = useState("");
     const [error, setError] = useState(null);
     const navigation = useNavigation();
+    const { setUserData, userData } = useAppContext()
 
     const handleRegister = async () => {
         try {
-            await AuthService.register({ email, password, username });
+            const authResponse = await AuthService.register({ email, password, username });
+
+            const userData = {
+                token: authResponse.accessToken,
+                email: authResponse.user.email,
+                username: authResponse.user.username,
+            };
+
+            await setUserData(userData);
+
             Toast.show({
                 type: 'success',
                 text1: 'Register successful',

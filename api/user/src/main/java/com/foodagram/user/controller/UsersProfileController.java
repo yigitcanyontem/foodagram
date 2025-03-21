@@ -13,6 +13,8 @@ import com.foodagram.clients.users.profile.UsersProfileUpdateDto;
 import com.foodagram.user.service.UsersProfileService;
 import com.foodagram.user.util.UsersUtil;
 
+import java.util.UUID;
+
 @Slf4j
 @RestController
 @RequestMapping("api/v1/user-profile")
@@ -34,7 +36,7 @@ public class UsersProfileController {
     }
 
     @GetMapping("user/{userId}")
-    public ResponseEntity<UsersProfileDto> getUserProfileByUserId(@PathVariable("userId") Integer userId) {
+    public ResponseEntity<UsersProfileDto> getUserProfileByUserId(@PathVariable("userId") UUID userId) {
         try {
             return new ResponseEntity<>(usersProfileService.getUsersProfileByUsersId(userId), HttpStatus.OK);
         }catch (Exception e) {

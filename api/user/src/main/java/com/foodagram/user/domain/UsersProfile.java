@@ -1,5 +1,6 @@
 package com.foodagram.user.domain;
 
+import com.foodagram.clients.shared.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
@@ -24,19 +25,7 @@ import java.util.Date;
         }
 )
 @Builder
-public class UsersProfile {
-    @Id
-    @SequenceGenerator(
-            name = "users_id_sequence",
-            sequenceName = "users_profile_id_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "users_profile_id_sequence"
-    )
-    private Integer id;
-
+public class UsersProfile extends BaseEntity {
     @OneToOne()
     @JoinColumn(
             name = "usersId",

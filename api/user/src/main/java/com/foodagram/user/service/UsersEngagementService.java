@@ -13,6 +13,7 @@ import com.foodagram.user.domain.UsersEngagement;
 import com.foodagram.user.repository.UsersEngagementRepository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -21,27 +22,27 @@ public class UsersEngagementService {
     private final RabbitMQMessageProducer rabbitMQMessageProducer;
     private final UsersEngagementRepository usersEngagementRepository;
 
-    public long getUserFollowerCount(Integer userId) {
+    public long getUserFollowerCount(UUID userId) {
         return usersEngagementRepository.countUsersEngagementsByEngagedUserIdAndUserEngagementType(userId, UserEngagementType.FOLLOW);
     }
 
-    public long getUserFollowingCount(Integer userId) {
+    public long getUserFollowingCount(UUID userId) {
         return usersEngagementRepository.countUsersEngagementsByUserIdAndUserEngagementType(userId, UserEngagementType.FOLLOW);
     }
 
-    public List<UsersProfileDto> getUserFollowers(Integer userId) {
+    public List<UsersProfileDto> getUserFollowers(UUID userId) {
         List<UsersEngagement> usersEngagements = usersEngagementRepository.getUsersEngagementsByEngagedUserIdAndUserEngagementType(userId, UserEngagementType.FOLLOW);
         //TODO: Implement this method
         return null;
     }
 
-    public List<UsersProfileDto> getUserFollowing(Integer userId) {
+    public List<UsersProfileDto> getUserFollowing(UUID userId) {
         List<UsersEngagement> usersEngagements = usersEngagementRepository.getUsersEngagementsByUserIdAndUserEngagementType(userId, UserEngagementType.FOLLOW);
         //TODO: Implement this method
         return null;
     }
 
-    public void followUser(Integer userId, Integer engagedUserId) {
+    public void followUser(UUID userId, UUID engagedUserId) {
         UsersEngagement usersEngagement = UsersEngagement.builder()
                 .userId(userId)
                 .engagedUserId(engagedUserId)
@@ -55,7 +56,7 @@ public class UsersEngagementService {
         );
     }
 
-    public void unfollowUser(Integer userId, Integer engagedUserId) {
+    public void unfollowUser(UUID userId, UUID engagedUserId) {
         usersEngagementRepository.deleteUsersEngagementByUserIdAndEngagedUserIdAndUserEngagementType(userId, engagedUserId, UserEngagementType.FOLLOW);
         rabbitMQMessageProducer.publish(
                 new GenericRabbitMQMessage("api/v1/user-profile/update-following", new UserFollowDto(userId, engagedUserId, false)),
@@ -64,11 +65,11 @@ public class UsersEngagementService {
         );
     }
 
-    public boolean isUserFollowing(Integer userId, Integer engagedUserId) {
+    public boolean isUserFollowing(UUID userId, UUID engagedUserId) {
         return usersEngagementRepository.existsUsersEngagementByUserIdAndEngagedUserIdAndUserEngagementType(userId, engagedUserId, UserEngagementType.FOLLOW);
     }
 
-    public boolean isUserFollowed(Integer userId, Integer engagedUserId) {
+    public boolean isUserFollowed(UUID userId, UUID engagedUserId) {
         return usersEngagementRepository.existsUsersEngagementByUserIdAndEngagedUserIdAndUserEngagementType(engagedUserId, userId, UserEngagementType.FOLLOW);
     }
 

@@ -34,7 +34,7 @@ export class UserService {
             });
     }
 
-    static getUserProfileByUserId(userId: number): Promise<UsersProfileDto> {
+    static getUserProfileByUserId(userId: string): Promise<UsersProfileDto> {
         return axios.get(`${this.userProfilesBaseUrl}/user/${userId}`)
             .then(response => response.data)
             .catch(error => {
@@ -61,7 +61,7 @@ export class UserService {
             });
     }
 
-    static followUser(engagedUserId: number, userData: any): Promise<void> {
+    static followUser(engagedUserId: string, userData: any): Promise<void> {
         return axios.put(`${this.userEngagementBaseUrl}/follow/${engagedUserId}`, {}, { headers: this.getAuthHeaders(userData) })
             .then(response => response.data)
             .catch(error => {
@@ -70,7 +70,7 @@ export class UserService {
             });
     }
 
-    static unfollowUser(engagedUserId: number, userData: any): Promise<void> {
+    static unfollowUser(engagedUserId: string, userData: any): Promise<void> {
         return axios.put(`${this.userEngagementBaseUrl}/unfollow/${engagedUserId}`, {}, { headers: this.getAuthHeaders(userData) })
             .then(response => response.data)
             .catch(error => {

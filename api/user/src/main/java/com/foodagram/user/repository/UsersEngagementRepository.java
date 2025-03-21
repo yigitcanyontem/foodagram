@@ -5,16 +5,17 @@ import org.springframework.stereotype.Repository;
 import com.foodagram.clients.users.enums.UserEngagementType;
 import com.foodagram.user.domain.UsersEngagement;
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface UsersEngagementRepository extends JpaRepository<UsersEngagement, Integer> {
-    long countUsersEngagementsByUserIdAndUserEngagementType(Integer userId, UserEngagementType userEngagementType);
-    long countUsersEngagementsByEngagedUserIdAndUserEngagementType(Integer engagedUserId, UserEngagementType userEngagementType);
+public interface UsersEngagementRepository extends JpaRepository<UsersEngagement, UUID> {
+    long countUsersEngagementsByUserIdAndUserEngagementType(UUID userId, UserEngagementType userEngagementType);
+    long countUsersEngagementsByEngagedUserIdAndUserEngagementType(UUID engagedUserId, UserEngagementType userEngagementType);
 
-    List<UsersEngagement> getUsersEngagementsByUserIdAndUserEngagementType(Integer userId, UserEngagementType userEngagementType);
-    List<UsersEngagement> getUsersEngagementsByEngagedUserIdAndUserEngagementType(Integer engagedUserId, UserEngagementType userEngagementType);
+    List<UsersEngagement> getUsersEngagementsByUserIdAndUserEngagementType(UUID userId, UserEngagementType userEngagementType);
+    List<UsersEngagement> getUsersEngagementsByEngagedUserIdAndUserEngagementType(UUID engagedUserId, UserEngagementType userEngagementType);
 
-    boolean existsUsersEngagementByUserIdAndEngagedUserIdAndUserEngagementType(Integer userId, Integer engagedUserId, UserEngagementType userEngagementType);
+    boolean existsUsersEngagementByUserIdAndEngagedUserIdAndUserEngagementType(UUID userId, UUID engagedUserId, UserEngagementType userEngagementType);
 
-    void deleteUsersEngagementByUserIdAndEngagedUserIdAndUserEngagementType(Integer userId, Integer engagedUserId, UserEngagementType userEngagementType);
+    void deleteUsersEngagementByUserIdAndEngagedUserIdAndUserEngagementType(UUID userId, UUID engagedUserId, UserEngagementType userEngagementType);
 }

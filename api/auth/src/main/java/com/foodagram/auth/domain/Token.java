@@ -1,10 +1,13 @@
 package com.foodagram.auth.domain;
 
+import com.foodagram.clients.shared.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import com.foodagram.clients.users.enums.TokenType;
+
+import java.util.UUID;
 
 @Builder
 @NoArgsConstructor
@@ -13,20 +16,8 @@ import com.foodagram.clients.users.enums.TokenType;
 @Table(name = "token")
 @Getter
 @Setter
-public class Token {
+public class Token extends BaseEntity {
 
-    @Id
-    @SequenceGenerator(
-            name = "token_id_seq",
-            sequenceName = "token_id_seq",
-            initialValue = 1,
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "token_id_seq"
-    )
-    public Long id;
 
     @Column(unique = true)
     public String token;
@@ -39,7 +30,7 @@ public class Token {
     public boolean expired;
 
     @OnDelete(action = OnDeleteAction.NO_ACTION)
-    public Integer userId;
+    public UUID userId;
 
 }
 

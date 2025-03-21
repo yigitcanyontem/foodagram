@@ -5,13 +5,14 @@ import org.springframework.stereotype.Repository;
 import com.foodagram.user.domain.UsersProfile;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface UsersProfileRepository extends JpaRepository<UsersProfile, Integer> {
+public interface UsersProfileRepository extends JpaRepository<UsersProfile, UUID> {
     Optional<UsersProfile> findUsersProfileByUsersIdEmail(String email);
-    Optional<UsersProfile> findUsersProfileByUsersIdId(Integer usersId_id);
+    Optional<UsersProfile> findUsersProfileByUsersIdId(UUID usersId_id);
 
-    boolean existsByUsersIdId(Integer usersId_id);
+    boolean existsByUsersIdId(UUID usersId_id);
 
-    void deleteByUsersIdId(Integer id);
+    void deleteByUsersIdId(UUID id);
 }

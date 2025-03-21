@@ -1,9 +1,12 @@
 package com.foodagram.user.domain;
 
 
+import com.foodagram.clients.shared.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import com.foodagram.clients.users.enums.UserEngagementType;
+
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -20,24 +23,12 @@ import com.foodagram.clients.users.enums.UserEngagementType;
         }
 )
 @Builder
-public class UsersEngagement {
-    @Id
-    @SequenceGenerator(
-            name = "users_id_sequence",
-            sequenceName = "users_id_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "users_id_sequence"
-    )
-    private Integer id;
-
+public class UsersEngagement extends BaseEntity {
     @Column(name = "user_id", nullable = false)
-    private Integer userId;
+    private UUID userId;
 
     @Column(name = "engaged_user_id", nullable = false)
-    private Integer engagedUserId;
+    private UUID engagedUserId;
 
     @Column(name = "user_engagement_type", nullable = false)
     @Enumerated(EnumType.STRING)

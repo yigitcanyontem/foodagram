@@ -1,5 +1,5 @@
 export interface UsersProfileDto {
-    id: number;
+    id: string;
     usersId: number;
     firstName: string;
     lastName: string;

@@ -10,6 +10,8 @@ import com.foodagram.clients.users.dto.UsersDto;
 import com.foodagram.user.service.UsersEngagementService;
 import com.foodagram.user.util.UsersUtil;
 
+import java.util.UUID;
+
 @Slf4j
 @RestController
 @RequestMapping("api/v1/user-engagement")
@@ -19,7 +21,7 @@ public class UsersEngagementController {
     private final UsersUtil usersUtil;
 
     @PutMapping("/follow/{engagedUserId}")
-    public ResponseEntity<Void> followUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, @PathVariable("engagedUserId") Integer engagedUserId) {
+    public ResponseEntity<Void> followUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, @PathVariable("engagedUserId") UUID engagedUserId) {
         try {
             UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
 
@@ -36,7 +38,7 @@ public class UsersEngagementController {
     }
 
     @PutMapping("/unfollow/{engagedUserId}")
-    public ResponseEntity<Void> unfollowUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, @PathVariable("engagedUserId") Integer engagedUserId) {
+    public ResponseEntity<Void> unfollowUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, @PathVariable("engagedUserId") UUID engagedUserId) {
         try {
             UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
 

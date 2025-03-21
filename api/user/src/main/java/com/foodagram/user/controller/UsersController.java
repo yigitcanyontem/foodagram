@@ -11,6 +11,8 @@ import com.foodagram.clients.users.dto.UsersCompleteDto;
 import com.foodagram.clients.users.dto.UsersDto;
 import com.foodagram.user.service.UsersService;
 
+import java.util.UUID;
+
 @Slf4j
 @RestController
 @RequestMapping("api/v1/user")
@@ -39,7 +41,7 @@ public class UsersController {
     }
 
     @GetMapping("id/{id}")
-    public ResponseEntity<UsersDto> getUserById(@PathVariable("id") Integer id) {
+    public ResponseEntity<UsersDto> getUserById(@PathVariable("id") UUID id) {
         try {
             return new ResponseEntity<>(usersService.getUserById(id), HttpStatus.OK);
         } catch (Exception e) {

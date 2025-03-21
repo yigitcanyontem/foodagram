@@ -6,7 +6,6 @@ import FGTabBar from "@/app/shared/FGTabBar";
 import shared_styles from "@/shared_styles";
 import {UserService} from "@/services/user-service";
 import {UsersProfileUpdateDto} from "@/models/user/UsersProfileUpdateDto";
-import DateTimePicker from "@react-native-community/datetimepicker";
 
 const EditProfilePage = () => {
     const navigation = useNavigation();
@@ -121,17 +120,7 @@ const EditProfilePage = () => {
                 />
                 <Text>Birth Date</Text>
                 <Button title="Select Date" onPress={() => setShowDatePicker(true)} />
-                {showDatePicker && (
-                    <DateTimePicker
-                        value={formData.birthDate || new Date()}
-                        mode="date"
-                        display="default"
-                        onChange={(event, date) => {
-                            setShowDatePicker(false);
-                            if (date) handleChange("birthDate", date);
-                        }}
-                    />
-                )}
+
                 <Text>Instagram Profile</Text>
                 <TextInput
                     style={styles.input}

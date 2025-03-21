@@ -6,11 +6,12 @@ import com.foodagram.auth.domain.Token;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface TokenRepository extends JpaRepository<Token, Integer> {
+public interface TokenRepository extends JpaRepository<Token, UUID> {
 
-    List<Token> findAllValidTokenByUserId(Integer id);
+    List<Token> findAllValidTokenByUserId(UUID id);
 
 
     Optional<Token> findByToken(String token);

@@ -27,4 +27,5 @@ public class UsersProfileDto {
     private long followingCount;
     private long followersCount;
     private byte[] profilePicture;
+    private String username;
 }

@@ -98,6 +98,8 @@ export default function RootLayout() {
                     <Stack.Navigator
                         screenOptions={{
                             header: ({navigation, route}) => <Header title={route.name}/>,
+                            gestureEnabled: true,  // Enables swipe-to-go-back
+                            gestureDirection: 'horizontal',  // Swipes from left to right
                         }}
                     >
                         <Stack.Screen name="Home" component={HomePage}/>

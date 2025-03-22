@@ -1,19 +1,15 @@
 import {Text, TouchableOpacity, View} from 'react-native';
-import {BadgePlus, BookmarkCheck, Home, House, Search, User} from 'lucide-react-native';
+import {BadgePlus, BookmarkCheck, House, Search, User} from 'lucide-react-native';
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useNavigation, useRoute} from "@react-navigation/native";
+import {useAppContext} from "@/context/AppContext";
 import Toast from "react-native-toast-message";
-import SearchIcon from "@/icons/SearchIcon";
-import UserIcon from "@/icons/UserIcon";
-import CloseIcon from "@/icons/CloseIcon";
-import HomeIcon from "@/icons/HomeIcon";
-import CreatePostIcon from "@/icons/CreatePostIcon";
-import BookMarkIcon from "@/icons/BookMarkIcon";
 
 export default function FGTabBar() {
     const insets = useSafeAreaInsets();
     const navigation = useNavigation();
     const route = useRoute();
+    const { setUserData, userData } = useAppContext()
 
     // Define your routes
     const routes = [
@@ -44,7 +40,11 @@ export default function FGTabBar() {
                 const isFocused = activeIndex === index;
                 const onPress = () => {
                     if (!isFocused) {
-                        navigation.navigate(route.name);
+                        if (route.name === 'Profile') {
+                            navigation.navigate('Profile', { profileId: userData?.id });
+                        } else {
+                            navigation.navigate(route.name);
+                        }
                     }
                 };
 

@@ -40,6 +40,7 @@ const LoginPage = () => {
                 token: authResponse.accessToken,
                 email: authResponse.user.email,
                 username: authResponse.user.username,
+                id: authResponse.user.id,
             };
 
             await setUserData(userData);

@@ -16,4 +16,5 @@ export interface UsersProfileDto {
     followingCount: number;
     followersCount: number;
     profilePicture: Blob;
+    username: string;
 }

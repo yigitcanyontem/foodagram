@@ -36,6 +36,10 @@ spring:
           uri: lb://USERS
           predicates:
             - Path=/api/v1/user-profile/**
+        - id: users_engagement
+          uri: lb://USERS
+          predicates:
+            - Path=/api/v1/user-engagement/**
         - id: auth
           uri: lb://AUTH
           predicates:

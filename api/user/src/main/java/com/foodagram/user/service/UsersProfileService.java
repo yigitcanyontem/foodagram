@@ -5,6 +5,9 @@ import com.foodagram.clients.files.FilesClient;
 import com.foodagram.clients.files.FilesDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.foodagram.clients.shared.dto.GenericResponse;
 import com.foodagram.clients.users.dto.UserFollowDto;
@@ -18,7 +21,9 @@ import com.foodagram.user.repository.UsersRepository;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -123,6 +128,7 @@ public class UsersProfileService {
                 .followersCount(usersProfile.getFollowersCount() != null ? usersProfile.getFollowersCount() : 0)
                 .followingCount(usersProfile.getFollowingCount() != null ? usersProfile.getFollowingCount() : 0)
                 .profilePicture(getUserProfilePicture(usersProfile.getProfilePictureID()))
+                .username(usersProfile.getUsersId().getUsername())
                 .build();
     }
 
@@ -164,6 +170,9 @@ public class UsersProfileService {
                     (engagedUsersProfile.getFollowingCount() != null ? engagedUsersProfile.getFollowingCount() : 0) - 1
             );
         }
+
+        usersProfileRepository.saveAndFlush(usersProfile);
+        usersProfileRepository.saveAndFlush(engagedUsersProfile);
     }
 
     public void createDefaultProfile(UUID id) {
@@ -213,4 +222,12 @@ public class UsersProfileService {
             log.error("Error uploading profile picture: {}", e.getMessage());
         }
     }
-}
+
+    public List<UsersProfileDto> searchUserProfiles(String query) {
+        query = query.toLowerCase();
+        Pageable pageable = PageRequest.of(0, 10);  // First page, 10 results
+        Page<UsersProfile> usersProfilesPage = usersProfileRepository.findAllByUsersId_UsernameContaining(query, pageable);
+        return usersProfilesPage.getContent().stream()
+                .map(this::mapDomainToDto)
+                .collect(Collectors.toList());
+    }}

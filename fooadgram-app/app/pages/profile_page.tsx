@@ -45,6 +45,30 @@ const ProfilePage = () => {
             console.error("Logout failed", error);
         }
     }
+
+    const followUser= (usersId: string) => {
+        UserService.followUser(usersId, userData).then(
+            () => {
+                Toast.show({
+                    type: 'success',
+                    text1: 'Followed user successfully',
+                    position: 'bottom',
+                    visibilityTime: 2000,
+                });
+            }
+        ).catch(
+            (error) => {
+                console.error("Failed to follow user", error);
+                Toast.show({
+                    type: 'error',
+                    text1: 'Failed to follow user',
+                    position: 'bottom',
+                    visibilityTime: 2000,
+                });
+            }
+        )
+    }
+
     return (
         <View style={shared_styles.body_container}>
             <ScrollView contentContainerStyle={styles.container}>
@@ -144,6 +168,19 @@ const ProfilePage = () => {
                                         </Text>
                                     </TouchableOpacity>
 
+                                </View>
+                            }
+
+                            {
+                                userData && (profileId != userData?.id) &&
+                                <View style={[shared_styles.row, shared_styles.paddingH_20, {marginTop: 20, gap: 10}]}>
+                                    <TouchableOpacity style={shared_styles.transparent_button} onPress={() => {
+                                        followUser(userProfile?.usersId)
+                                    }}>
+                                        <Text style={shared_styles.button_text}>
+                                            Follow
+                                        </Text>
+                                    </TouchableOpacity>
                                 </View>
                             }
 

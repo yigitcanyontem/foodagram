@@ -1,6 +1,6 @@
 export interface UsersProfileDto {
     id: string;
-    usersId: number;
+    usersId: string;
     firstName: string;
     lastName: string;
     profilePictureID: string;

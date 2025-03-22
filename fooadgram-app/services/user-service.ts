@@ -100,4 +100,14 @@ export class UserService {
                 throw error;
             });
     }
+
+    static searchUserProfiles(query: string): Promise<UsersProfileDto[]> {
+        return axios.get(`${this.userProfilesBaseUrl}/search/${query}`)
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while searching user profiles:', error);
+                throw error;
+            });
+    }
+
 }

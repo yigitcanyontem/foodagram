@@ -14,6 +14,7 @@ import com.foodagram.user.service.UsersProfileService;
 import com.foodagram.user.util.UsersUtil;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -39,7 +40,8 @@ public class UsersProfileController {
     @GetMapping("user/{userId}")
     public ResponseEntity<UsersProfileDto> getUserProfileByUserId(@PathVariable("userId") UUID userId) {
         try {
-            return new ResponseEntity<>(usersProfileService.getUsersProfileByUsersId(userId), HttpStatus.OK);
+            return new ResponseEntity<>(usersProfileService.
+                    getUsersProfileByUsersId(userId), HttpStatus.OK);
         }catch (Exception e) {
             log.error("Error while fetching user profile by user id: {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -50,6 +52,16 @@ public class UsersProfileController {
     public ResponseEntity<UsersProfileDto> getUserProfileByEmail(@PathVariable("email") String email) {
         try {
             return new ResponseEntity<>(usersProfileService.getUsersProfileByEmail(email), HttpStatus.OK);
+        }catch (Exception e) {
+            log.error("Error while fetching user profile by email: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("search/{query}")
+    public ResponseEntity<List<UsersProfileDto>> searchUserProfiles(@PathVariable("query") String query) {
+        try {
+            return new ResponseEntity<>(usersProfileService.searchUserProfiles(query), HttpStatus.OK);
         }catch (Exception e) {
             log.error("Error while fetching user profile by email: {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);

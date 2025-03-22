@@ -1,19 +1,61 @@
-import {ScrollView, StyleSheet, View} from 'react-native';
+import {ScrollView, StyleSheet, View, TextInput, Button, Text, TouchableOpacity, Image} from 'react-native';
 import {useNavigation} from "@react-navigation/native";
-import React from "react";
+import React, {useState} from "react";
 import {useAppContext} from "@/context/AppContext";
 import FGTabBar from "@/app/shared/FGTabBar";
 import shared_styles from "@/shared_styles";
-
+import {UserService} from "@/services/user-service";
+import {UsersProfileDto} from "@/models/user/UsersProfileDto";
+import {useBase64Image} from "@/hooks/useBase64Image";
 
 const ExplorePage = () => {
     const navigation = useNavigation();
-    const { setUserData, userData } = useAppContext()
+    const {userData} = useAppContext();
+    const [query, setQuery] = useState('');
+    const [results, setResults] = useState<UsersProfileDto[]>([]);
+    const [error, setError] = useState<string | null>(null);
+    const {getBase64Uri} = useBase64Image();
+
+    const handleSearch = async () => {
+        try {
+            const profiles = await UserService.searchUserProfiles(query);
+            setResults(profiles);
+            setError(null);
+        } catch (err) {
+            setError('Error while searching user profiles');
+            setResults([]);
+        }
+    };
 
     return (
         <View style={shared_styles.body_container}>
-            <ScrollView contentContainerStyle={styles.container} >
-
+            <ScrollView contentContainerStyle={styles.container}>
+                <View style={shared_styles.row}>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Search users..."
+                        value={query}
+                        onChangeText={setQuery}
+                    />
+                    <Button title="Search" onPress={handleSearch}/>
+                </View>
+                {error && <Text style={styles.errorText}>{error}</Text>}
+                {results.map((profile) => (
+                    <TouchableOpacity
+                        style={styles.resultItem}
+                        onPress={() => navigation.navigate('Profile', {profileId: profile.usersId})} key={profile.id}>
+                        <Image
+                            source={
+                                profile?.profilePicture ? { uri: getBase64Uri(profile?.profilePicture)}
+                                    : require('@/assets/images/dummy-profile.jpeg')
+                            }
+                            style={{width: 50, height: 50, borderRadius: 25}}
+                        />
+                        <View>
+                            <Text style={styles.resultText}>{profile.username}</Text>
+                        </View>
+                    </TouchableOpacity>
+                ))}
             </ScrollView>
             <FGTabBar/>
         </View>
@@ -22,54 +64,33 @@ const ExplorePage = () => {
 
 const styles = StyleSheet.create({
     container: {
-        alignItems: "center",
         padding: 20,
         backgroundColor: "#fff",
-        paddingTop: 150,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: "bold",
-    },
-    subtitle: {
-        fontSize: 16,
-        marginBottom: 20,
-    },
-    inputContainer: {
-        width: "100%",
-        marginBottom: 15,
-    },
-    label: {
-        fontSize: 14,
-        marginBottom: 5,
     },
     input: {
         borderWidth: 1,
         borderColor: "#ccc",
         padding: 10,
         borderRadius: 5,
-    },
-    button: {
-        backgroundColor: "#007bff",
-        padding: 10,
-        borderRadius: 5,
-        alignItems: "center",
-        width: "100%",
-        marginTop: 10,
-    },
-    buttonText: {
-        color: "white",
-        fontSize: 16,
+        flex: 1,
+        marginBottom: 15,
     },
     errorText: {
         color: "red",
         marginBottom: 10,
     },
-    registerText: {
-        marginTop: 10,
+    resultItem: {
+        padding: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: "#ccc",
+        width: "100%",
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
     },
-    link: {
-        color: "blue",
+    resultText: {
+        fontSize: 16,
     },
 });
 

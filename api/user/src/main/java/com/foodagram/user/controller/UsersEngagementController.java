@@ -1,5 +1,7 @@
 package com.foodagram.user.controller;
 
+import com.foodagram.clients.shared.dto.GenericResponse;
+import com.foodagram.clients.users.profile.UsersProfileDto;
 import jakarta.ws.rs.core.HttpHeaders;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +12,7 @@ import com.foodagram.clients.users.dto.UsersDto;
 import com.foodagram.user.service.UsersEngagementService;
 import com.foodagram.user.util.UsersUtil;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -19,6 +22,44 @@ import java.util.UUID;
 public class UsersEngagementController {
     private final UsersEngagementService usersEngagementService;
     private final UsersUtil usersUtil;
+
+    @GetMapping("follows/{followedUserId}")
+    public ResponseEntity<GenericResponse> checkIfUserFollows(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken,
+            @PathVariable("followedUserId") UUID followedUserId) {
+        try {
+            UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
+            boolean follows = usersEngagementService.isUserFollowing(user.getId(), followedUserId);
+            return new ResponseEntity<>(
+                    new GenericResponse(null,follows,true), HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error while checking if user follows another user: {}", e.getMessage());
+            return new ResponseEntity<>(new GenericResponse(null, false, false), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("followers/{userId}")
+    public ResponseEntity<List<UsersProfileDto>> getUserFollowers(@PathVariable("userId") UUID userId) {
+        try {
+            List<UsersProfileDto> followers = usersEngagementService.getUserFollowers(userId);
+            return new ResponseEntity<>(followers, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error while fetching user followers: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("following/{userId}")
+    public ResponseEntity<List<UsersProfileDto>> getUserFollowing(@PathVariable("userId") UUID userId) {
+        try {
+            List<UsersProfileDto> following = usersEngagementService.getUserFollowing(userId);
+            return new ResponseEntity<>(following, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error while fetching user following: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     @PutMapping("/follow/{engagedUserId}")
     public ResponseEntity<Void> followUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, @PathVariable("engagedUserId") UUID engagedUserId) {

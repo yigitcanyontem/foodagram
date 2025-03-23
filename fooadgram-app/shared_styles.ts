@@ -53,8 +53,26 @@ const shared_styles = StyleSheet.create({
         width: '100%',
         flex: 1
     },
+    secondary_button: {
+        backgroundColor: '#8E8E8E',
+        borderWidth: 1,
+        borderColor: '#FFFFFF',
+        color: '#FFFFFF',
+        paddingVertical: 8,
+        borderRadius: 5,
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        flex: 1
+    },
     button_text: {
         color: '#000',
+        fontSize: 14,
+        fontFamily: 'Poppins',
+        fontWeight: 'medium',
+    },
+    secondary_button_text: {
+        color: '#FFFFFF',
         fontSize: 14,
         fontFamily: 'Poppins',
         fontWeight: 'medium',

@@ -6,8 +6,6 @@ import React, {useEffect} from 'react';
 import 'react-native-reanimated';
 
 import {useColorScheme} from '@/hooks/useColorScheme';
-import LoginPage from "@/app/pages/login_page";
-import RegisterPage from "@/app/pages/register_page";
 import Header from "@/app/shared/Header";
 import {createStackNavigator} from "@react-navigation/stack";
 import {SafeAreaView} from "react-native";
@@ -38,12 +36,16 @@ import HomeScreen from "@/app/(tabs)";
 import FGTabBar from "@/app/shared/FGTabBar";
 import HomePage from "@/app/pages/home_page";
 import ExplorePage from "@/app/pages/explore_page";
-import ProfilePage from "@/app/pages/profile_page";
 import BookmarkedPage from "@/app/pages/bookmarked_page";
-import CreatePostPage from "@/app/pages/create_post_page";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import EditProfilePage from "@/app/pages/edit_profile_page";
-import PostDetailPage from "@/app/pages/post_detail";
+import ProfileFollowPage from "@/app/pages/profile/profile_follow_page";
+import CreatePostPage from "@/app/pages/content/create_post_page";
+import ProfilePage from "@/app/pages/profile/profile_page";
+import LoginPage from "@/app/pages/auth/login_page";
+import RegisterPage from "@/app/pages/auth/register_page";
+import EditProfilePage from "@/app/pages/profile/edit_profile_page";
+import PostDetailPage from "@/app/pages/content/post_detail";
+import UserProfilePage from "@/app/pages/profile/user_profile_page";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -107,10 +109,12 @@ export default function RootLayout() {
                         <Stack.Screen name="CreatePost" component={CreatePostPage}/>
                         <Stack.Screen name="Bookmarked" component={BookmarkedPage}/>
                         <Stack.Screen name="Profile" component={ProfilePage}/>
+                        <Stack.Screen name="UserProfile" component={UserProfilePage}/>
                         <Stack.Screen name="Login" component={LoginPage}/>
                         <Stack.Screen name="Register" component={RegisterPage}/>
                         <Stack.Screen name="EditProfilePage" component={EditProfilePage}/>
                         <Stack.Screen name="PostDetail" component={PostDetailPage} />
+                        <Stack.Screen name="ProfileFollowDetails" component={ProfileFollowPage} />
                     </Stack.Navigator>
                 </ThemeProvider>
                 <Toast/>

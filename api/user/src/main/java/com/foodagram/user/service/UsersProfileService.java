@@ -3,6 +3,9 @@ package com.foodagram.user.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.foodagram.clients.files.FilesClient;
 import com.foodagram.clients.files.FilesDto;
+import com.foodagram.clients.users.enums.UserEngagementType;
+import com.foodagram.user.controller.UsersEngagementController;
+import com.foodagram.user.repository.UsersEngagementRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -30,8 +33,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UsersProfileService {
     private final UsersProfileRepository usersProfileRepository;
+    private final UsersEngagementRepository usersEngagementRepository;
     private final UsersRepository usersRepository;
-    private final ObjectMapper objectMapper;
     private final FilesClient filesClient;
 
     public UsersProfileDto getUsersProfileByEmail(String email) {
@@ -153,23 +156,13 @@ public class UsersProfileService {
         UsersProfile usersProfile = getByUsersID(followDto.getUserId());
         UsersProfile engagedUsersProfile = getByUsersID(followDto.getEngagedUserId());
 
-        if (followDto.isFollowed()) {
-            engagedUsersProfile.setFollowersCount(
-                    (engagedUsersProfile.getFollowersCount() != null ? engagedUsersProfile.getFollowersCount() : 0) + 1
-            );
+        engagedUsersProfile.setFollowersCount(
+                getUserFollowerCount(followDto.getEngagedUserId())
+        );
 
-            usersProfile.setFollowingCount(
-                    (engagedUsersProfile.getFollowingCount() != null ? engagedUsersProfile.getFollowingCount() : 0) + 1
-            );
-        } else {
-            engagedUsersProfile.setFollowersCount(
-                    (engagedUsersProfile.getFollowersCount() != null ? engagedUsersProfile.getFollowersCount() : 0) - 1
-            );
-
-            usersProfile.setFollowingCount(
-                    (engagedUsersProfile.getFollowingCount() != null ? engagedUsersProfile.getFollowingCount() : 0) - 1
-            );
-        }
+        usersProfile.setFollowingCount(
+                getUserFollowingCount(followDto.getUserId())
+        );
 
         usersProfileRepository.saveAndFlush(usersProfile);
         usersProfileRepository.saveAndFlush(engagedUsersProfile);
@@ -230,4 +223,14 @@ public class UsersProfileService {
         return usersProfilesPage.getContent().stream()
                 .map(this::mapDomainToDto)
                 .collect(Collectors.toList());
-    }}
+    }
+
+
+    public int getUserFollowerCount(UUID userId) {
+        return usersEngagementRepository.countUsersEngagementsByEngagedUserIdAndUserEngagementType(userId, UserEngagementType.FOLLOW);
+    }
+
+    public int getUserFollowingCount(UUID userId) {
+        return usersEngagementRepository.countUsersEngagementsByUserIdAndUserEngagementType(userId, UserEngagementType.FOLLOW);
+    }
+}

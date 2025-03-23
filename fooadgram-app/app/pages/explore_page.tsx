@@ -7,6 +7,7 @@ import shared_styles from "@/shared_styles";
 import {UserService} from "@/services/user-service";
 import {UsersProfileDto} from "@/models/user/UsersProfileDto";
 import {useBase64Image} from "@/hooks/useBase64Image";
+import UserResultCard from "@/app/shared/profile/UserResultCard";
 
 const ExplorePage = () => {
     const navigation = useNavigation();
@@ -41,20 +42,10 @@ const ExplorePage = () => {
                 </View>
                 {error && <Text style={styles.errorText}>{error}</Text>}
                 {results.map((profile) => (
-                    <TouchableOpacity
-                        style={styles.resultItem}
-                        onPress={() => navigation.navigate('Profile', {profileId: profile.usersId})} key={profile.id}>
-                        <Image
-                            source={
-                                profile?.profilePicture ? { uri: getBase64Uri(profile?.profilePicture)}
-                                    : require('@/assets/images/dummy-profile.jpeg')
-                            }
-                            style={{width: 50, height: 50, borderRadius: 25}}
-                        />
-                        <View>
-                            <Text style={styles.resultText}>{profile.username}</Text>
-                        </View>
-                    </TouchableOpacity>
+                   <UserResultCard
+                        key={profile.id}
+                        profile={profile}
+                    />
                 ))}
             </ScrollView>
             <FGTabBar/>

@@ -7,6 +7,7 @@ import {UsersProfileUpdateDto} from "@/models/user/UsersProfileUpdateDto";
 import {GlobalConstants} from "@/utils/GlobalConstants";
 import {ImagePickerAsset} from "expo-image-picker/src/ImagePicker.types";
 import {ImageUtil} from "@/utils/ImageUtil";
+import {GenericResponse} from "@/models/shared/GenericResponse";
 
 export class UserService {
     static userBaseUrl: string = GlobalConstants.baseUrl + 'user';
@@ -110,4 +111,30 @@ export class UserService {
             });
     }
 
+    static getUserFollowers(userId: string): Promise<UsersProfileDto[]> {
+        return axios.get(`${this.userEngagementBaseUrl}/followers/${userId}`)
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while fetching user followers:', error);
+                throw error;
+            });
+    }
+
+    static getUserFollowing(userId: string): Promise<UsersProfileDto[]> {
+        return axios.get(`${this.userEngagementBaseUrl}/following/${userId}`)
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while fetching user following:', error);
+                throw error;
+            });
+    }
+
+    static checkIfUserFollows(followedUserId: string, userData: any): Promise<GenericResponse> {
+        return axios.get(`${this.userEngagementBaseUrl}/follows/${followedUserId}`, { headers: this.getAuthHeaders(userData) })
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while checking if user follows another user:', error);
+                throw error;
+            });
+    }
 }

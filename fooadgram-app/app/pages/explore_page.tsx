@@ -1,6 +1,6 @@
 import {ScrollView, StyleSheet, View, TextInput, Button, Text, TouchableOpacity, Image} from 'react-native';
 import {useNavigation} from "@react-navigation/native";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useAppContext} from "@/context/AppContext";
 import FGTabBar from "@/app/shared/FGTabBar";
 import shared_styles from "@/shared_styles";
@@ -28,6 +28,10 @@ const ExplorePage = () => {
         }
     };
 
+    useEffect(() => {
+        handleSearch()
+    }, [query]);
+
     return (
         <View style={shared_styles.body_container}>
             <ScrollView contentContainerStyle={styles.container}>
@@ -38,7 +42,6 @@ const ExplorePage = () => {
                         value={query}
                         onChangeText={setQuery}
                     />
-                    <Button title="Search" onPress={handleSearch}/>
                 </View>
                 {error && <Text style={styles.errorText}>{error}</Text>}
                 {results.map((profile) => (

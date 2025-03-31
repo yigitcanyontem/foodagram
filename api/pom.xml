@@ -22,6 +22,7 @@
 		<module>user</module>
 		<module>cache</module>
 		<module>files</module>
+		<module>content</module>
 	</modules>
 	<packaging>pom</packaging>
 

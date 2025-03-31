@@ -80,6 +80,17 @@ services:
       - redis-insight:/data
     networks:
       - redis_network
+  mongo:
+    image: mongo
+    container_name: foodagram-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: foodagram
+    volumes:
+      - mongo_data:/data/db
 
 networks:
   postgres:
@@ -93,3 +104,5 @@ volumes:
   postgres:
   pgadmin:
   redis-insight:
+  mongo_data:
+    driver: local

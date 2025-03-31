@@ -8,6 +8,7 @@ import {UserService} from "@/services/user-service";
 import {UsersProfileDto} from "@/models/user/UsersProfileDto";
 import {useBase64Image} from "@/hooks/useBase64Image";
 import UserResultCard from "@/app/shared/profile/UserResultCard";
+import Toast from "react-native-toast-message";
 
 const ExplorePage = () => {
     const navigation = useNavigation();
@@ -23,7 +24,6 @@ const ExplorePage = () => {
             setResults(profiles);
             setError(null);
         } catch (err) {
-            setError('Error while searching user profiles');
             setResults([]);
         }
     };

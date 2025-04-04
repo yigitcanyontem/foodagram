@@ -11,7 +11,7 @@ import java.util.UUID;
         name = "files"
 )
 public interface FilesClient {
-    @PostMapping(path = "/files/upload", consumes = "multipart/form-data")
+    @PostMapping(path = "api/v1/files/upload", consumes = "multipart/form-data")
     ResponseEntity<FilesDto> uploadFile(
             @RequestPart("file") MultipartFile file,
             @RequestParam("ownerService") String ownerService,
@@ -20,9 +20,9 @@ public interface FilesClient {
             @RequestParam("fileName") String fileName
     );
 
-    @GetMapping("/files/{fileID}/download")
+    @GetMapping("api/v1/files/{fileID}/download")
     ResponseEntity<FilesDto> downloadFile(@PathVariable("fileID") UUID fileId);
 
-    @DeleteMapping("/files/{fileId}")
+    @DeleteMapping("api/v1/files/{fileId}")
     ResponseEntity<String> deleteFile(@PathVariable("fileId") UUID fileId);
 }

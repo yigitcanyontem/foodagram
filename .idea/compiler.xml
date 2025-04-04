@@ -16,6 +16,7 @@
         <module name="files" />
         <module name="eureka-server" />
         <module name="user" />
+        <module name="content" />
       </profile>
     </annotationProcessing>
   </component>
@@ -26,6 +27,7 @@
       <module name="auth" options="-parameters" />
       <module name="cache" options="-parameters" />
       <module name="clients" options="-parameters" />
+      <module name="content" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
       <module name="files" options="-parameters" />
       <module name="foodagram" options="" />

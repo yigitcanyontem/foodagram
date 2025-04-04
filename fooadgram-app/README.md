@@ -1,50 +1,106 @@
-# Welcome to your Expo app 👋
+---
+sidebar_position: 2
+---
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# How to write aggregation queries?
+<hr/>
 
-## Get started
+### Aggregation Queries
+- On your backend methods especially if the method visits multiple collections on the database use Aggregation queries to do all of them at once to reduce code and also speed up the function.
 
-1. Install dependencies
+Here's an example of a well-structured aggregation query:
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-    npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```java
+@Aggregation(pipeline = {
+    // Stage 1: Convert companyProfileId to ObjectId
+    "{ $addFields: { convertedCompanyProfileId: { $toObjectId: \"$companyProfileId\" } } }",
+    
+    // Stage 2: Join with company collection
+    "{ $lookup: { from: \"company\", localField: \"convertedCompanyProfileId\", foreignField: \"_id\", as: \"companyDetails\" } }",
+    "{ $unwind: \"$companyDetails\" }",
+    
+    // Stage 3: Filter by userId
+    "{ $match: { \"companyDetails.userId\": ?0 } }",
+    
+    // Stage 4: Convert secondHandAdId to ObjectId
+    "{ $addFields: { convertedSecondHandAdId: { $toObjectId: \"$secondHandAdId\" } } }",
+    
+    // Stage 5: Join with secondhandAds collection
+    "{ $lookup: { from: \"secondhandAds\", localField: \"convertedSecondHandAdId\", foreignField: \"_id\", as: \"secondHandAdDetails\" } }",
+    "{ $unwind: \"$secondHandAdDetails\" }",
+    
+    // Stage 6: Get first photo ID and join with image collection
+    "{ $addFields: { firstPhotoId: { $toObjectId: { $arrayElemAt: [\"$secondHandAdDetails.secondHandPhotoIdList\", 0] } } } }",
+    "{ $lookup: { from: \"image\", localField: \"firstPhotoId\", foreignField: \"_id\", as: \"imageInfo\" } }",
+    
+    // Stage 7: Handle photo name with fallback
+    "{ $addFields: { secondHandAdPhotoName: { $cond: { " +
+        "if: { $or: [ " +
+            "{ $and: [ { $isArray: \"$imageInfo\" }, { $gt: [ { $size: \"$imageInfo\" }, 0 ] } ] }, " +
+            "{ $eq: [ { $arrayElemAt: [\"$imageInfo.name\", 0] }, \"\"] } " +
+        "] }, " +
+        "then: { $arrayElemAt: [\"$imageInfo.name\", 0] }, " +
+        "else: \"image/dummy-image.png\" " +
+    "} } } }",
+    
+    // Stage 8: Group for pagination
+    "{ $group: { _id: null, totalItems: { $sum: 1 }, data: { $push: \"$$ROOT\" } } }",
+    "{ $unwind: \"$data\" }",
+    
+    // Stage 9: Project final fields
+    "{ $project: { " +
+        "_id: \"$data._id\", " +
+        "offer: \"$data.offer\", " +
+        "count: \"$data.count\", " +
+        "secondHandAdId: \"$data.secondHandAdId\", " +
+        "secondHandAdName: \"$data.secondHandAdDetails.name\", " +
+        "secondHandAdPhotoName: \"$data.secondHandAdPhotoName\", " +
+        "secondHandAdPrice: \"$data.secondHandAdPrice\", " +
+        "date: \"$data.date\", " +
+        "totalItems: \"$totalItems\" " +
+    "} }",
+    
+    // Stage 10: Sort, skip and limit for pagination
+    "{ $sort: { ?2: ?3 } }",
+    "{ $skip: ?1 }",
+    "{ $limit: 20 }"
+})
+List<SecondHandMyOfferDto> findMyOffers(String userId, int skip, String sortBy, int directionIndex);
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Helper Methods for Pagination and Sorting
 
-## Learn more
+```java
+/**
+ * Converts sort direction string to MongoDB sort value
+ * @param direction "asc" or "desc"
+ * @return 1 for ascending, -1 for descending
+ */
+public int getSortDirection(String direction) {
+    return "desc".equals(direction) ? -1 : 1;
+}
 
-To learn more about developing your project with Expo, look at the following resources:
+/**
+ * Calculates zero-based skip value for MongoDB pagination
+ * @param pageIndex 1-based page index
+ * @param pageSize number of items per page
+ * @return zero-based skip value
+ */
+public int getZeroBasedSkip(int pageIndex, int pageSize) {
+    return (pageIndex - 1) * pageSize;
+}
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Important Notes:
+1. Collection and field names must exactly match your database schema
+2. Use `$project` stage to specify exactly which fields you want in the result
+3. Always use proper indexing on fields used in `$match` and `$sort` stages
+4. Consider using constants for collection names and field names to avoid typos
+5. Break complex aggregations into stages with clear comments for better maintainability
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Best Practices:
+1. Use meaningful stage names in comments
+2. Group related stages together
+3. Use helper methods for common operations like pagination and sorting
+4. Consider performance implications of each stage
+5. Test aggregation queries with different data scenarios

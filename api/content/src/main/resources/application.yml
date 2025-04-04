@@ -15,11 +15,18 @@ spring:
     multipart:
       max-file-size: 30MB
       max-request-size: 30MB
-  data:
-    mongodb:
-      host: localhost
-      port: 27017
-      database: foodagram
+  datasource:
+    username: 'postgres'
+    url: jdbc:postgresql://localhost:5432/content
+    password: 'password'
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
 
 eureka:
   client:
@@ -33,6 +40,6 @@ rabbitmq:
   exchanges:
     internal: internal.exchange
   queues:
-    user: content.queue
+    content: content.queue
   routing-keys:
-    internal-user: internal.content.routing-key
+    internal-content: internal.content.routing-key

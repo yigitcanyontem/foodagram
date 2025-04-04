@@ -11,7 +11,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
                 com.foodagram.clients.notification.NotificationClient.class,
                 com.foodagram.clients.auth.AuthClient.class,
                 com.foodagram.clients.cache.CacheClient.class,
-                com.foodagram.clients.files.FilesClient.class
+                com.foodagram.clients.files.FilesClient.class,
+                com.foodagram.clients.content.ContentClient.class
         }
 )
 @SpringBootApplication(

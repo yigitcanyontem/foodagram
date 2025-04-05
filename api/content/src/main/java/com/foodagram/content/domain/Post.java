@@ -41,7 +41,7 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private Visibility visibility;
 
-    @OneToOne(mappedBy = "post", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    @OneToOne(mappedBy = "post", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true, fetch = FetchType.EAGER)
     private Recipe recipe; // Only if the post is a recipe
 
     @Column(nullable = false)
@@ -54,5 +54,5 @@ public class Post extends BaseEntity {
     private String location;
 
     @Column
-    private int preparationTime; // in minutes
+    private long processTime; // in seconds
 }

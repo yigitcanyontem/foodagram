@@ -1,0 +1,23 @@
+package com.foodagram.clients.content.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class IngredientResponseDto {
+    private UUID id;
+    private UUID recipeId;
+    private String name;
+    private String amount;
+    private String unit;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+} 

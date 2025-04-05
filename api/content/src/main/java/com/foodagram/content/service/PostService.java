@@ -3,6 +3,7 @@ package com.foodagram.content.service;
 import com.foodagram.clients.content.dto.*;
 import com.foodagram.clients.content.enums.Visibility;
 import com.foodagram.clients.files.FilesClient;
+import com.foodagram.clients.users.UsersClient;
 import com.foodagram.clients.users.dto.UsersDto;
 import com.foodagram.content.domain.Ingredient;
 import com.foodagram.content.domain.Post;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
+    private final UsersClient usersClient;
 
     @Transactional
     public PostResponseDto createPost(PostCreateDto postCreateDto) {
@@ -48,7 +51,9 @@ public class PostService {
     public PostResponseDto getPost(UUID id, UsersDto user) {
         Post post = postRepository.findById(id).orElseThrow(() -> new RuntimeException("Post not found"));
         throwIfPostIsHidden(post.getVisibility(), user.getId(), post.getUserId());
-        return mapToResponseDto(post);
+        PostResponseDto responseDto = mapToResponseDto(post);
+        responseDto.setUsername(Objects.requireNonNull(usersClient.getUserById(post.getUserId()).getBody()).getUsername());
+        return responseDto;
     }
 
     public List<PostResponseDto> getAllPostsByUser(UUID userId) {
@@ -122,6 +127,7 @@ public class PostService {
                 .instructions(recipeCreateDto.getInstructions())
                 .cuisineType(recipeCreateDto.getCuisineType())
                 .difficultyLevel(recipeCreateDto.getDifficultyLevel())
+                .prepTime(recipeCreateDto.getPrepTime())
                 .build();
         return recipe;
     }
@@ -152,6 +158,7 @@ public class PostService {
                 .difficultyLevel(recipe.getDifficultyLevel())
                 .createdAt(recipe.getCreatedDate())
                 .updatedAt(recipe.getUpdatedDate())
+                .prepTime(recipe.getPrepTime())
                 .build();
     }
 

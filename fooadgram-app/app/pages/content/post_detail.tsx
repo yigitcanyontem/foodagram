@@ -1,25 +1,33 @@
 import { ScrollView, StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from "@react-navigation/native";
-import React from "react";
+import React, {useEffect, useState} from "react";
 import { useAppContext } from "@/context/AppContext";
 import FGTabBar from "@/app/shared/FGTabBar";
 import shared_styles from "@/shared_styles";
 import { AntDesign, FontAwesome } from '@expo/vector-icons';
+import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
+import {ContentService} from "@/services/content-service";
+import {GlobalConstants} from "@/utils/GlobalConstants";
 
 const PostDetailPage = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const { postId } = route.params;
+    const [post, setPost] = useState<PostResponseDto>()
+    const {setUserData, userData} = useAppContext()
 
-    // Mock Post Data
-    const post = {
-        id: postId,
-        username: "john_doe",
-        imageUrl: "https://picsum.photos/200?random=123",
-        description: "Exploring the beauty of nature! 🌿🌞",
-        date: "March 22, 2025",
-        likes: 120,
+    const fetchPost = async () => {
+        try {
+            const postResponse = await ContentService.getPost(postId, userData);
+            setPost(postResponse);
+        } catch (error) {
+            console.error("Failed to fetch users posts", error);
+        }
     };
+
+    useEffect(() => {
+        fetchPost()
+    }, [postId, userData]);
 
     return (
         <View style={shared_styles.body_container}>
@@ -31,11 +39,11 @@ const PostDetailPage = () => {
 
                 {/* Post Header */}
                 <View style={styles.header}>
-                    <Text style={styles.username}>{post.username}</Text>
+                    <Text style={styles.username}>{post?.username}</Text>
                 </View>
 
                 {/* Post Image */}
-                <Image source={{ uri: post.imageUrl }} style={styles.postImage} />
+                <Image source={{ uri: GlobalConstants.s3Url + post?.mediaUrls[0] }} style={styles.postImage} />
 
                 {/* Post Actions */}
                 <View style={styles.actions}>
@@ -51,9 +59,9 @@ const PostDetailPage = () => {
                 </View>
 
                 {/* Post Details */}
-                <Text style={styles.likes}>{post.likes} likes</Text>
-                <Text style={styles.description}><Text style={styles.username}>{post.username} </Text>{post.description}</Text>
-                <Text style={styles.date}>{post.date}</Text>
+                <Text style={styles.likes}>{post?.likes} likes</Text>
+                <Text style={styles.description}><Text style={styles.username}>{post?.username} </Text>{post?.content}</Text>
+                <Text style={styles.date}>{post?.createdAt}</Text>
             </ScrollView>
             <FGTabBar />
         </View>

@@ -7,6 +7,7 @@ import com.foodagram.content.util.UsersUtil;
 import jakarta.ws.rs.core.HttpHeaders;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,7 +21,7 @@ public class FileController {
     private final UsersUtil usersUtil;
 
     @PostMapping("/upload")
-    public ResponseEntity<Void> uploadMedia(
+    public ResponseEntity<GenericResponse> uploadMedia(
             @RequestParam("file") MultipartFile file,
             @RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken
     ) {
@@ -29,7 +30,7 @@ public class FileController {
             GenericResponse genericResponse = new GenericResponse();
             genericResponse.setData(fileService.uploadMedia(file,usersDto));
             genericResponse.setMessage("Successfully uploaded media");
-            return ResponseEntity.ok().build();
+            return new ResponseEntity<>(genericResponse, HttpStatus.OK);
         }catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }

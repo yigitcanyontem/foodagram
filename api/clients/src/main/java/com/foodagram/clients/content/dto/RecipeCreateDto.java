@@ -18,4 +18,5 @@ public class RecipeCreateDto {
     private List<String> instructions;
     private String cuisineType;
     private String difficultyLevel;
+    private Integer prepTime;
 } 

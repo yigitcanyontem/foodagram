@@ -8,6 +8,5 @@ export interface PostCreateDto {
     tags?: string[];
     visibility: Visibility;
     location?: string;
-    preparationTime?: number;
     recipe?: RecipeCreateDto;
 } 

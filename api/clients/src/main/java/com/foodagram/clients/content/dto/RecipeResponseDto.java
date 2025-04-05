@@ -24,4 +24,5 @@ public class RecipeResponseDto {
     private String difficultyLevel;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Integer prepTime;
 } 

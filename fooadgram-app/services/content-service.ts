@@ -77,12 +77,7 @@ export class ContentService {
                 'Content-Type': 'multipart/form-data',
             },
         })
-            .then(response => {
-                return {
-                    data: response.data,
-                    message: "Successfully uploaded media"
-                } as GenericResponse;
-            })
+            .then(response => response.data)
             .catch(error => {
                 console.error('Error while uploading media:', error);
                 throw error;

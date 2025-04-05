@@ -16,4 +16,5 @@ export interface PostResponseDto {
     comments: number;
     createdAt: string;
     updatedAt: string;
+    username: string;
 } 

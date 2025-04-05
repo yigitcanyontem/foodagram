@@ -12,4 +12,5 @@ export interface RecipeUpdateDto {
     cuisine?: string;
     mealType?: string;
     dietaryRestrictions?: string[];
-} 
+    prepTime: number;
+}

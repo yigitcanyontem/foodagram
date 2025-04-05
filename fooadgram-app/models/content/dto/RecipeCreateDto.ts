@@ -5,11 +5,7 @@ export interface RecipeCreateDto {
     description: string;
     ingredients: IngredientCreateDto[];
     instructions: string[];
-    preparationTime: number;
-    cookingTime: number;
-    servings: number;
-    difficulty: string;
-    cuisine: string;
-    mealType: string;
-    dietaryRestrictions?: string[];
-} 
+    cuisineType: string;
+    difficultyLevel: string;
+    prepTime: number;
+}

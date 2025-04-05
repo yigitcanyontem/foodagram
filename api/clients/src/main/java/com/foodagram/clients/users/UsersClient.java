@@ -10,6 +10,8 @@ import com.foodagram.clients.users.profile.UsersProfileCreateDto;
 import com.foodagram.clients.users.profile.UsersProfileDto;
 import com.foodagram.clients.users.profile.UsersProfileUpdateDto;
 
+import java.util.UUID;
+
 @FeignClient(name = "users")
 public interface UsersClient {
     //User
@@ -20,7 +22,7 @@ public interface UsersClient {
     ResponseEntity<UsersDto> getUserByEmail(@PathVariable("email") String email);
 
     @GetMapping(path = "api/v1/user/id/{id}")
-    ResponseEntity<UsersDto> getUserById(@PathVariable("id") Integer id);
+    ResponseEntity<UsersDto> getUserById(@PathVariable("id") UUID id);
 
     @PostMapping(path = "api/v1/user")
     ResponseEntity<UsersDto> save(@RequestBody UsersDto user);
@@ -33,7 +35,7 @@ public interface UsersClient {
     ResponseEntity<UsersProfileDto> getLoggedInUserProfile(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken);
 
     @GetMapping(path = "api/v1/user-profile/user/{userId}")
-    UsersProfileDto getUserProfileByUserId(@PathVariable("userId") Integer userId);
+    UsersProfileDto getUserProfileByUserId(@PathVariable("userId") UUID userId);
 
     @GetMapping(path = "api/v1/user-profile/email/{email}")
     UsersProfileDto getUserProfileByEmail(@PathVariable("email") String email);

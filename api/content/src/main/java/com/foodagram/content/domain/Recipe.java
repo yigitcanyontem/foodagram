@@ -15,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
+//TODO add serving
 public class Recipe extends BaseEntity {
     @OneToOne
     @JoinColumn(name = "post_id", nullable = false)
@@ -39,4 +40,6 @@ public class Recipe extends BaseEntity {
 
     @Column
     private String difficultyLevel;
+
+    private Integer prepTime; //in minutes
 }

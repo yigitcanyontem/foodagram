@@ -12,4 +12,5 @@ export interface RecipeEditDto {
     cuisine?: string;
     mealType?: string;
     dietaryRestrictions?: string[];
-} 
+    prepTime: number;
+}

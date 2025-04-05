@@ -29,4 +29,5 @@ public class PostResponseDto {
     private Long comments;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String username;
 } 

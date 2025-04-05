@@ -15,4 +15,5 @@ export interface RecipeResponseDto {
     dietaryRestrictions?: string[];
     createdAt: string;
     updatedAt: string;
-} 
+    prepTime: number;
+}

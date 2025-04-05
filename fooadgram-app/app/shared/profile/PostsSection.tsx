@@ -1,18 +1,38 @@
-import { Image, TouchableOpacity, View } from 'react-native';
+import React from 'react';
+import {View, TouchableOpacity, Image, Text} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
 import shared_styles from "@/shared_styles";
-import {useNavigation} from "@react-navigation/native";
+import {GlobalConstants} from "@/utils/GlobalConstants";
 
-export default function PostsSection() {
-    const images = Array.from({ length: 11 }, (_, i) => `https://picsum.photos/200?random=${i + 1}`);
+type PostsSectionProps = {
+    posts: PostResponseDto[];
+};
+
+const PostsSection: React.FC<PostsSectionProps> = ({ posts }) => {
     const navigation = useNavigation();
 
     return (
         <View style={shared_styles.posts_container}>
-            {images.map((imageUri, index) => (
-                <TouchableOpacity key={index} onPress={() => navigation.navigate('PostDetail', { postId: index })}>
-                    <Image source={{ uri: imageUri }} style={shared_styles.post_image} />
+            {posts.map((post, index) => (
+                <TouchableOpacity
+                    key={index}
+                    onPress={() => navigation.navigate('PostDetail', { postId: post.id })}
+                >
+                    <Image source={{ uri: GlobalConstants.s3Url + post.mediaUrls[0] }} style={shared_styles.post_image} />
                 </TouchableOpacity>
             ))}
+
+            {
+                posts.length == 0 &&
+                <View>
+                    <Text>
+                        No Posts...
+                    </Text>
+                </View>
+            }
         </View>
     );
-}
+};
+
+export default PostsSection;

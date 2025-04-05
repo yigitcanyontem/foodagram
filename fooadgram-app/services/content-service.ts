@@ -9,8 +9,8 @@ import {PostUpdateDto} from "@/models/content/dto/PostUpdateDto";
 
 
 export class ContentService {
-    static postsBaseUrl: string = GlobalConstants.baseUrl + 'api/v1/posts';
-    static contentMediaBaseUrl: string = GlobalConstants.baseUrl + 'api/v1/content-media';
+    static postsBaseUrl: string = GlobalConstants.baseUrl + 'posts';
+    static contentMediaBaseUrl: string = GlobalConstants.baseUrl + 'content-media';
 
     static getAuthHeaders(userData: any) {
         return {Authorization: userData?.token ?? ''};

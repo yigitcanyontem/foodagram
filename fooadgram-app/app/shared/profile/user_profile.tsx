@@ -13,15 +13,18 @@ import {useBase64Image} from "@/hooks/useBase64Image";
 import {UsersProfileDto} from "@/models/user/UsersProfileDto";
 import Toast from "react-native-toast-message";
 import {GlobalConstants} from "@/utils/GlobalConstants";
+import {ContentService} from "@/services/content-service";
+import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
 
 
 const UserProfile = ({profileId}) => {
     const navigation = useNavigation();
     const {setUserData, userData} = useAppContext()
-    const [chosenSection, setChosenSection] = React.useState('posts');
     const [userProfile, setUserProfile] = React.useState<UsersProfileDto>(null);
     const {getBase64Uri} = useBase64Image();
     const [userIsFollowed, setUserIsFollowed] = React.useState(false);
+    const [posts, setPosts] = React.useState<PostResponseDto[]>([]);
+
     const getUserProfile = async () => {
         try {
             const userProfileResponse = await UserService.getUserProfileByUserId(profileId);
@@ -40,10 +43,21 @@ const UserProfile = ({profileId}) => {
         }
     };
 
+    const getPostsByUser = async () => {
+        try {
+            const postResponse = await ContentService.getAllPostsByUser(profileId);
+            setPosts(postResponse);
+        } catch (error) {
+            console.error("Failed to fetch users posts", error);
+        }
+    };
+
+
     useEffect(() => {
         if (profileId) {
             getUserProfile();
             checkIfUserIsFollowed();
+            getPostsByUser();
         }
     }, [profileId]);
 
@@ -141,7 +155,7 @@ const UserProfile = ({profileId}) => {
                                    <TouchableOpacity style={[shared_styles.column, {alignItems: "center"}]}>
                                        <Label
                                            style={{fontSize: 15, fontWeight: "bold"}}>
-                                           54
+                                           {posts?.length || 0}
                                        </Label>
                                        <Label
                                            style={{fontSize: 15, fontWeight: "medium"}}>
@@ -247,7 +261,6 @@ const UserProfile = ({profileId}) => {
                                </TouchableOpacity>
                            </View>
                        }
-
                        <View
                            style={[shared_styles.bottom_border_separator,
                                {
@@ -257,60 +270,7 @@ const UserProfile = ({profileId}) => {
                                }]}
                        />
 
-                       <View style={[shared_styles.row, shared_styles.paddingH_20, {
-                           justifyContent: "space-evenly",
-                           alignItems: "center",
-                           paddingVertical: 5,
-                       }]}>
-                           <TouchableOpacity
-                               onPress={() => {
-                                   setChosenSection('posts');
-                               }}
-                           >
-                               <Grid2X2
-                                   width={24}
-                                   height={24}
-                                   color={chosenSection == 'posts' ? '#000000' : '#8E8E8E'}
-                                   style={{
-                                       marginBottom: 5,
-                                       marginTop: 5,
-                                       marginLeft: 5,
-                                       marginRight: 5,
-                                   }}
-                               />
-                           </TouchableOpacity>
-                           <TouchableOpacity>
-                           </TouchableOpacity>
-                           <TouchableOpacity
-                               onPress={() => {
-                                   setChosenSection('recipes');
-                               }}
-                           >
-                               <CookingPot
-                                   width={24}
-                                   height={24}
-                                   color={chosenSection == 'recipes' ? '#000000' : '#8E8E8E'}
-                                   style={{
-                                       marginBottom: 5,
-                                       marginTop: 5,
-                                       marginLeft: 5,
-                                       marginRight: 5,
-                                   }}
-                               />
-                           </TouchableOpacity>
-                       </View>
-
-                       <View
-                           style={[shared_styles.bottom_border_separator,
-                               {}]}
-                       />
-
-                       {
-                           chosenSection == 'posts' ?
-                               <PostsSection/>
-                               :
-                               <RecipesSection/>
-                       }
+                       <PostsSection key={`posts_of_${profileId}`} posts={posts}/>
                    </View>
                </>
            }

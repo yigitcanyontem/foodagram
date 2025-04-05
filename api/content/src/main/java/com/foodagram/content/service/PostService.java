@@ -8,6 +8,7 @@ import com.foodagram.content.domain.Ingredient;
 import com.foodagram.content.domain.Post;
 import com.foodagram.content.domain.Recipe;
 import com.foodagram.content.repository.PostRepository;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,12 @@ public class PostService {
 
     @Transactional
     public PostResponseDto createPost(PostCreateDto postCreateDto) {
+        if (postCreateDto.getUserId() == null || postCreateDto.getUserId().equals("") ||
+                postCreateDto.getMediaUrls() == null || postCreateDto.getMediaUrls().isEmpty()
+        ) {
+            throw new BadRequestException("You must provide a valid media url");
+        }
+
         Post post = Post.builder()
                 .userId(postCreateDto.getUserId())
                 .title(postCreateDto.getTitle())

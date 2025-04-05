@@ -55,7 +55,12 @@ spring:
         - id: content
           uri: lb://CONTENT
           predicates:
-            - Path=/api/v1/content/**
+            - Path=/api/v1/posts/**
+        - id: content
+          uri: lb://CONTENT
+          predicates:
+            - Path=/api/v1/content-media/**
+
 management:
   tracing:
     enabled: true

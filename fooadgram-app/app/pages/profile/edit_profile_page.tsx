@@ -10,6 +10,7 @@ import RNDateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from 'expo-image-picker';
 import {ImagePickerAsset} from "expo-image-picker/src/ImagePicker.types";
 import {useBase64Image} from "@/hooks/useBase64Image";
+import {GlobalConstants} from "@/utils/GlobalConstants";
 
 const EditProfilePage = () => {
     const navigation = useNavigation();
@@ -110,7 +111,7 @@ const EditProfilePage = () => {
                                 profilePicture
                                     ? { uri: profilePicture.uri }  // Show newly selected image
                                     : userProfile?.profile?.profilePicture
-                                        ? { uri: getBase64Uri(userProfile.profile.profilePicture) }  // Show saved profile picture
+                                        ? { uri:  GlobalConstants.s3Url + userProfile.profile.profilePicture }  // Show saved profile picture
                                         : require('@/assets/images/dummy-profile.jpeg')  // Show default image
                             }
                             style={shared_styles.profilePic}

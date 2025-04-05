@@ -26,6 +26,6 @@ public class UsersProfileDto {
     private String facebookProfile;
     private long followingCount;
     private long followersCount;
-    private byte[] profilePicture;
+    private String profilePicture;
     private String username;
 }

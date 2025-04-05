@@ -4,6 +4,7 @@ import {useNavigation} from "@react-navigation/native";
 import React from "react";
 import {useBase64Image} from "@/hooks/useBase64Image";
 import {UsersProfileDto} from "@/models/user/UsersProfileDto";
+import {GlobalConstants} from "@/utils/GlobalConstants";
 
 export default function UserResultCard({profile}: { profile: UsersProfileDto }) {
     const navigation = useNavigation();
@@ -15,7 +16,7 @@ export default function UserResultCard({profile}: { profile: UsersProfileDto }) 
             onPress={() => navigation.navigate('UserProfile', {profileId: profile.usersId})} key={profile.id}>
             <Image
                 source={
-                    profile?.profilePicture ? { uri: getBase64Uri(profile?.profilePicture)}
+                    profile?.profilePicture ? { uri: GlobalConstants.s3Url + profile?.profilePicture}
                         : require('@/assets/images/dummy-profile.jpeg')
                 }
                 style={{width: 50, height: 50, borderRadius: 25}}

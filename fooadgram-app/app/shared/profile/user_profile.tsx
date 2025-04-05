@@ -12,6 +12,7 @@ import {UserService} from "@/services/user-service";
 import {useBase64Image} from "@/hooks/useBase64Image";
 import {UsersProfileDto} from "@/models/user/UsersProfileDto";
 import Toast from "react-native-toast-message";
+import {GlobalConstants} from "@/utils/GlobalConstants";
 
 
 const UserProfile = ({profileId}) => {
@@ -115,7 +116,7 @@ const UserProfile = ({profileId}) => {
                            <View style={shared_styles.profilePicContainer}>
                                <Image
                                    source={
-                                       userProfile?.profilePicture ? { uri: getBase64Uri(userProfile?.profilePicture)}
+                                       userProfile?.profilePicture ? { uri:  GlobalConstants.s3Url + userProfile?.profilePicture}
                                            : require('@/assets/images/dummy-profile.jpeg')
                                    }
                                    style={shared_styles.profilePic}

@@ -23,6 +23,9 @@ public interface FilesClient {
     @GetMapping("api/v1/files/{fileID}/download")
     ResponseEntity<FilesDto> downloadFile(@PathVariable("fileID") UUID fileId);
 
+    @GetMapping("api/v1/files/{fileID}")
+    ResponseEntity<FilesDto> getFile(@PathVariable("fileID") UUID fileId);
+
     @DeleteMapping("api/v1/files/{fileId}")
     ResponseEntity<String> deleteFile(@PathVariable("fileId") UUID fileId);
 }

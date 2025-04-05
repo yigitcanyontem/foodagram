@@ -37,7 +37,12 @@ public class FileController {
         }
     }
 
-    // Download file
+    @GetMapping("/{fileID}")
+    public ResponseEntity<FilesDto> getFile(@PathVariable UUID fileID) {
+        return ResponseEntity.ok().body(fileService.getFile(fileID));
+    }
+
+
     @GetMapping("/{fileID}/download")
     public ResponseEntity<FilesDto> downloadFile(@PathVariable UUID fileID) {
         return ResponseEntity.ok().body(fileService.downloadFile(fileID));

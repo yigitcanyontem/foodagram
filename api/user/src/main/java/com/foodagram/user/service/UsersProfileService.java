@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.foodagram.clients.shared.dto.GenericResponse;
 import com.foodagram.clients.users.dto.UserFollowDto;
@@ -135,13 +136,17 @@ public class UsersProfileService {
                 .build();
     }
 
-    private byte[] getUserProfilePicture(UUID profilePictureID) {
+    private String getUserProfilePicture(UUID profilePictureID) {
         try {
             if (profilePictureID == null) {
                 return null;
             }
 
-            return filesClient.downloadFile(profilePictureID).getBody().getFileData();
+            ResponseEntity<FilesDto> file = filesClient.getFile(profilePictureID);
+            if (file.getBody() != null) {
+                return file.getBody().getFilePath();
+            }
+            return null;
         }catch (Exception e) {
             log.error("Error while fetching user profile picture: {}", e.getMessage());
             return null;

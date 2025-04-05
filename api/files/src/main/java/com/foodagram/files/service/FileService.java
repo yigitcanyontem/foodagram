@@ -57,7 +57,7 @@ public class FileService {
             // Save file metadata in DB
             Files fileEntity = Files.builder()
                     .fileName(fileName)
-                    .filePath(fileUrl)
+                    .filePath(filePath)
                     .contentType(file.getContentType())
                     .fileSize(file.getSize())
                     .ownerService(ownerService)
@@ -71,7 +71,28 @@ public class FileService {
         }
     }
 
-    // Download file
+    public FilesDto getFile(UUID fileID) {
+        try {
+            Files file = fileRepository.findById(fileID)
+                    .orElseThrow(() -> new RuntimeException("File not found"));
+
+            return FilesDto.builder()
+                    .id(file.getId())
+                    .fileName(file.getFileName())
+                    .filePath(file.getFilePath())
+                    .contentType(file.getContentType())
+                    .fileSize(file.getFileSize())
+                    .ownerService(file.getOwnerService())
+                    .ownerEntity(file.getOwnerEntity())
+                    .ownerId(file.getOwnerId())
+                    .fileData(null)
+                    .build();
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching file: " + e.getMessage());
+        }
+    }
+
+
     public FilesDto downloadFile(UUID fileID) {
         try {
             Files file = fileRepository.findById(fileID)

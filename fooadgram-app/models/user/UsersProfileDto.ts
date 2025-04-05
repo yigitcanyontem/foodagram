@@ -15,6 +15,6 @@ export interface UsersProfileDto {
     facebookProfile: string;
     followingCount: number;
     followersCount: number;
-    profilePicture: Blob;
+    profilePicture: string;
     username: string;
 }

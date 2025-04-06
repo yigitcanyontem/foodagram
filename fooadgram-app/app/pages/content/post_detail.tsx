@@ -8,6 +8,7 @@ import { AntDesign, FontAwesome } from '@expo/vector-icons';
 import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
 import {ContentService} from "@/services/content-service";
 import {GlobalConstants} from "@/utils/GlobalConstants";
+import {formatPostDate} from "@/utils/dayjsConfig";
 
 const PostDetailPage = () => {
     const navigation = useNavigation();
@@ -61,7 +62,9 @@ const PostDetailPage = () => {
                 {/* Post Details */}
                 <Text style={styles.likes}>{post?.likes} likes</Text>
                 <Text style={styles.description}><Text style={styles.username}>{post?.username} </Text>{post?.content}</Text>
-                <Text style={styles.date}>{post?.createdAt}</Text>
+                {post?.createdAt && (
+                    <Text style={styles.date}>{formatPostDate(post.createdAt)}</Text>
+                )}
             </ScrollView>
             <FGTabBar />
         </View>

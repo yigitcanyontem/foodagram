@@ -45,6 +45,16 @@ public class PostService {
                 .recipe(mapDtoToRecipe(postCreateDto.getRecipe()))
                 .processTime(0)
                 .build();
+
+        Recipe recipe = mapDtoToRecipe(postCreateDto.getRecipe());
+
+        if (recipe != null) {
+            recipe.setPost(post);
+
+            recipe.getIngredients().forEach(ingredient -> ingredient.setRecipe(recipe));
+
+            post.setRecipe(recipe);
+        }
         return mapToResponseDto(postRepository.save(post));
     }
 
@@ -57,7 +67,7 @@ public class PostService {
     }
 
     public List<PostResponseDto> getAllPostsByUser(UUID userId) {
-        return postRepository.findAllByUserIdAndVisibilityNot(userId, Visibility.PRIVATE).stream()
+        return postRepository.findAllByUserIdAndVisibilityNotOrderByCreatedDateDesc(userId, Visibility.PRIVATE).stream()
                 .map(this::mapToResponseDto)
                 .collect(Collectors.toList());
     }

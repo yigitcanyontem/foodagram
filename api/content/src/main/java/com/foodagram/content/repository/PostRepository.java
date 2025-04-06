@@ -16,5 +16,5 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     List<Post> findByTagsContaining(String tag);
 
     List<Post> findAllByUserId(UUID userId);
-    List<Post> findAllByUserIdAndVisibilityNot(UUID userId, Visibility visibility);
+    List<Post> findAllByUserIdAndVisibilityNotOrderByCreatedDateDesc(UUID userId, Visibility visibility);
 }

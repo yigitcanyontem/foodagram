@@ -22,4 +22,6 @@ public interface UsersProfileRepository extends JpaRepository<UsersProfile, UUID
     void deleteByUsersIdId(UUID id);
 
     Page<UsersProfile> findAllByUsersId_UsernameContaining(String query, Pageable pageable);
+
+    List<UsersProfile> findAllByUsersId_IdIn(List<UUID> userIds);
 }

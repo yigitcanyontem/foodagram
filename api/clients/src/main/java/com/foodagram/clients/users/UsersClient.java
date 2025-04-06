@@ -10,6 +10,7 @@ import com.foodagram.clients.users.profile.UsersProfileCreateDto;
 import com.foodagram.clients.users.profile.UsersProfileDto;
 import com.foodagram.clients.users.profile.UsersProfileUpdateDto;
 
+import java.util.List;
 import java.util.UUID;
 
 @FeignClient(name = "users")
@@ -48,4 +49,8 @@ public interface UsersClient {
 
     @DeleteMapping(path = "api/v1/user-profile")
     void deleteUserProfile(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken);
+
+    @PostMapping(path = "api/v1/user-profile/ids")
+    ResponseEntity<List<UsersProfileDto>> getUsersByIds(@RequestBody List<UUID>userIds);
+
 }

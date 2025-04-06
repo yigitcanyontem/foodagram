@@ -6,6 +6,7 @@ import {GenericResponse} from "@/models/shared/GenericResponse";
 import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
 import {PostCreateDto} from "@/models/content/dto/PostCreateDto";
 import {PostUpdateDto} from "@/models/content/dto/PostUpdateDto";
+import {UsersProfileDto} from "@/models/user/UsersProfileDto";
 
 
 export class ContentService {
@@ -80,6 +81,43 @@ export class ContentService {
             .then(response => response.data)
             .catch(error => {
                 console.error('Error while uploading media:', error);
+                throw error;
+            });
+    }
+
+    // Like endpoints
+    static likePost(postId: string, userData: any): Promise<void> {
+        return axios.post(`${this.postsBaseUrl}/likes/${postId}`, null, { headers: this.getAuthHeaders(userData) })
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while liking post:', error);
+                throw error;
+            });
+    }
+
+    static unlikePost(postId: string, userData: any): Promise<void> {
+        return axios.delete(`${this.postsBaseUrl}/likes/${postId}`, { headers: this.getAuthHeaders(userData) })
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while unliking post:', error);
+                throw error;
+            });
+    }
+
+    static hasUserLikedPost(postId: string, userData: any): Promise<boolean> {
+        return axios.get(`${this.postsBaseUrl}/likes/${postId}`, { headers: this.getAuthHeaders(userData) })
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while checking if user liked post:', error);
+                throw error;
+            });
+    }
+
+    static getUsersWhoLikedPost(postId: string): Promise<UsersProfileDto[]> {
+        return axios.get(`${this.postsBaseUrl}/likes/users/${postId}`)
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while fetching users who liked post:', error);
                 throw error;
             });
     }

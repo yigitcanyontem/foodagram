@@ -118,4 +118,13 @@ public class UsersProfileController {
         }
     }
 
+    @PostMapping( "/ids")
+    public ResponseEntity<List<UsersProfileDto>> getUsersByIds(@RequestBody List<UUID> userIds){
+        try {
+            return new ResponseEntity<>(usersProfileService.getUsersByIds(userIds), HttpStatus.OK);
+        }catch (Exception e) {
+            log.error("Error while fetching user profile by email: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

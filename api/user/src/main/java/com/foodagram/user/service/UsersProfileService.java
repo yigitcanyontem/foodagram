@@ -238,4 +238,9 @@ public class UsersProfileService {
     public int getUserFollowingCount(UUID userId) {
         return usersEngagementRepository.countUsersEngagementsByUserIdAndUserEngagementType(userId, UserEngagementType.FOLLOW);
     }
+
+    public List<UsersProfileDto> getUsersByIds(List<UUID> userIds) {
+        List<UsersProfile> usersProfiles = usersProfileRepository.findAllByUsersId_IdIn(userIds);
+        return usersProfiles.stream().map(this::mapDomainToDto).collect(Collectors.toList());
+    }
 }

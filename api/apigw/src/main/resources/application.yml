@@ -1,5 +1,5 @@
 server:
-  address: 192.168.0.11
+  address: 192.168.85.5
   port: 8083
 
 spring:
@@ -60,7 +60,12 @@ spring:
           uri: lb://CONTENT
           predicates:
             - Path=/api/v1/content-media/**
-
+        - id: django-service
+          uri: http://127.0.0.1:8000
+          predicates:
+            - Path=/api/v1/ai/**
+          filters:
+            - StripPrefix=3
 management:
   tracing:
     enabled: true

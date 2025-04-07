@@ -12,6 +12,7 @@ import {ImagePickerAsset} from "expo-image-picker/src/ImagePicker.types";
 import {RecipeCreateDto} from "@/models/content/dto/RecipeCreateDto";
 import {IngredientCreateDto} from "@/models/content/dto/IngredientCreateDto";
 import Toast from "react-native-toast-message";
+import {AIService} from "@/services/ai-service";
 
 const CreatePostPage = () => {
     const navigation = useNavigation();
@@ -54,6 +55,22 @@ const CreatePostPage = () => {
             if (!result.canceled && result.assets && result.assets.length > 0) {
                 const asset = result.assets[0];
                 await uploadMedia(asset);
+
+                try {
+                    let tagResults = await AIService.predict(asset);
+                    if (tagResults) {
+                        setTags(tagResults.prediction);
+                        Toast.show({
+                            type: 'info',
+                            text1: "Image has been uploaded and processed",
+                            text2: `Detected ${tagResults.prediction} in the image`,
+                            position: 'top',
+                            topOffset: 60,
+                        });
+                    }
+                }catch (error){
+                    console.error("Error predicting image:", error);
+                }
             }
         } catch (error) {
             console.error('Error picking image:', error);
@@ -224,6 +241,22 @@ const CreatePostPage = () => {
                 {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
                 <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Media</Text>
+                    <TouchableOpacity
+                        style={styles.mediaButton}
+                        onPress={pickImage}
+                        disabled={isLoading}
+                    >
+                        <Text style={styles.mediaButtonText}>Add Media</Text>
+                    </TouchableOpacity>
+                    {mediaUrls.length > 0 && (
+                        <Text style={styles.mediaCount}>
+                            {mediaUrls.length} media item(s) attached
+                        </Text>
+                    )}
+                </View>
+
+                <View style={styles.inputContainer}>
                     <Text style={styles.label}>Title *</Text>
                     <TextInput
                         style={styles.input}
@@ -285,22 +318,6 @@ const CreatePostPage = () => {
                             </TouchableOpacity>
                         ))}
                     </View>
-                </View>
-
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Media</Text>
-                    <TouchableOpacity
-                        style={styles.mediaButton}
-                        onPress={pickImage}
-                        disabled={isLoading}
-                    >
-                        <Text style={styles.mediaButtonText}>Add Media</Text>
-                    </TouchableOpacity>
-                    {mediaUrls.length > 0 && (
-                        <Text style={styles.mediaCount}>
-                            {mediaUrls.length} media item(s) attached
-                        </Text>
-                    )}
                 </View>
 
                 {/* Recipe Section */}

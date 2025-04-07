@@ -7,11 +7,12 @@ import { useAppContext } from '@/context/AppContext';
 import {ImagePickerAsset} from "expo-image-picker/src/ImagePicker.types";
 import {GenericResponse} from "@/models/shared/GenericResponse";
 import {ImageUtil} from "@/utils/ImageUtil";
+import {PredictionDto} from "@/models/ai/PredictionDto";
 
 export class AIService {
     static baseUrl: string = GlobalConstants.baseUrl + 'ai';
 
-    static predict(file: ImagePickerAsset): Promise<any> {
+    static predict(file: ImagePickerAsset): Promise<PredictionDto> {
         let fileUri = file.uri;
 
         const formData = ImageUtil.getFormDataFrom(

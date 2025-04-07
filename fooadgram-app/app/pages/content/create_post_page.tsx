@@ -59,7 +59,10 @@ const CreatePostPage = () => {
                 try {
                     let tagResults = await AIService.predict(asset);
                     if (tagResults) {
-                        setTags(tagResults.prediction);
+                        setTags(prevTags => prevTags
+                            ? `${prevTags}, ${tagResults.prediction}`
+                            : tagResults.prediction);
+
                         Toast.show({
                             type: 'info',
                             text1: "Image has been uploaded and processed",

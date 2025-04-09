@@ -17,6 +17,7 @@ import {AIService} from "@/services/ai-service";
 const CreatePostPage = () => {
     const navigation = useNavigation();
     const { setUserData, userData } = useAppContext();
+    const [isImageValid, setIsImageValid] = useState(false);
 
     // Form state
     const [title, setTitle] = useState('');
@@ -54,25 +55,39 @@ const CreatePostPage = () => {
 
             if (!result.canceled && result.assets && result.assets.length > 0) {
                 const asset = result.assets[0];
-                await uploadMedia(asset);
 
                 try {
                     let tagResults = await AIService.predict(asset);
                     if (tagResults) {
-                        setTags(prevTags => prevTags
-                            ? `${prevTags}, ${tagResults.prediction}`
-                            : tagResults.prediction);
+                        if (tagResults.prediction && tagResults.prediction !== 'no match') {
+                            setIsImageValid(true);  //  prediction gud
+                            await uploadMedia(asset); //  upload only if valid
 
-                        Toast.show({
-                            type: 'info',
-                            text1: "Image has been uploaded and processed",
-                            text2: `Detected ${tagResults.prediction} in the image`,
-                            position: 'top',
-                            topOffset: 60,
-                        });
+                            setTags(prevTags => prevTags
+                                ? `${prevTags}, ${tagResults.prediction}`
+                                : tagResults.prediction);
+
+                            Toast.show({
+                                type: 'info',
+                                text1: "Image uploaded and processed",
+                                text2: `Detected ${tagResults.prediction} (${tagResults.confidence})`,
+                                position: 'top',
+                                topOffset: 60,
+                            });
+                        } else {
+                            setIsImageValid(false);  // prediction bad
+                            Toast.show({
+                                type: 'error',
+                                text1: "Image not usable",
+                                text2: "No recognizable food found (Low Confidence)",
+                                position: 'top',
+                                topOffset: 60,
+                            });
+                        }
                     }
-                }catch (error){
+                } catch (error) {
                     console.error("Error predicting image:", error);
+                    setIsImageValid(false);
                 }
             }
         } catch (error) {
@@ -80,6 +95,8 @@ const CreatePostPage = () => {
             setError('Failed to pick image. Please try again.');
         }
     };
+
+
 
     // Upload media
     const uploadMedia = async (file: ImagePickerAsset) => {
@@ -471,9 +488,9 @@ const CreatePostPage = () => {
                 </View>
 
                 <TouchableOpacity
-                    style={styles.button}
+                    style={[styles.button, !isImageValid && { backgroundColor: 'gray' }]}
                     onPress={handleSubmit}
-                    disabled={isLoading}
+                    disabled={isLoading || !isImageValid}
                 >
                     {isLoading ? (
                         <ActivityIndicator color="white" />

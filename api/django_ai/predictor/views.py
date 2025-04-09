@@ -56,8 +56,19 @@ def predict_image(request):
 
     with torch.no_grad():
         output = model(image)
-        _, predicted_class = torch.max(output, 1)
+        probabilities = torch.nn.functional.softmax(output[0], dim=0)  # convert to probabilities
+        confidence, predicted_class = torch.max(probabilities, 0)       # get max confidence
+
+    confidence_percent = confidence.item() * 100  # convert to percentage
+    print(f"Predicted class confidence: {confidence_percent:.2f}%")
+
+    if confidence_percent < 60:  # you can set threshold like 60%
+        predicted_label = "no match"
+    else:
         predicted_label = idx_to_class[predicted_class.item()]
 
-    return Response({'prediction': predicted_label})
+    return Response({
+        'prediction': predicted_label,
+        'confidence': f"{confidence_percent:.2f}%"
+    })
 

@@ -5,6 +5,8 @@ import com.foodagram.clients.users.dto.UsersDto;
 import com.foodagram.content.domain.Comment;
 import com.foodagram.content.domain.Post;
 import com.foodagram.content.repository.CommentRepository;
+import com.foodagram.content.repository.PostRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.ws.rs.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,11 +18,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CommentService {
     private final CommentRepository commentRepository;
+    private final PostRepository postRepository;
 
     public CommentResponseDto createComment(CommentCreateDto commentCreateDto) {
+        Post post = postRepository.findById(commentCreateDto.getPostId())
+                .orElseThrow(() -> new EntityNotFoundException("Post not found"));
+
         Comment comment = Comment.builder()
-                .post(Post.builder().id(commentCreateDto.getPostId()).build())
-                .postType(commentCreateDto.getPostType())
+                .post(post)
                 .userId(commentCreateDto.getUserId())
                 .content(commentCreateDto.getContent())
                 .createdByUsername(commentCreateDto.getCreatedByUsername())
@@ -66,12 +71,11 @@ public class CommentService {
         return CommentResponseDto.builder()
                 .id(comment.getId())
                 .postId(comment.getPost().getId())
-                .postType(comment.getPostType())
                 .userId(comment.getUserId())
                 .content(comment.getContent())
                 .createdByUsername(comment.getCreatedByUsername())
                 .parentReplyId(comment.getParentReply() != null ? comment.getParentReply().getId() : null)
-                .replies(comment.getReplies().stream().map(this::mapToResponseDto).toList())
+                .replies(comment.getReplies() != null && !comment.getReplies().isEmpty() ? comment.getReplies().stream().map(this::mapToResponseDto).toList() : null)
                 .upvoteCount(comment.getUpvoteCount())
                 .downvoteCount(comment.getDownvoteCount())
                 .isDeleted(comment.isDeleted())

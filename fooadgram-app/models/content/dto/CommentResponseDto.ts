@@ -1,12 +1,15 @@
 export interface CommentResponseDto {
     id: string;
-    content: string;
-    userId: string;
     postId: string;
-    parentId?: string;
-    mediaUrls: string[];
-    likes: number;
-    replies: number;
-    createdAt: string;
+    userId: string;
+    content: string;
+    createdByUsername: string;
+    parentReplyId?: string | null;
+    replies: CommentResponseDto[];
+    upvoteCount: number;
+    downvoteCount: number;
+    isDeleted: boolean;
+    edited: boolean;
+    createdAt: string; // ISO string (e.g., "2025-04-09T11:47:58.124Z")
     updatedAt: string;
-} 
+}

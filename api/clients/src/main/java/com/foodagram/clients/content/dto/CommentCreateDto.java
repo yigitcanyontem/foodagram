@@ -14,7 +14,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CommentCreateDto {
     private UUID postId;
-    private PostType postType;
     private UUID userId;
     private String content;
     private String createdByUsername;

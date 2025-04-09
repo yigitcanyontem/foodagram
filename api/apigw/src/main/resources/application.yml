@@ -66,6 +66,15 @@ spring:
             - Path=/api/v1/ai/**
           filters:
             - StripPrefix=3
+        - id: comments
+          uri: lb://CONTENT
+          predicates:
+            - Path=/api/v1/comments/**
+        - id: comment-vote
+          uri: lb://CONTENT
+          predicates:
+            - Path=/api/v1/comment-vote/**
+
 management:
   tracing:
     enabled: true

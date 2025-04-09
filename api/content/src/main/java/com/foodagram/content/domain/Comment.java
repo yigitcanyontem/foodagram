@@ -28,10 +28,6 @@ public class Comment extends BaseEntity {
     @OnDelete(action = OnDeleteAction.NO_ACTION)
     private Post post; // Links to a post
 
-    @Column(name = "post_type", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private PostType postType;
-
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 

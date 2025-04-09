@@ -1,96 +1,93 @@
 package com.foodagram.content.service;
 
+import com.foodagram.clients.content.dto.*;
+import com.foodagram.clients.users.dto.UsersDto;
 import com.foodagram.content.domain.Comment;
-import com.foodagram.clients.content.dto.CommentCreateDto;
-import com.foodagram.clients.content.dto.CommentEditDto;
-import com.foodagram.clients.content.dto.CommentResponseDto;
-import com.foodagram.clients.content.dto.CommentUpdateDto;
+import com.foodagram.content.domain.Post;
 import com.foodagram.content.repository.CommentRepository;
-import com.foodagram.content.util.UsersUtil;
+import jakarta.ws.rs.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CommentService {
     private final CommentRepository commentRepository;
-    private final UsersUtil usersUtil;
-//
-//    @Transactional
-//    public CommentResponseDto createComment(CommentCreateDto commentCreateDto) {
-//        Comment comment = Comment.builder()
-//                .postId(commentCreateDto.getPostId())
-//                .postType(commentCreateDto.getPostType())
-//                .userId(usersUtil.getCurrentUserId())
-//                .content(commentCreateDto.getContent())
-//                .createdByUsername(usersUtil.getCurrentUsername())
-//                .parentReplyId(commentCreateDto.getParentReplyId())
-//                .build();
-//        return mapToResponseDto(commentRepository.save(comment));
-//    }
-//
-//    public CommentResponseDto getComment(UUID id) {
-//        return mapToResponseDto(findCommentById(id));
-//    }
-//
-//    public List<CommentResponseDto> getCommentsByPostId(UUID postId) {
-//        return commentRepository.findByPostId(postId).stream()
-//                .map(this::mapToResponseDto)
-//                .collect(Collectors.toList());
-//    }
-//
-//    @Transactional
-//    public CommentResponseDto updateComment(UUID id, CommentUpdateDto commentUpdateDto) {
-//        Comment comment = findCommentById(id);
-//        comment.setContent(commentUpdateDto.getContent());
-//        comment.setUpvoteCount(commentUpdateDto.getUpvoteCount());
-//        comment.setDownvoteCount(commentUpdateDto.getDownvoteCount());
-//        comment.setDeleted(commentUpdateDto.isDeleted());
-//        comment.setEdited(true);
-//        return mapToResponseDto(commentRepository.save(comment));
-//    }
-//
-//    @Transactional
-//    public CommentResponseDto editComment(UUID id, CommentEditDto commentEditDto) {
-//        Comment comment = findCommentById(id);
-//        comment.setContent(commentEditDto.getContent());
-//        comment.setEdited(true);
-//        return mapToResponseDto(commentRepository.save(comment));
-//    }
-//
-//    @Transactional
-//    public void deleteComment(UUID id) {
-//        commentRepository.deleteById(id);
-//    }
-//
-//    private Comment findCommentById(UUID id) {
-//        return commentRepository.findById(id)
-//                .orElseThrow(() -> new RuntimeException("Comment not found with id: " + id));
-//    }
-//
-//    private CommentResponseDto mapToResponseDto(Comment comment) {
-//        return CommentResponseDto.builder()
-//                .id(comment.getId())
-//                .postId(comment.getPostId())
-//                .postType(comment.getPostType())
-//                .userId(comment.getUserId())
-//                .content(comment.getContent())
-//                .createdByUsername(comment.getCreatedByUsername())
-//                .parentReplyId(comment.getParentReplyId())
-//                .replies(comment.getReplies().stream()
-//                        .map(this::mapToResponseDto)
-//                        .collect(Collectors.toList()))
-//                .upvoteCount(comment.getUpvoteCount())
-//                .downvoteCount(comment.getDownvoteCount())
-//                .isDeleted(comment.isDeleted())
-//                .edited(comment.isEdited())
-//                .createdAt(comment.getCreatedAt())
-//                .updatedAt(comment.getUpdatedAt())
-//                .build();
-//    }
+
+    public CommentResponseDto createComment(CommentCreateDto commentCreateDto) {
+        Comment comment = Comment.builder()
+                .post(Post.builder().id(commentCreateDto.getPostId()).build())
+                .postType(commentCreateDto.getPostType())
+                .userId(commentCreateDto.getUserId())
+                .content(commentCreateDto.getContent())
+                .createdByUsername(commentCreateDto.getCreatedByUsername())
+                .parentReply(commentCreateDto.getParentReplyId() != null
+                        ? Comment.builder().id(commentCreateDto.getParentReplyId()).build()
+                        : null)
+                .upvoteCount(0L)
+                .downvoteCount(0L)
+                .build();
+        return mapToResponseDto(commentRepository.save(comment));
+    }
+
+    public CommentResponseDto getCommentById(UUID id) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found with id: " + id));
+        return mapToResponseDto(comment);
+    }
+
+    public CommentResponseDto updateComment(UUID id, CommentEditDto commentEditDto, UsersDto usersDto) {
+
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found with id: " + id));
+
+        throwIfUserIsNotOwnerOfComment(comment.getUserId(), usersDto.getId());
+
+        comment.setContent(commentEditDto.getContent());
+        comment.setEdited(true);
+        return mapToResponseDto(commentRepository.save(comment));
+    }
+
+    public void deleteComment(UUID id, UsersDto usersDto) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found with id: " + id));
+
+        throwIfUserIsNotOwnerOfComment(comment.getUserId(), usersDto.getId());
+
+        comment.setDeleted(true);
+        comment.setContent("This comment has been deleted");
+        commentRepository.save(comment);
+    }
+
+    private CommentResponseDto mapToResponseDto(Comment comment) {
+        return CommentResponseDto.builder()
+                .id(comment.getId())
+                .postId(comment.getPost().getId())
+                .postType(comment.getPostType())
+                .userId(comment.getUserId())
+                .content(comment.getContent())
+                .createdByUsername(comment.getCreatedByUsername())
+                .parentReplyId(comment.getParentReply() != null ? comment.getParentReply().getId() : null)
+                .replies(comment.getReplies().stream().map(this::mapToResponseDto).toList())
+                .upvoteCount(comment.getUpvoteCount())
+                .downvoteCount(comment.getDownvoteCount())
+                .isDeleted(comment.isDeleted())
+                .edited(comment.isEdited())
+                .createdAt(comment.getCreatedDate())
+                .updatedAt(comment.getUpdatedDate())
+                .build();
+    }
+
+    private void throwIfUserIsNotOwnerOfComment(UUID userId, UUID creatorId) {
+        if (!userId.equals(creatorId)) {
+            throw new ForbiddenException("You are not owner of this comment");
+        }
+    }
+
+    public List<CommentResponseDto> getCommentsByPost(UUID postId) {
+        return commentRepository.findByPostId(postId).stream().map(this::mapToResponseDto).toList();
+    }
 }

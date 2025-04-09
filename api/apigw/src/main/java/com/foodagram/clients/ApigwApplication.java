@@ -11,7 +11,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 )
 @SpringBootApplication
 public class ApigwApplication {
-
+    //PUSHDENEMESI
     public static void main(String[] args) {
         SpringApplication.run(ApigwApplication.class, args);
     }

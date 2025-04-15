@@ -1,13 +1,5 @@
 import React, { useState } from "react";
-import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    StyleSheet,
-    ScrollView,
-    Image,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { AuthService } from "@/services/auth-service";
 import Toast from "react-native-toast-message";
@@ -48,6 +40,13 @@ const RegisterPage = () => {
     const navigation = useNavigation();
     const { setUserData } = useAppContext();
 
+
+    const isUpperCase = /[A-Z]/.test(password);
+    const isLowerCase = /[a-z]/.test(password);
+    const isDigit = /[0-9]/.test(password);
+    const isSpecialChar = /[^A-Za-z0-9]/.test(password);
+    const isMinLength = password.length >= 8;
+
     const handleRegister = async () => {
         try {
             const authResponse = await AuthService.register({
@@ -72,6 +71,7 @@ const RegisterPage = () => {
                 position: "top",
                 topOffset: 60,
             });
+
             setError(null);
             navigation.navigate("Home");
         } catch (err) {
@@ -89,6 +89,7 @@ const RegisterPage = () => {
     return (
         <View style={[shared_styles.body_container, { paddingBottom: 0 }]}>
             <ScrollView contentContainerStyle={styles.container}>
+
                 <Image
                     source={require("@/assets/images/knife-logo.png")}
                     style={styles.logo}
@@ -98,18 +99,21 @@ const RegisterPage = () => {
                 <Text style={styles.title}>Create Account</Text>
                 <Text style={styles.subtitle}>Join our community</Text>
 
+
                 <AuthInput
                     label="Username"
                     value={username}
                     onChangeText={setUsername}
                     placeholder="Enter your username"
                 />
+
                 <AuthInput
                     label="Email"
                     value={email}
                     onChangeText={setEmail}
                     placeholder="Enter your email"
                 />
+
                 <AuthInput
                     label="Password"
                     value={password}
@@ -127,9 +131,11 @@ const RegisterPage = () => {
 
                 {error && <Text style={styles.errorText}>{error}</Text>}
 
+
                 <TouchableOpacity style={styles.button} onPress={handleRegister}>
                     <Text style={styles.buttonText}>Register</Text>
                 </TouchableOpacity>
+
 
                 <View style={styles.loginContainer}>
                     <Text style={styles.loginText}>Already have an account? </Text>
@@ -137,6 +143,7 @@ const RegisterPage = () => {
                         <Text style={styles.loginLink}>Login here</Text>
                     </TouchableOpacity>
                 </View>
+
             </ScrollView>
         </View>
     );
@@ -192,6 +199,16 @@ const styles = StyleSheet.create({
         alignSelf: "flex-start",
         marginBottom: 10,
         marginTop: -15,
+    },
+    validationContainer: {
+        marginTop: 10,
+    },
+    validationText: {
+        fontSize: 12,
+        color: "gray",
+    },
+    valid: {
+        color: "green",
     },
     button: {
         backgroundColor: "#E74C3C",

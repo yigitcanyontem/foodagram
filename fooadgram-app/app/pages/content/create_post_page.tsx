@@ -1,4 +1,4 @@
-import {ScrollView, StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Switch} from 'react-native';
+import {ScrollView, StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Switch, Platform, Modal, Button} from 'react-native';
 import {useNavigation} from "@react-navigation/native";
 import React, {useState} from "react";
 import {useAppContext} from "@/context/AppContext";
@@ -13,11 +13,13 @@ import {RecipeCreateDto} from "@/models/content/dto/RecipeCreateDto";
 import {IngredientCreateDto} from "@/models/content/dto/IngredientCreateDto";
 import Toast from "react-native-toast-message";
 import {AIService} from "@/services/ai-service";
+import { useRef } from 'react';
 
 const CreatePostPage = () => {
     const navigation = useNavigation();
     const { setUserData, userData } = useAppContext();
     const [isImageValid, setIsImageValid] = useState(false);
+    const [imageId, setImageId] = useState<string | null>(null);
 
     // Form state
     const [title, setTitle] = useState('');
@@ -29,6 +31,9 @@ const CreatePostPage = () => {
     const [mediaUrls, setMediaUrls] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [manualFoodName, setManualFoodName] = useState('');
+    const foodNameResolver = useRef<(name: string | null) => void>();
 
     // Recipe state
     const [includeRecipe, setIncludeRecipe] = useState(false);
@@ -53,40 +58,76 @@ const CreatePostPage = () => {
                 quality: 1,
             });
 
-            if (!result.canceled && result.assets && result.assets.length > 0) {
+            if (!result.canceled && result.assets?.length > 0) {
                 const asset = result.assets[0];
 
                 try {
-                    let tagResults = await AIService.predict(asset);
-                    if (tagResults) {
-                        if (tagResults.prediction && tagResults.prediction !== 'no match') {
-                            setIsImageValid(true);  //  prediction gud
-                            await uploadMedia(asset); //  upload only if valid
+                    let predictionResult = await AIService.predict(asset);
 
-                            setTags(prevTags => prevTags
-                                ? `${prevTags}, ${tagResults.prediction}`
-                                : tagResults.prediction);
+                    if (predictionResult.image_id) {
+                        setImageId(predictionResult.image_id);
+                    }
 
-                            Toast.show({
-                                type: 'info',
-                                text1: "Image uploaded and processed",
-                                text2: `Detected ${tagResults.prediction} (${tagResults.confidence})`,
-                                position: 'top',
-                                topOffset: 60,
-                            });
-                        } else {
-                            setIsImageValid(false);  // prediction bad
+                    if (predictionResult.prediction !== 'no match') {
+                        setIsImageValid(true);
+                        await uploadMedia(asset);
+
+                        setTags(prevTags => prevTags
+                            ? `${prevTags}, ${predictionResult.prediction}`
+                            : predictionResult.prediction);
+
+                        Toast.show({
+                            type: 'info',
+                            text1: "Image uploaded and processed",
+                            text2: `Detected ${predictionResult.prediction} (${predictionResult.confidence})`,
+                            position: 'top',
+                            topOffset: 60,
+                        });
+                    } else {
+                        const userProvidedName = await promptFoodName();
+                        if (!userProvidedName) {
                             Toast.show({
                                 type: 'error',
-                                text1: "Image not usable",
-                                text2: "No recognizable food found (Low Confidence)",
-                                position: 'top',
-                                topOffset: 60,
+                                text1: "Upload canceled",
+                                text2: "You must enter a food name."
+                            });
+                            return;
+                        }
+
+                        if (!predictionResult.image_id) {
+                            Toast.show({
+                                type: 'error',
+                                text1: "Error",
+                                text2: "Image ID missing."
+                            });
+                            return;
+                        }
+
+                        const verifyResult = await AIService.verify(predictionResult.image_id, userProvidedName);
+                        if (verifyResult.prediction !== 'no match') {
+                            setIsImageValid(true);
+                            await uploadMedia(asset);
+
+                            setTags(prevTags => prevTags
+                                ? `${prevTags}, ${verifyResult.prediction}`
+                                : verifyResult.prediction);
+
+                            Toast.show({
+                                type: 'success',
+                                text1: "Image verified and uploaded",
+                                text2: verifyResult.reason,
+                            });
+                        } else {
+                            setIsImageValid(false);
+                            Toast.show({
+                                type: 'error',
+                                text1: "Verification failed",
+                                text2: verifyResult.reason,
                             });
                         }
                     }
                 } catch (error) {
-                    console.error("Error predicting image:", error);
+                    console.error("Error processing image:", error);
                     setIsImageValid(false);
                 }
             }
@@ -96,7 +137,27 @@ const CreatePostPage = () => {
         }
     };
 
+    const promptFoodName = (): Promise<string | null> => {
+        return new Promise((resolve) => {
+            setManualFoodName('');
+            setIsModalVisible(true);
+            foodNameResolver.current = resolve;
+        });
+    };
 
+    const handleModalSubmit = () => {
+        setIsModalVisible(false);
+        if (foodNameResolver.current) {
+            foodNameResolver.current(manualFoodName.trim() || null);
+        }
+    };
+
+    const handleModalCancel = () => {
+        setIsModalVisible(false);
+        if (foodNameResolver.current) {
+            foodNameResolver.current(null);
+        }
+    };
 
     // Upload media
     const uploadMedia = async (file: ImagePickerAsset) => {
@@ -498,6 +559,48 @@ const CreatePostPage = () => {
                         <Text style={styles.buttonText}>Create Post</Text>
                     )}
                 </TouchableOpacity>
+
+                <Modal
+                    visible={isModalVisible}
+                    transparent
+                    animationType="fade"
+                >
+                    <View style={{
+                        flex: 1,
+                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}>
+                        <View style={{
+                            width: '80%',
+                            backgroundColor: 'white',
+                            padding: 20,
+                            borderRadius: 10
+                        }}>
+                            <Text style={{ fontSize: 18, marginBottom: 10 }}>Enter Food Name</Text>
+                            <TextInput
+                                style={{
+                                    borderWidth: 1,
+                                    borderColor: '#ccc',
+                                    borderRadius: 5,
+                                    padding: 10,
+                                    marginBottom: 10
+                                }}
+                                placeholder="Type food name"
+                                value={manualFoodName}
+                                onChangeText={setManualFoodName}
+                            />
+                            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                                <TouchableOpacity onPress={handleModalCancel} style={{ marginRight: 10 }}>
+                                    <Text style={{ color: 'red' }}>Cancel</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={handleModalSubmit}>
+                                    <Text style={{ color: 'blue' }}>Submit</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
             </ScrollView>
             <FGTabBar/>
         </View>

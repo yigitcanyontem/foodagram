@@ -12,24 +12,29 @@ import {PredictionDto} from "@/models/ai/PredictionDto";
 export class AIService {
     static baseUrl: string = GlobalConstants.baseUrl + 'ai';
 
+    // First call - image upload and initial prediction
     static predict(file: ImagePickerAsset): Promise<PredictionDto> {
-        let fileUri = file.uri;
-
         const formData = ImageUtil.getFormDataFrom(
-            fileUri,
-            file.fileName ? file.fileName : 'media_file.jpg',
+            file.uri,
+            file.fileName ?? 'media_file.jpg',
         );
 
         return axios.post(`${this.baseUrl}/predict`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+            headers: { 'Content-Type': 'multipart/form-data' },
+        })
+            .then(response => response.data);
+    }
+
+    // Second call - verify the food name with image id
+    static verify(imageId: string, foodName: string): Promise<PredictionDto> {
+        return axios.post(`${this.baseUrl}/verify`, {
+            image_id: imageId,
+            food_name: foodName
         })
             .then(response => response.data)
             .catch(error => {
-                console.error('Prediction failed:', error);
+                console.error('Verification failed:', error);
                 throw error;
             });
     }
-
 }

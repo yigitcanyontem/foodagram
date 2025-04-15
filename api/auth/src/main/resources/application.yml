@@ -42,7 +42,6 @@ management:
 eureka:
   instance:
     appname: auth
-    hostname: localhost
   client:
     enabled: true
     serviceUrl:

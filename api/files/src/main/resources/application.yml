@@ -39,7 +39,6 @@ management:
 eureka:
   instance:
     appname: files
-    hostname: localhost
   client:
     enabled: true
     serviceUrl:

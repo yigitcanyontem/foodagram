@@ -1,4 +1,4 @@
-import {ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Image} from 'react-native';
+import {ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {NavigationProp, useNavigation} from "@react-navigation/native";
 import React, {useState} from "react";
 import {AuthService} from "@/services/auth-service";
@@ -10,7 +10,7 @@ type LoginPageProps = {
     navigation: NavigationProp<any>;
 };
 
-const AuthInput = ({ label, value, onChangeText, secureTextEntry, placeholder, keyboardType }) => (
+export const AuthInput = ({ label, value, onChangeText, secureTextEntry, placeholder }) => (
     <View style={styles.inputContainer}>
         <Text style={styles.label}>{label}</Text>
         <TextInput
@@ -20,7 +20,6 @@ const AuthInput = ({ label, value, onChangeText, secureTextEntry, placeholder, k
             onChangeText={onChangeText}
             secureTextEntry={secureTextEntry}
             autoCapitalize="none"
-            keyboardType={keyboardType}
         />
     </View>
 );
@@ -30,7 +29,7 @@ const LoginPage = () => {
     const [password, setPassword] = useState("");
     const [error, setError] = useState(null);
     const navigation = useNavigation();
-    const { setUserData } = useAppContext();
+    const { setUserData, userData } = useAppContext()
 
     const handleLogin = async () => {
         try {
@@ -48,7 +47,7 @@ const LoginPage = () => {
 
             Toast.show({
                 type: 'success',
-                text1: 'Login Successful',
+                text1: 'Login successful',
                 text2: 'Welcome ' + userData.username,
                 position: 'top',
                 topOffset: 60,
@@ -58,155 +57,84 @@ const LoginPage = () => {
         } catch (err) {
             Toast.show({
                 type: 'error',
-                text1: "Login Failed",
-                text2: "Please check your information",
+                text1: "Error while logging in",
+                text2: "Please check your credentials.",
                 position: 'top',
                 topOffset: 60,
             });
-            setError("Login failed. Please check your information.");
+            setError("Login failed. Please check your credentials.");
         }
     };
 
     return (
-        <View style={[shared_styles.body_container, { paddingBottom: 0 }]}>
-            <ScrollView contentContainerStyle={styles.container}>
-                <Image
-                    source={require('@/assets/images/knife-logo.png')}
-                    style={styles.logo}
-                    resizeMode="contain"
-                />
-
+        <View style={[shared_styles.body_container, {paddingBottom: 0}]}>
+            <ScrollView contentContainerStyle={styles.container} >
                 <Text style={styles.title}>Login</Text>
-                <Text style={styles.subtitle}>Access your account</Text>
-
-                <AuthInput
-                    label="Email"
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="Enter your email address"
-                    secureTextEntry={false}
-                    keyboardType="email-address"
-                />
-
-                <AuthInput
-                    label="Password"
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholder="Enter your password"
-                    secureTextEntry={true}
-                />
-
+                <Text style={styles.subtitle}>Login to your account</Text>
+                <AuthInput label="Email" value={email} onChangeText={setEmail} placeholder="Enter your email"  secureTextEntry={false}/>
+                <AuthInput label="Password" value={password} onChangeText={setPassword} secureTextEntry placeholder="Enter your password" />
                 {error && <Text style={styles.errorText}>{error}</Text>}
-
                 <TouchableOpacity style={styles.button} onPress={handleLogin}>
                     <Text style={styles.buttonText}>Login</Text>
                 </TouchableOpacity>
-
-                <View style={styles.registerContainer}>
-                    <Text style={styles.registerText}>Don't have an account? </Text>
-                    <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-                        <Text style={styles.registerLink}>Sign Up</Text>
-                    </TouchableOpacity>
-                </View>
+                <Text style={styles.registerText}>
+                    Don't have an account? <Text style={styles.link} onPress={() => navigation.navigate("Register")}>Create account</Text>
+                </Text>
             </ScrollView>
         </View>
     );
 };
 
-
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
         alignItems: "center",
-        padding: 30,
+        padding: 20,
         backgroundColor: "#fff",
-        paddingTop: 30,
-    },
-    logo: {
-        width: 100,
-        height: 100,
-        marginBottom: 25,
-        tintColor: '#E74C3C'
+        paddingTop: 150,
     },
     title: {
-        fontSize: 26,
+        fontSize: 24,
         fontWeight: "bold",
-        color: "#2C3E50",
-        marginBottom: 8,
-        fontFamily: 'Roboto-Bold',
     },
     subtitle: {
         fontSize: 16,
-        color: "#7F8C8D",
-        marginBottom: 30,
-        fontFamily: 'Roboto-Regular',
+        marginBottom: 20,
     },
     inputContainer: {
         width: "100%",
-        marginBottom: 20,
+        marginBottom: 15,
     },
     label: {
         fontSize: 14,
-        color: "#2C3E50",
-        marginBottom: 8,
-        fontWeight: "500",
-        fontFamily: 'Roboto-Medium',
+        marginBottom: 5,
     },
     input: {
         borderWidth: 1,
-        borderColor: "#ECF0F1",
-        padding: 15,
-        borderRadius: 10,
-        backgroundColor: "#FDFDFD",
-        fontSize: 16,
-        color: "#2C3E50",
-        fontFamily: 'Roboto-Regular',
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
+        borderColor: "#ccc",
+        padding: 10,
+        borderRadius: 5,
     },
     button: {
-        backgroundColor: "#E74C3C",
-        padding: 16,
-        borderRadius: 10,
+        backgroundColor: "#007bff",
+        padding: 10,
+        borderRadius: 5,
         alignItems: "center",
         width: "100%",
-        marginTop: 20,
-        shadowColor: "#E74C3C",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 6,
-        elevation: 5,
+        marginTop: 10,
     },
     buttonText: {
         color: "white",
-        fontSize: 18,
-        fontWeight: "600",
-        fontFamily: 'Roboto-Bold',
+        fontSize: 16,
     },
     errorText: {
-        color: "#E74C3C",
+        color: "red",
         marginBottom: 10,
-        textAlign: "center",
-        fontFamily: 'Roboto-Regular',
-    },
-    registerContainer: {
-        flexDirection: "row",
-        marginTop: 25,
-        alignItems: "center",
     },
     registerText: {
-        color: "#95A5A6",
-        fontSize: 15,
-        fontFamily: 'Roboto-Regular',
+        marginTop: 10,
     },
-    registerLink: {
-        color: "#E74C3C",
-        fontSize: 15,
-        fontWeight: "600",
-        fontFamily: 'Roboto-Bold',
+    link: {
+        color: "blue",
     },
 });
 

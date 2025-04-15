@@ -1,5 +1,5 @@
 server:
-  address: 0.0.0.0
+  address: 192.168.85.5
   port: 8083
 
 spring:
@@ -84,8 +84,6 @@ management:
 eureka:
   instance:
     appname: apigw
-    preferIpAddress: true
-    hostname: localhost
   client:
     enabled: true
     serviceUrl:

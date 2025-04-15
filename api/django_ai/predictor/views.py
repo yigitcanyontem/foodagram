@@ -120,7 +120,7 @@ def predict_image(request):
 
     confidence_percent = confidence.item() * 100
 
-    if confidence_percent < 60:
+    if confidence_percent < 85:
         return Response({
             'prediction': 'no match',
             'confidence': f"{confidence_percent:.2f}%",

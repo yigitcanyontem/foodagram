@@ -90,7 +90,7 @@ const PostDetailPage = () => {
 
                     {/* Post Image */}
                     <View
-                        style={styles.imageWrapper}>
+                        style={[styles.imageWrapper, {marginBottom: 10}]}>
                         <Carousel
                             ref={carouselRef}
                             data={post?.mediaUrls}
@@ -135,12 +135,40 @@ const PostDetailPage = () => {
                     >
                         <Text style={styles.likes}>{post?.likes} likes</Text>
                     </TouchableOpacity>
-                    <Text style={styles.description}><Text
-                        style={styles.username}>{post?.username} </Text>{post?.content}</Text>
+
+                    <View>
+                        <Text style={styles.description}><Text
+                            style={styles.username}>{post?.username} </Text>{post?.content}
+                        </Text>
+                        {
+                            post?.tags && post.tags.map((tag, index) => (
+                                <Text key={index} style={styles.tag}>#{tag}</Text>
+                            ))
+                        }
+                    </View>
                     {post?.createdAt && (
                         <Text style={styles.date}>{formatPostDate(post.createdAt)}</Text>
                     )}
 
+                    <View style={styles.recipeSection}>
+                        <Text style={styles.recipeTitle}>Recipe: {post?.recipe?.title}</Text>
+                        <Text style={styles.recipeDescription}>{post?.recipe?.description}</Text>
+                        <Text style={styles.recipeSubtitle}>Ingredients:</Text>
+                        {post?.recipe?.ingredients.map((ingredient) => (
+                            <Text key={ingredient.id} style={styles.ingredientItem}>
+                                - {ingredient.amount} {ingredient.unit} {ingredient.name}
+                            </Text>
+                        ))}
+                        <Text style={styles.recipeSubtitle}>Instructions:</Text>
+                        {post?.recipe?.instructions.map((instruction, index) => (
+                            <Text key={index} style={styles.instructionItem}>
+                                {index + 1}. {instruction}
+                            </Text>
+                        ))}
+                        <Text style={styles.recipeDetails}>
+                            Cuisine: {post?.recipe?.cuisineType} | Difficulty: {post?.recipe?.difficultyLevel} | Prep Time: {post?.recipe?.prepTime} mins
+                        </Text>
+                    </View>
 
                 </ScrollView>
 
@@ -191,6 +219,10 @@ const styles = StyleSheet.create({
     description: {
         marginBottom: 5,
     },
+    tag: {
+       color: 'blue',
+    },
+
     date: {
         color: 'gray',
         fontSize: 12,
@@ -251,6 +283,40 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center'
+    },
+    recipeSection: {
+        marginTop: 20,
+        padding: 10,
+        backgroundColor: '#f8f8f8',
+        borderRadius: 8,
+    },
+    recipeTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    recipeDescription: {
+        fontSize: 14,
+        marginBottom: 10,
+    },
+    recipeSubtitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginTop: 10,
+        marginBottom: 5,
+    },
+    ingredientItem: {
+        fontSize: 14,
+        marginBottom: 5,
+    },
+    instructionItem: {
+        fontSize: 14,
+        marginBottom: 5,
+    },
+    recipeDetails: {
+        fontSize: 12,
+        color: 'gray',
+        marginTop: 10,
     },
 });
 

@@ -1,5 +1,15 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image } from "react-native";
+import { 
+    View,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    StyleSheet,
+    KeyboardAvoidingView,
+    ScrollView,
+    TouchableWithoutFeedback,
+    Keyboard,
+    Image,} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { AuthService } from "@/services/auth-service";
 import Toast from "react-native-toast-message";
@@ -87,65 +97,69 @@ const RegisterPage = () => {
     };
 
     return (
-        <View style={[shared_styles.body_container, { paddingBottom: 0 }]}>
-            <ScrollView contentContainerStyle={styles.container}>
+        <KeyboardAvoidingView style={[shared_styles.body_container, { paddingTop: 0 }]}>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <ScrollView
+                    contentContainerStyle={styles.scrollContainer}
+                    keyboardShouldPersistTaps="handled"
+                >
 
-                <Image
-                    source={require("@/assets/images/knife-logo.png")}
-                    style={styles.logo}
-                    resizeMode="contain"
-                />
+                    <Image
+                        source={require("@/assets/images/knife-logo.png")}
+                        style={styles.logo}
+                        resizeMode="contain"
+                    />
 
-                <Text style={styles.title}>Create Account</Text>
-                <Text style={styles.subtitle}>Join our community</Text>
-
-
-                <AuthInput
-                    label="Username"
-                    value={username}
-                    onChangeText={setUsername}
-                    placeholder="Enter your username"
-                />
-
-                <AuthInput
-                    label="Email"
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="Enter your email"
-                />
-
-                <AuthInput
-                    label="Password"
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholder="Enter your password"
-                    secureTextEntry
-                    onFocus={() => setIsPasswordFocused(true)}
-                    onBlur={() => setIsPasswordFocused(false)}
-                />
-                {isPasswordFocused && (
-                    <Text style={styles.passwordHint}>
-                        Min 8 characters, 1 uppercase, 1 number, 1 special char
-                    </Text>
-                )}
-
-                {error && <Text style={styles.errorText}>{error}</Text>}
+                    <Text style={styles.title}>Create Account</Text>
+                    <Text style={styles.subtitle}>Join our community</Text>
 
 
-                <TouchableOpacity style={styles.button} onPress={handleRegister}>
-                    <Text style={styles.buttonText}>Register</Text>
-                </TouchableOpacity>
+                    <AuthInput
+                        label="Username"
+                        value={username}
+                        onChangeText={setUsername}
+                        placeholder="Enter your username"
+                    />
+
+                    <AuthInput
+                        label="Email"
+                        value={email}
+                        onChangeText={setEmail}
+                        placeholder="Enter your email"
+                    />
+
+                    <AuthInput
+                        label="Password"
+                        value={password}
+                        onChangeText={setPassword}
+                        placeholder="Enter your password"
+                        secureTextEntry
+                        onFocus={() => setIsPasswordFocused(true)}
+                        onBlur={() => setIsPasswordFocused(false)}
+                    />
+                    {isPasswordFocused && (
+                        <Text style={styles.passwordHint}>
+                            Min 8 characters, 1 uppercase, 1 number, 1 special char
+                        </Text>
+                    )}
+
+                    {error && <Text style={styles.errorText}>{error}</Text>}
 
 
-                <View style={styles.loginContainer}>
-                    <Text style={styles.loginText}>Already have an account? </Text>
-                    <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-                        <Text style={styles.loginLink}>Login here</Text>
+                    <TouchableOpacity style={styles.button} onPress={handleRegister}>
+                        <Text style={styles.buttonText}>Register</Text>
                     </TouchableOpacity>
-                </View>
 
-            </ScrollView>
-        </View>
+
+                    <View style={styles.loginContainer}>
+                        <Text style={styles.loginText}>Already have an account? </Text>
+                        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+                            <Text style={styles.loginLink}>Login here</Text>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+            </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
     );
 };
 
@@ -157,6 +171,12 @@ const styles = StyleSheet.create({
         backgroundColor: "#fff",
         paddingTop: 40,
     },
+    scrollContainer: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 24,
+      },
     logo: {
         width: 80,
         height: 80,

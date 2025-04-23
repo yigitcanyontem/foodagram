@@ -30,4 +30,5 @@ public class PostResponseDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String username;
+    private Long saves;
 } 

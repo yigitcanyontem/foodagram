@@ -130,6 +130,9 @@ const shared_styles = StyleSheet.create({
     },
     flex1: {
         flex: 1
+    },
+    justify_between: {
+        justifyContent: 'space-between'
     }
 
 });

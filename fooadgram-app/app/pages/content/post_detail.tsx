@@ -1,15 +1,4 @@
-import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
-    Image,
-    TouchableOpacity,
-    TextInput,
-    KeyboardAvoidingView,
-    Platform,
-    Dimensions
-} from 'react-native';
+import {Dimensions, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {useNavigation, useRoute} from "@react-navigation/native";
 import React, {useEffect, useRef, useState} from "react";
 import {useAppContext} from "@/context/AppContext";
@@ -20,9 +9,6 @@ import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
 import {ContentService} from "@/services/content-service";
 import {GlobalConstants} from "@/utils/GlobalConstants";
 import {formatPostDate} from "@/utils/dayjsConfig";
-import {CommentService} from "@/services/comment-service";
-import {CommentResponseDto} from "@/models/content/dto/CommentResponseDto";
-import {CommentCreateDto} from "@/models/content/dto/CommentCreateDto";
 import Carousel from 'react-native-anchor-carousel';
 
 type PostDetailParams = {
@@ -37,6 +23,7 @@ const PostDetailPage = () => {
     const [post, setPost] = useState<PostResponseDto>()
     const {setUserData, userData} = useAppContext()
     const [hasLiked, setHasLiked] = useState<boolean>(false);
+    const [hasSaved, setHasSaved] = useState<boolean>(false);
     const carouselRef = useRef(null);
 
     const fetchPost = async () => {
@@ -45,6 +32,8 @@ const PostDetailPage = () => {
             setPost(postResponse);
             const liked = await ContentService.hasUserLikedPost(postId, userData);
             setHasLiked(liked);
+            const saved = await ContentService.hasUserSavedPost(postId, userData);
+            setHasSaved(saved);
         } catch (error) {
             console.error("Failed to fetch users posts", error);
         }
@@ -65,6 +54,22 @@ const PostDetailPage = () => {
             console.error("Failed to like/unlike post", error);
         }
     };
+
+    const handleSave = async () => {
+        try {
+            if (hasSaved) {
+                await ContentService.unsavePost(postId, userData);
+                setPost(prevPost => prevPost ? {...prevPost, saves: prevPost.saves - 1} : prevPost);
+            } else {
+                await ContentService.savePost(postId, userData);
+                setPost(prevPost => prevPost ? {...prevPost, saves: prevPost.saves + 1} : prevPost);
+            }
+            setHasSaved(!hasSaved);
+        } catch (error) {
+            console.error("Failed to like/unlike post", error);
+        }
+    };
+
 
 
     useEffect(() => {
@@ -112,20 +117,29 @@ const PostDetailPage = () => {
                     {/* Post Actions */}
                     <View style={styles.actions}>
                         <TouchableOpacity onPress={handleLike}>
-                            <AntDesign name={hasLiked ? "heart" : "hearto"} size={24} color="black"/>
+                            <AntDesign name={hasLiked ? "heart" : "hearto"} size={24} color={hasLiked ? "#E21E25" : "black"}/>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => navigation.navigate('Comments', {postId})}
                         >
-                            <View style={shared_styles.row}>
+                            <View style={[shared_styles.row, {alignItems: 'center'}]}>
                                 <FontAwesome name="comment-o" size={24} color="black"/>
-                                <Text style={{marginLeft: 10, verticalAlign: 'middle'}}>
+                                <Text style={{marginLeft: 10}}>
                                     {post?.comments}
                                 </Text>
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity>
-                            <FontAwesome name="send-o" size={24} color="black"/>
+                        <TouchableOpacity
+                            onPress={
+                                handleSave
+                            }
+                        >
+                            <View style={[shared_styles.row, {alignItems: 'center'}]}>
+                                <FontAwesome name={hasSaved ? 'bookmark' : 'bookmark-o'} size={24} color="black"/>
+                                <Text style={{marginLeft: 10}}>
+                                    {post?.saves}
+                                </Text>
+                            </View>
                         </TouchableOpacity>
                     </View>
 

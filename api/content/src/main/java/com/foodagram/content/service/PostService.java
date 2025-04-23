@@ -75,6 +75,13 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+
+    public List<PostResponseDto> getAllPostsByIDIn(List<UUID> postIds) {
+        return postRepository.findAllByIdIn(postIds).stream()
+                .map(this::mapToResponseDto)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public PostResponseDto updatePost(UUID id, PostUpdateDto postUpdateDto, UsersDto usersDto) {
         Post post = findPostById(id);
@@ -88,6 +95,7 @@ public class PostService {
         post.setLocation(postUpdateDto.getLocation());
         post.setLikes(postUpdateDto.getLikes());
         post.setComments(postUpdateDto.getComments());
+        post.setSaves(postUpdateDto.getSaves());
         return mapToResponseDto(postRepository.save(post));
     }
 
@@ -115,6 +123,7 @@ public class PostService {
                 .location(post.getLocation())
                 .processTime(post.getProcessTime())
                 .likes(post.getLikes())
+                .saves(post.getSaves())
                 .comments(post.getComments())
                 .createdAt(post.getCreatedDate())
                 .updatedAt(post.getUpdatedDate())

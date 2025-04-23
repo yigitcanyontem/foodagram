@@ -32,11 +32,11 @@ type CommentsParams = {
 const CommentsPage = () => {
     const navigation = useNavigation();
     const route = useRoute();
-    const {postId} = route.params as CommentsParams;
-    const {setUserData, userData} = useAppContext()
-    const [users, setUsers] = useState<UsersProfileDto[]>([]);
+    const { postId } = route.params as CommentsParams;
+    const { setUserData, userData } = useAppContext();
     const [comments, setComments] = useState<CommentResponseDto[]>([]);
     const [newComment, setNewComment] = useState<string>('');
+    const [replyTo, setReplyTo] = useState<string | null>(null); // Track the comment being replied to
 
     const fetchComments = async () => {
         try {
@@ -47,7 +47,6 @@ const CommentsPage = () => {
         }
     };
 
-
     const handleComment = async () => {
         if (!newComment.trim()) return;
 
@@ -55,16 +54,36 @@ const CommentsPage = () => {
             const commentDto: CommentCreateDto = {
                 content: newComment,
                 postId: postId,
-                parentReplyId: null,
+                parentReplyId: replyTo, // Set parentReplyId for replies
                 createdByUsername: userData.username,
             };
 
             await CommentService.createComment(commentDto, userData);
             setNewComment('');
-            fetchComments(); // Refresh comments after adding new one
+            setReplyTo(null); // Reset replyTo after posting
+            fetchComments(); // Refresh comments
         } catch (error) {
             console.error("Failed to create comment", error);
         }
+    };
+
+    const renderComments = (comments: CommentResponseDto[], parentId: string | null = null) => {
+        return comments
+            .filter((comment) => comment.parentReplyId === parentId)
+            .map((comment) => (
+                <View key={comment.id} style={styles.commentItem}>
+                    <Text style={styles.commentUsername}>{comment.createdByUsername}</Text>
+                    <Text style={styles.commentContent}>{comment.content}</Text>
+                    <Text style={styles.commentDate}>{formatPostDate(comment.createdAt)}</Text>
+                    <TouchableOpacity onPress={() => setReplyTo(comment.id)}>
+                        <Text style={styles.replyButton}>Reply</Text>
+                    </TouchableOpacity>
+                    {/* Render nested replies */}
+                    <View style={styles.nestedComments}>
+                        {renderComments(comments, comment.id)}
+                    </View>
+                </View>
+            ));
     };
 
     useEffect(() => {
@@ -72,27 +91,24 @@ const CommentsPage = () => {
     }, [postId, userData]);
 
     return (
-        <View
-            style={{flex: 1}}
-        >
+        <View style={{ flex: 1 }}>
             <View style={shared_styles.body_container}>
-               <View style={[styles.container, {marginTop: 10}]}>
-                   <Text style={styles.commentsTitle}>Comments</Text>
-               </View>
+                <View style={[styles.container, { marginTop: 10 }]}>
+                    <Text style={styles.commentsTitle}>Comments</Text>
+                </View>
                 <ScrollView contentContainerStyle={styles.container}>
                     <View style={styles.commentsSection}>
-                        {comments.map((comment) => (
-                            <View key={comment.id} style={styles.commentItem}>
-                                <Text style={styles.commentUsername}>{comment.createdByUsername}</Text>
-                                <Text style={styles.commentContent}>{comment.content}</Text>
-                                <Text style={styles.commentDate}>{formatPostDate(comment.createdAt)}</Text>
-                            </View>
-                        ))}
+                        {renderComments(comments)}
                     </View>
                 </ScrollView>
 
                 {/* Comment Input */}
                 <View style={styles.commentInputContainer}>
+                    {replyTo && (
+                        <Text style={styles.replyingTo}>
+                            Replying to: {comments.find((c) => c.id === replyTo)?.createdByUsername}
+                        </Text>
+                    )}
                     <TextInput
                         style={styles.commentInput}
                         placeholder="Add a comment..."
@@ -105,10 +121,10 @@ const CommentsPage = () => {
                         onPress={handleComment}
                         disabled={!newComment.trim()}
                     >
-                        <FontAwesome name="send" size={20} color={newComment.trim() ? "#007AFF" : "#999"}/>
+                        <FontAwesome name="send" size={20} color={newComment.trim() ? "#007AFF" : "#999"} />
                     </TouchableOpacity>
                 </View>
-                <FGTabBar/>
+                <FGTabBar />
             </View>
         </View>
     );
@@ -203,7 +219,20 @@ const styles = StyleSheet.create({
         marginLeft: 50,
         fontSize: 16,
         fontFamily: 'Poppins'
-    }
+    },
+    nestedComments: {
+        marginLeft: 20,
+        marginTop: 10,
+    },
+    replyButton: {
+        color: "#007AFF",
+        marginTop: 5,
+    },
+    replyingTo: {
+        fontSize: 12,
+        color: "gray",
+        marginBottom: 5,
+    },
 });
 
 export default CommentsPage;

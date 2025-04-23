@@ -46,6 +46,7 @@ import RegisterPage from "@/app/pages/auth/register_page";
 import EditProfilePage from "@/app/pages/profile/edit_profile_page";
 import PostDetailPage from "@/app/pages/content/post_detail";
 import UserProfilePage from "@/app/pages/profile/user_profile_page";
+import LikesPage from "@/app/pages/content/LikesPage";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -115,6 +116,7 @@ export default function RootLayout() {
                         <Stack.Screen name="EditProfilePage" component={EditProfilePage}/>
                         <Stack.Screen name="PostDetail" component={PostDetailPage} />
                         <Stack.Screen name="ProfileFollowDetails" component={ProfileFollowPage} />
+                        <Stack.Screen name="Likes" component={LikesPage} />
                     </Stack.Navigator>
                 </ThemeProvider>
                 <Toast/>

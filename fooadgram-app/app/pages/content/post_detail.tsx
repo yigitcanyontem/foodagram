@@ -87,7 +87,7 @@ const PostDetailPage = () => {
     }, [postId, userData]);
 
     return (
-        <KeyboardAvoidingView 
+        <View
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={{flex: 1}}
         >
@@ -120,7 +120,11 @@ const PostDetailPage = () => {
                     </View>
 
                     {/* Post Details */}
-                    <Text style={styles.likes}>{post?.likes} likes</Text>
+                    <TouchableOpacity
+                    onPress={() => navigation.navigate('Likes', {postId})}
+                    >
+                        <Text style={styles.likes}>{post?.likes} likes</Text>
+                    </TouchableOpacity>
                     <Text style={styles.description}><Text style={styles.username}>{post?.username} </Text>{post?.content}</Text>
                     {post?.createdAt && (
                         <Text style={styles.date}>{formatPostDate(post.createdAt)}</Text>
@@ -148,8 +152,8 @@ const PostDetailPage = () => {
                         onChangeText={setNewComment}
                         multiline
                     />
-                    <TouchableOpacity 
-                        style={styles.sendButton} 
+                    <TouchableOpacity
+                        style={styles.sendButton}
                         onPress={handleComment}
                         disabled={!newComment.trim()}
                     >
@@ -158,7 +162,7 @@ const PostDetailPage = () => {
                 </View>
                 <FGTabBar/>
             </View>
-        </KeyboardAvoidingView>
+        </View>
     );
 };
 

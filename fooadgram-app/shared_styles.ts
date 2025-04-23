@@ -127,6 +127,9 @@ const shared_styles = StyleSheet.create({
         justifyContent: 'center',
         width: '100%',
         flex: 1
+    },
+    flex1: {
+        flex: 1
     }
 
 });

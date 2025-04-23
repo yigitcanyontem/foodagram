@@ -205,4 +205,10 @@ public class PostService {
         postRepository.save(post);
         log.info("Updated post comments: {}", post);
     }
+
+    public List<PostResponseDto> getPostsByTag(String tag) {
+        return postRepository.findPostsByTagsContainingAndVisibilityNotOrderByCreatedDateDesc(tag, Visibility.PRIVATE).stream()
+                .map(this::mapToResponseDto)
+                .collect(Collectors.toList());
+    }
 }

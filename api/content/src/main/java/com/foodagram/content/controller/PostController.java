@@ -116,7 +116,7 @@ public class PostController {
             UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
             return ResponseEntity.ok(likeService.hasUserLikedPost(user.getId(), postId));
         } catch (Exception e) {
-            log.error("Error while removing liking post : {}", e.getMessage());
+            log.error("Error while fetching liked post : {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -150,7 +150,7 @@ public class PostController {
             saveService.unsavePost(user.getId(), postId);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            log.error("Error while removing liking post : {}", e.getMessage());
+            log.error("Error while removing saved post : {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -162,7 +162,7 @@ public class PostController {
             UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
             return ResponseEntity.ok(saveService.hasUserSavedPost(user.getId(), postId));
         } catch (Exception e) {
-            log.error("Error while removing liking post : {}", e.getMessage());
+            log.error("Error while fetching saved posts : {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -173,7 +173,18 @@ public class PostController {
             UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
             return ResponseEntity.ok(saveService.getSavedPostsByUser(user.getId()));
         } catch (Exception e) {
-            log.error("Error while removing liking post : {}", e.getMessage());
+            log.error("Error while fetching saved posts by user : {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/tag/{tag}")
+    public ResponseEntity<List<PostResponseDto>> getPostsByTag(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, @PathVariable String tag) {
+        try {
+            usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
+            return ResponseEntity.ok(postService.getPostsByTag(tag));
+        } catch (Exception e) {
+            log.error("Error while getting post by tag : {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

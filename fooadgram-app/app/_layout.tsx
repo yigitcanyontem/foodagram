@@ -48,6 +48,7 @@ import PostDetailPage from "@/app/pages/content/post_detail";
 import UserProfilePage from "@/app/pages/profile/user_profile_page";
 import LikesPage from "@/app/pages/content/LikesPage";
 import CommentsPage from "@/app/pages/content/CommentsPage";
+import TagPage from "@/app/pages/content/TagPage";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -119,6 +120,7 @@ export default function RootLayout() {
                         <Stack.Screen name="ProfileFollowDetails" component={ProfileFollowPage} />
                         <Stack.Screen name="Likes" component={LikesPage} />
                         <Stack.Screen name="Comments" component={CommentsPage} />
+                        <Stack.Screen name="Tag" component={TagPage} />
                     </Stack.Navigator>
                 </ThemeProvider>
                 <Toast/>

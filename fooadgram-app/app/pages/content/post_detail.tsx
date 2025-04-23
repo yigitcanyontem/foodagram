@@ -156,7 +156,13 @@ const PostDetailPage = () => {
                         </Text>
                         {
                             post?.tags && post.tags.map((tag, index) => (
-                                <Text key={index} style={styles.tag}>#{tag}</Text>
+                                <TouchableOpacity
+                                    onPress={
+                                        () => navigation.navigate('Tag', {tag})
+                                    }
+                                >
+                                    <Text key={index} style={styles.tag}>#{tag}</Text>
+                                </TouchableOpacity>
                             ))
                         }
                     </View>

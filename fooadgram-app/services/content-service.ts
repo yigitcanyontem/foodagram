@@ -158,4 +158,13 @@ export class ContentService {
             });
     }
 
+    static getPostsByTag(tag: string, userData: any): Promise<PostResponseDto[]> {
+        return axios.get(`${this.postsBaseUrl}/tag/${tag}`, { headers: this.getAuthHeaders(userData) })
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while fetching posts by tag:', error);
+                throw error;
+            });
+    }
+
 }

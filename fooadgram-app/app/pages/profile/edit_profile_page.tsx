@@ -1,4 +1,4 @@
-import {Button,Image,ScrollView,StyleSheet,Text,TextInput,TouchableOpacity,View} from 'react-native';
+import {Image,ScrollView,StyleSheet,Text,TextInput,TouchableOpacity,View} from 'react-native';
 import {useNavigation} from "@react-navigation/native";
 import React, {useEffect, useState} from "react";
 import {useAppContext} from "@/context/AppContext";
@@ -27,7 +27,7 @@ const FormInput = ({ label, value, onChangeText, multiline = false }) => (
 
 const EditProfilePage = () => {
     const navigation = useNavigation();
-    const {setUserData, userData} = useAppContext();
+    const {userData} = useAppContext();
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
@@ -63,7 +63,7 @@ const EditProfilePage = () => {
                     instagramProfile: response.profile.instagramProfile,
                     facebookProfile: response.profile.facebookProfile
                 });
-                setDate(new Date(response.profile.birthDate));//**date update
+                setDate(new Date(response.profile.birthDate));//** date update
             } catch (error) {
                 console.error("Error fetching user data:", error);
             }
@@ -114,10 +114,10 @@ const EditProfilePage = () => {
                     <Image
                         source={
                             profilePicture
-                                ? { uri: profilePicture.uri } // Show newly selected image
+                                ? { uri: profilePicture.uri }
                                 : userProfile?.profile?.profilePicture
-                                    ? { uri: GlobalConstants.s3Url + userProfile.profile.profilePicture }// Show saved profile picture
-                                    : require('@/assets/images/dummy-profile.jpeg')// Show default image
+                                    ? { uri: GlobalConstants.s3Url + userProfile.profile.profilePicture }
+                                    : require('@/assets/images/dummy-profile.jpeg')
                         }
                         style={styles.profilePic}
                     />

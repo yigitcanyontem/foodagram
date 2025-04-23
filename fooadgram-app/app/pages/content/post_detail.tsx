@@ -1,6 +1,17 @@
-import {ScrollView, StyleSheet, Text, View, Image, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform} from 'react-native';
+import {
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+    Image,
+    TouchableOpacity,
+    TextInput,
+    KeyboardAvoidingView,
+    Platform,
+    Dimensions
+} from 'react-native';
 import {useNavigation, useRoute} from "@react-navigation/native";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {useAppContext} from "@/context/AppContext";
 import FGTabBar from "@/app/shared/FGTabBar";
 import shared_styles from "@/shared_styles";
@@ -12,10 +23,12 @@ import {formatPostDate} from "@/utils/dayjsConfig";
 import {CommentService} from "@/services/comment-service";
 import {CommentResponseDto} from "@/models/content/dto/CommentResponseDto";
 import {CommentCreateDto} from "@/models/content/dto/CommentCreateDto";
+import Carousel from 'react-native-anchor-carousel';
 
 type PostDetailParams = {
     postId: string;
 };
+const {width} = Dimensions.get('window');
 
 const PostDetailPage = () => {
     const navigation = useNavigation();
@@ -24,8 +37,7 @@ const PostDetailPage = () => {
     const [post, setPost] = useState<PostResponseDto>()
     const {setUserData, userData} = useAppContext()
     const [hasLiked, setHasLiked] = useState<boolean>(false);
-    const [comments, setComments] = useState<CommentResponseDto[]>([]);
-    const [newComment, setNewComment] = useState<string>('');
+    const carouselRef = useRef(null);
 
     const fetchPost = async () => {
         try {
@@ -38,14 +50,6 @@ const PostDetailPage = () => {
         }
     };
 
-    const fetchComments = async () => {
-        try {
-            const commentsResponse = await CommentService.getCommentsByPost(postId, userData);
-            setComments(commentsResponse);
-        } catch (error) {
-            console.error("Failed to fetch comments", error);
-        }
-    };
 
     const handleLike = async () => {
         try {
@@ -62,28 +66,9 @@ const PostDetailPage = () => {
         }
     };
 
-    const handleComment = async () => {
-        if (!newComment.trim()) return;
-        
-        try {
-            const commentDto: CommentCreateDto = {
-                content: newComment,
-                postId: postId,
-                parentReplyId: null,
-                createdByUsername: userData.username,
-            };
-            
-            await CommentService.createComment(commentDto, userData);
-            setNewComment('');
-            fetchComments(); // Refresh comments after adding new one
-        } catch (error) {
-            console.error("Failed to create comment", error);
-        }
-    };
 
     useEffect(() => {
         fetchPost();
-        fetchComments();
     }, [postId, userData]);
 
     return (
@@ -104,15 +89,40 @@ const PostDetailPage = () => {
                     </View>
 
                     {/* Post Image */}
-                    <Image source={{uri: GlobalConstants.s3Url + post?.mediaUrls[0]}} style={styles.postImage}/>
+                    <View
+                        style={styles.imageWrapper}>
+                        <Carousel
+                            ref={carouselRef}
+                            data={post?.mediaUrls}
+                            renderItem={({item}) => (
+                                <Image
+                                    source={{uri: GlobalConstants.s3Url + item}}
+                                    style={styles.postImage}
+                                    accessibilityLabel={"Post Image"}
+                                />
+                            )}
+                            style={styles.carousel}
+                            itemWidth={width * 0.90}
+                            containerWidth={width}
+                            separatorWidth={0}
+                        />
+
+                    </View>
 
                     {/* Post Actions */}
                     <View style={styles.actions}>
                         <TouchableOpacity onPress={handleLike}>
                             <AntDesign name={hasLiked ? "heart" : "hearto"} size={24} color="black"/>
                         </TouchableOpacity>
-                        <TouchableOpacity>
-                            <FontAwesome name="comment-o" size={24} color="black"/>
+                        <TouchableOpacity
+                            onPress={() => navigation.navigate('Comments', {postId})}
+                        >
+                            <View style={shared_styles.row}>
+                                <FontAwesome name="comment-o" size={24} color="black"/>
+                                <Text style={{marginLeft: 10, verticalAlign: 'middle'}}>
+                                    {post?.comments}
+                                </Text>
+                            </View>
                         </TouchableOpacity>
                         <TouchableOpacity>
                             <FontAwesome name="send-o" size={24} color="black"/>
@@ -121,45 +131,20 @@ const PostDetailPage = () => {
 
                     {/* Post Details */}
                     <TouchableOpacity
-                    onPress={() => navigation.navigate('Likes', {postId})}
+                        onPress={() => navigation.navigate('Likes', {postId})}
                     >
                         <Text style={styles.likes}>{post?.likes} likes</Text>
                     </TouchableOpacity>
-                    <Text style={styles.description}><Text style={styles.username}>{post?.username} </Text>{post?.content}</Text>
+                    <Text style={styles.description}><Text
+                        style={styles.username}>{post?.username} </Text>{post?.content}</Text>
                     {post?.createdAt && (
                         <Text style={styles.date}>{formatPostDate(post.createdAt)}</Text>
                     )}
 
-                    {/* Comments Section */}
-                    <View style={styles.commentsSection}>
-                        <Text style={styles.commentsTitle}>Comments</Text>
-                        {comments.map((comment) => (
-                            <View key={comment.id} style={styles.commentItem}>
-                                <Text style={styles.commentUsername}>{comment.createdByUsername}</Text>
-                                <Text style={styles.commentContent}>{comment.content}</Text>
-                                <Text style={styles.commentDate}>{formatPostDate(comment.createdAt)}</Text>
-                            </View>
-                        ))}
-                    </View>
+
                 </ScrollView>
 
-                {/* Comment Input */}
-                <View style={styles.commentInputContainer}>
-                    <TextInput
-                        style={styles.commentInput}
-                        placeholder="Add a comment..."
-                        value={newComment}
-                        onChangeText={setNewComment}
-                        multiline
-                    />
-                    <TouchableOpacity
-                        style={styles.sendButton}
-                        onPress={handleComment}
-                        disabled={!newComment.trim()}
-                    >
-                        <FontAwesome name="send" size={20} color={newComment.trim() ? "#007AFF" : "#999"}/>
-                    </TouchableOpacity>
-                </View>
+
                 <FGTabBar/>
             </View>
         </View>
@@ -171,6 +156,11 @@ const styles = StyleSheet.create({
         padding: 20,
         backgroundColor: "#fff",
     },
+    carousel: {
+        flex: 1,
+        backgroundColor: 'white',
+    },
+
     backButton: {
         marginBottom: 10,
     },
@@ -252,7 +242,16 @@ const styles = StyleSheet.create({
     },
     sendButton: {
         padding: 10,
-    }
+    },
+    imageWrapper: {
+        width: '100%',
+        height: 300,
+        overflow: 'hidden',
+        borderRadius: 6,
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
 });
 
 export default PostDetailPage;

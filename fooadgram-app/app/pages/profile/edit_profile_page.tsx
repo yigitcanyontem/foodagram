@@ -63,7 +63,7 @@ const EditProfilePage = () => {
                     instagramProfile: response.profile.instagramProfile,
                     facebookProfile: response.profile.facebookProfile
                 });
-                setDate(new Date(response.profile.birthDate));//** date update
+                setDate(new Date(response.profile.birthDate));//**date update
             } catch (error) {
                 console.error("Error fetching user data:", error);
             }

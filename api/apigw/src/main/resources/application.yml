@@ -1,5 +1,5 @@
 server:
-  address: 192.168.85.5
+  address: 192.168.1.2
   port: 8083
 
 spring:
@@ -74,6 +74,12 @@ spring:
           uri: lb://CONTENT
           predicates:
             - Path=/api/v1/comment-vote/**
+        - id: content-feed
+          uri: lb://CONTENT
+          predicates:
+              - Path=/api/v1/content/**
+          filters:
+              - RewritePath=/api/v1/content/(?<segment>.*), /api/v1/content/${segment}
 
 management:
   tracing:

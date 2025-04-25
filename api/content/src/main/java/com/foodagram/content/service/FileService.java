@@ -18,12 +18,34 @@ public class FileService {
 
     public String uploadMedia(MultipartFile file, UsersDto usersDto) {
         try {
+            String contentType = file.getContentType();
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+
+            // Primary check via contentType
+            if (contentType != null) {
+                if (contentType.contains("video") || contentType.equalsIgnoreCase("image/mp4")) {
+                    extension = ".mp4";
+                } else if (contentType.contains("image")) {
+                    extension = ".jpg";
+                }
+            }
+
+
+            if (extension.isEmpty() && originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+
+
+            String filename = UUID.randomUUID().toString() + extension;
+            String filePath = "content/media/" + usersDto.getId() + "/" + filename;
+
             FilesDto filesDto = filesClient.uploadFile(
                     file,
                     "content",
                     "Post",
                     usersDto.getId().toString(),
-                    "content/media/"+usersDto.getId().toString()+"/"+ UUID.randomUUID().toString()
+                    filePath
             ).getBody();
 
             if (filesDto != null) {
@@ -31,9 +53,11 @@ public class FileService {
             } else {
                 log.error("Error uploading media: File upload failed");
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error uploading media: {}", e.getMessage());
         }
         return null;
     }
 }
+
+

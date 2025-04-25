@@ -3,6 +3,7 @@ import React from 'react';
 import { Image, Text, View, StyleSheet } from 'react-native';
 import { Post } from '../services/feed';
 import { GlobalConstants } from '@/utils/GlobalConstants';
+import { Video } from 'expo-av';
 
 interface Props {
     post: Post;
@@ -44,9 +45,24 @@ const FeedItemCard: React.FC<Props> = ({ post }) => {
             </Text>
 
             {/* Media */}
-            {firstImage && (
-                <Image source={{ uri: firstImage }} style={styles.image} />
-            )}
+            {firstImage && (() => {
+                const isVideo = firstImage.endsWith('.mp4') || firstImage.includes('video');
+                return isVideo ? (
+                    <Video
+                        source={{ uri: firstImage }}
+                        style={styles.image}
+                        useNativeControls
+                        resizeMode="contain"
+                        isMuted
+                        shouldPlay={false}
+                    />
+                ) : (
+                    <Image
+                        source={{ uri: firstImage }}
+                        style={styles.image}
+                    />
+                );
+            })()}
 
             {/* Footer */}
             <View style={styles.footer}>
@@ -69,6 +85,7 @@ const styles = StyleSheet.create({
         shadowRadius: 6,
         elevation: 3,
     },
+
     username: { fontSize: 18, fontWeight: '600', color: '#000' },
     timestamp: { fontSize: 12, color: '#666', marginTop: 2 },
     content: { marginTop: 8, fontSize: 14, color: '#000' },

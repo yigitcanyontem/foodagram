@@ -6,6 +6,7 @@
 // -----------------------------------------------------------------------------
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { Video } from 'expo-av';
 import {
     ActivityIndicator,
     FlatList,

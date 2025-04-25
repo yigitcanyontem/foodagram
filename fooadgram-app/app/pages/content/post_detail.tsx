@@ -12,6 +12,7 @@ import {formatPostDate} from "@/utils/dayjsConfig";
 import {CommentService} from "@/services/comment-service";
 import {CommentResponseDto} from "@/models/content/dto/CommentResponseDto";
 import {CommentCreateDto} from "@/models/content/dto/CommentCreateDto";
+import { Video } from 'expo-av';
 
 type PostDetailParams = {
     postId: string;
@@ -104,7 +105,26 @@ const PostDetailPage = () => {
                     </View>
 
                     {/* Post Image */}
-                    <Image source={{uri: GlobalConstants.s3Url + post?.mediaUrls[0]}} style={styles.postImage}/>
+                    {post?.mediaUrls?.[0] && (() => {
+                        const mediaUrl = GlobalConstants.s3Url + post.mediaUrls[0];
+                        const isVideo = mediaUrl.endsWith('.mp4') || mediaUrl.includes('video');
+
+                        return isVideo ? (
+                            <Video
+                                source={{ uri: mediaUrl }}
+                                style={styles.postImage}
+                                useNativeControls
+                                resizeMode="contain"
+                                isMuted={false}
+                                shouldPlay={false}
+                            />
+                        ) : (
+                            <Image
+                                source={{ uri: mediaUrl }}
+                                style={styles.postImage}
+                            />
+                        );
+                    })()}
 
                     {/* Post Actions */}
                     <View style={styles.actions}>
@@ -248,7 +268,35 @@ const styles = StyleSheet.create({
     },
     sendButton: {
         padding: 10,
-    }
+    },
+    mediaContainer: {
+        width: '100%',
+        aspectRatio: 4 / 5,
+        borderRadius: 16,
+        overflow: 'hidden',
+        backgroundColor: '#000',
+        marginVertical: 16,
+    },
+    media: {
+        width: '100%',
+        height: '100%',
+    },
+
+    postHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    profileImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 10,
+    },
+    usernameAndDate: {
+        flexDirection: 'column',
+    },
+
 });
 
 export default PostDetailPage;

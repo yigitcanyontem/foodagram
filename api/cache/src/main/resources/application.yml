@@ -28,6 +28,7 @@ management:
 eureka:
   instance:
     appname: cache
+    hostname: localhost
   client:
     enabled: true
     serviceUrl:

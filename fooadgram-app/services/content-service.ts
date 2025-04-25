@@ -134,4 +134,50 @@ export class ContentService {
                 throw error;
             });
     }
-} 
+
+    static savePost(postId: string, userData: any): Promise<void> {
+        return axios.post(`${this.postsBaseUrl}/saves/${postId}`, null, { headers: this.getAuthHeaders(userData) })
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while saving post:', error);
+                throw error;
+            });
+    }
+
+    static unsavePost(postId: string, userData: any): Promise<void> {
+        return axios.delete(`${this.postsBaseUrl}/saves/${postId}`, { headers: this.getAuthHeaders(userData) })
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while unsaving post:', error);
+                throw error;
+            });
+    }
+
+    static hasUserSavedPost(postId: string, userData: any): Promise<boolean> {
+        return axios.get(`${this.postsBaseUrl}/saves/${postId}`, { headers: this.getAuthHeaders(userData) })
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while checking if user saved post:', error);
+                throw error;
+            });
+    }
+
+    static getSavedPostsByUser(userData: any): Promise<PostResponseDto[]> {
+        return axios.get(`${this.postsBaseUrl}/saved-posts`, {headers: this.getAuthHeaders(userData)})
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while fetching saved posts:', error);
+                throw error;
+            });
+    }
+
+    static getPostsByTag(tag: string, userData: any): Promise<PostResponseDto[]> {
+        return axios.get(`${this.postsBaseUrl}/tag/${tag}`, { headers: this.getAuthHeaders(userData) })
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while fetching posts by tag:', error);
+                throw error;
+            });
+    }
+
+}

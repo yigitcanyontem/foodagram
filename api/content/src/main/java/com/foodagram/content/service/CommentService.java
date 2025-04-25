@@ -1,6 +1,9 @@
 package com.foodagram.content.service;
 
+import com.foodagram.amqp.RabbitMQMessageProducer;
 import com.foodagram.clients.content.dto.*;
+import com.foodagram.clients.notification.NotificationCreateDto;
+import com.foodagram.clients.shared.dto.GenericRabbitMQMessage;
 import com.foodagram.clients.users.dto.UsersDto;
 import com.foodagram.content.domain.Comment;
 import com.foodagram.content.domain.Post;
@@ -19,6 +22,7 @@ import java.util.UUID;
 public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
+    private final RabbitMQMessageProducer rabbitMQMessageProducer;
 
     public CommentResponseDto createComment(CommentCreateDto commentCreateDto) {
         Post post = postRepository.findById(commentCreateDto.getPostId())
@@ -35,6 +39,12 @@ public class CommentService {
                 .upvoteCount(0L)
                 .downvoteCount(0L)
                 .build();
+
+        rabbitMQMessageProducer.publish(
+                new GenericRabbitMQMessage("updatePostComments", post.getId()),
+                "internal.exchange",
+                "internal.content.routing-key"
+        );
         return mapToResponseDto(commentRepository.save(comment));
     }
 
@@ -93,5 +103,9 @@ public class CommentService {
 
     public List<CommentResponseDto> getCommentsByPost(UUID postId) {
         return commentRepository.findByPostId(postId).stream().map(this::mapToResponseDto).toList();
+    }
+
+    public long getCommentCountByPost(UUID postId) {
+        return commentRepository.countCommentsByPost_Id(postId);
     }
 }

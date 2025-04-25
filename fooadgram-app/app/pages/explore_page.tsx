@@ -20,6 +20,11 @@ const ExplorePage = () => {
 
     const handleSearch = async () => {
         try {
+            if (query.trim() === '') {
+                setResults([]);
+                return;
+            }
+
             const profiles = await UserService.searchUserProfiles(query);
             setResults(profiles);
             setError(null);

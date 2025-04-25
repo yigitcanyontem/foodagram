@@ -12,6 +12,7 @@ import com.foodagram.content.repository.PostRepository;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.ForbiddenException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,11 +21,13 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
     private final UsersClient usersClient;
+    private final CommentService commentService;
 
     @Transactional
     public PostResponseDto createPost(PostCreateDto postCreateDto) {
@@ -72,6 +75,13 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+
+    public List<PostResponseDto> getAllPostsByIDIn(List<UUID> postIds) {
+        return postRepository.findAllByIdIn(postIds).stream()
+                .map(this::mapToResponseDto)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public PostResponseDto updatePost(UUID id, PostUpdateDto postUpdateDto, UsersDto usersDto) {
         Post post = findPostById(id);
@@ -85,6 +95,7 @@ public class PostService {
         post.setLocation(postUpdateDto.getLocation());
         post.setLikes(postUpdateDto.getLikes());
         post.setComments(postUpdateDto.getComments());
+        post.setSaves(postUpdateDto.getSaves());
         return mapToResponseDto(postRepository.save(post));
     }
 
@@ -112,6 +123,7 @@ public class PostService {
                 .location(post.getLocation())
                 .processTime(post.getProcessTime())
                 .likes(post.getLikes())
+                .saves(post.getSaves())
                 .comments(post.getComments())
                 .createdAt(post.getCreatedDate())
                 .updatedAt(post.getUpdatedDate())
@@ -185,4 +197,18 @@ public class PostService {
             throw new ForbiddenException("You are not owner of this post");
         }
     }
-} 
+
+    public void updatePostComments(String message) {
+        long commentCount = commentService.getCommentCountByPost(UUID.fromString(message));
+        Post post = postRepository.findById(UUID.fromString(message)).orElseThrow(() -> new RuntimeException("Post not found"));
+        post.setComments(commentCount);
+        postRepository.save(post);
+        log.info("Updated post comments: {}", post);
+    }
+
+    public List<PostResponseDto> getPostsByTag(String tag) {
+        return postRepository.findPostsByTagsContainingAndVisibilityNotOrderByCreatedDateDesc(tag, Visibility.PRIVATE).stream()
+                .map(this::mapToResponseDto)
+                .collect(Collectors.toList());
+    }
+}

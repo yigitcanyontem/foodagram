@@ -55,4 +55,8 @@ public class Post extends BaseEntity {
 
     @Column
     private long processTime; // in seconds
+
+    @Column(nullable = false)
+    private long saves = 0;
+
 }

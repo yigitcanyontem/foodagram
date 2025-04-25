@@ -12,4 +12,5 @@ export interface PostUpdateDto {
     recipe?: RecipeUpdateDto;
     likes?: number;
     comments?: number;
+    saves?: number;
 } 

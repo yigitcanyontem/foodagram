@@ -1,14 +1,33 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import { 
+    View,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    StyleSheet,
+    KeyboardAvoidingView,
+    ScrollView,
+    TouchableWithoutFeedback,
+    Keyboard,
+    Image,} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { AuthService } from "@/services/auth-service";
 import Toast from "react-native-toast-message";
 import shared_styles from "@/shared_styles";
 import { useAppContext } from "@/context/AppContext";
 
-const AuthInput = ({ label, value, onChangeText, secureTextEntry, placeholder }) => (
+
+const AuthInput = ({
+                       label,
+                       value,
+                       onChangeText,
+                       placeholder,
+                       secureTextEntry = false,
+                       onFocus,
+                       onBlur,
+                   }) => (
     <View style={styles.inputContainer}>
-        <Text style={styles.label}>{label}</Text>
+        {label && <Text style={styles.label}>{label}</Text>}
         <TextInput
             style={styles.input}
             placeholder={placeholder}
@@ -16,6 +35,8 @@ const AuthInput = ({ label, value, onChangeText, secureTextEntry, placeholder })
             onChangeText={onChangeText}
             secureTextEntry={secureTextEntry}
             autoCapitalize="none"
+            onFocus={onFocus}
+            onBlur={onBlur}
         />
     </View>
 );
@@ -25,6 +46,7 @@ const RegisterPage = () => {
     const [password, setPassword] = useState("");
     const [username, setUsername] = useState("");
     const [error, setError] = useState(null);
+    const [isPasswordFocused, setIsPasswordFocused] = useState(false);
     const navigation = useNavigation();
     const { setUserData } = useAppContext();
 
@@ -37,7 +59,11 @@ const RegisterPage = () => {
 
     const handleRegister = async () => {
         try {
-            const authResponse = await AuthService.register({ email, password, username });
+            const authResponse = await AuthService.register({
+                email,
+                password,
+                username,
+            });
 
             const userData = {
                 token: authResponse.accessToken,
@@ -71,75 +97,69 @@ const RegisterPage = () => {
     };
 
     return (
-        <View style={[shared_styles.body_container, { paddingBottom: 0 }]}>
-            <ScrollView contentContainerStyle={styles.container}>
-                <Text style={styles.title}>Register</Text>
-                <Text style={styles.subtitle}>Create a new account</Text>
+        <KeyboardAvoidingView style={[shared_styles.body_container, { paddingTop: 0 }]}>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <ScrollView
+                    contentContainerStyle={styles.scrollContainer}
+                    keyboardShouldPersistTaps="handled"
+                >
 
-
-                <AuthInput
-                    label="Username"
-                    value={username}
-                    onChangeText={setUsername}
-                    placeholder="Enter your username"
-                />
-
-
-                <AuthInput
-                    label="Email"
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="Enter your email"
-                />
-
-
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Password</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Enter your password"
-                        value={password}
-                        onChangeText={setPassword}
-                        secureTextEntry
-                        autoCapitalize="none"
+                    <Image
+                        source={require("@/assets/images/knife-logo.png")}
+                        style={styles.logo}
+                        resizeMode="contain"
                     />
 
-                    <View style={styles.validationContainer}>
-                        <Text style={[styles.validationText, isUpperCase && styles.valid]}>
-                            • At least 1 uppercase letter
+                    <Text style={styles.title}>Create Account</Text>
+                    <Text style={styles.subtitle}>Join our community</Text>
+
+
+                    <AuthInput
+                        label="Username"
+                        value={username}
+                        onChangeText={setUsername}
+                        placeholder="Enter your username"
+                    />
+
+                    <AuthInput
+                        label="Email"
+                        value={email}
+                        onChangeText={setEmail}
+                        placeholder="Enter your email"
+                    />
+
+                    <AuthInput
+                        label="Password"
+                        value={password}
+                        onChangeText={setPassword}
+                        placeholder="Enter your password"
+                        secureTextEntry
+                        onFocus={() => setIsPasswordFocused(true)}
+                        onBlur={() => setIsPasswordFocused(false)}
+                    />
+                    {isPasswordFocused && (
+                        <Text style={styles.passwordHint}>
+                            Min 8 characters, 1 uppercase, 1 number, 1 special char
                         </Text>
-                        <Text style={[styles.validationText, isLowerCase && styles.valid]}>
-                            • At least 1 lowercase letter
-                        </Text>
-                        <Text style={[styles.validationText, isDigit && styles.valid]}>
-                            • At least 1 number
-                        </Text>
-                        <Text style={[styles.validationText, isSpecialChar && styles.valid]}>
-                            • At least 1 special character
-                        </Text>
-                        <Text style={[styles.validationText, isMinLength && styles.valid]}>
-                            • Minimum 8 characters in length
-                        </Text>
+                    )}
+
+                    {error && <Text style={styles.errorText}>{error}</Text>}
+
+
+                    <TouchableOpacity style={styles.button} onPress={handleRegister}>
+                        <Text style={styles.buttonText}>Register</Text>
+                    </TouchableOpacity>
+
+
+                    <View style={styles.loginContainer}>
+                        <Text style={styles.loginText}>Already have an account? </Text>
+                        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+                            <Text style={styles.loginLink}>Login here</Text>
+                        </TouchableOpacity>
                     </View>
-                </View>
-
-
-                {error && <Text style={styles.errorText}>{error}</Text>}
-
-
-                <TouchableOpacity style={styles.button} onPress={handleRegister}>
-                    <Text style={styles.buttonText}>Register</Text>
-                </TouchableOpacity>
-
-
-                <Text style={styles.loginText}>
-                    Already have an account?{" "}
-                    <Text style={styles.link} onPress={() => navigation.navigate("Login")}>
-                        Login here
-                    </Text>
-                </Text>
-            </ScrollView>
-        </View>
+                </ScrollView>
+            </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
     );
 };
 
@@ -147,31 +167,58 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: "center",
-        padding: 20,
+        padding: 30,
         backgroundColor: "#fff",
-        paddingTop: 150,
+        paddingTop: 40,
+    },
+    scrollContainer: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 24,
+      },
+    logo: {
+        width: 80,
+        height: 80,
+        marginBottom: 30,
+        tintColor: "#E74C3C",
     },
     title: {
-        fontSize: 24,
+        fontSize: 28,
         fontWeight: "bold",
+        color: "#2C3E50",
+        marginBottom: 5,
     },
     subtitle: {
         fontSize: 16,
-        marginBottom: 20,
+        color: "#7F8C8D",
+        marginBottom: 30,
     },
     inputContainer: {
         width: "100%",
-        marginBottom: 15,
+        marginBottom: 20,
     },
     label: {
         fontSize: 14,
-        marginBottom: 5,
+        color: "#2C3E50",
+        marginBottom: 8,
+        fontWeight: "500",
     },
     input: {
         borderWidth: 1,
-        borderColor: "#ccc",
-        padding: 10,
-        borderRadius: 5,
+        borderColor: "#ECF0F1",
+        padding: 15,
+        borderRadius: 8,
+        backgroundColor: "#F9F9F9",
+        fontSize: 16,
+        color: "#2C3E50",
+    },
+    passwordHint: {
+        fontSize: 12,
+        color: "#BDC3C7",
+        alignSelf: "flex-start",
+        marginBottom: 10,
+        marginTop: -15,
     },
     validationContainer: {
         marginTop: 10,
@@ -184,26 +231,41 @@ const styles = StyleSheet.create({
         color: "green",
     },
     button: {
-        backgroundColor: "#007bff",
-        padding: 10,
-        borderRadius: 5,
+        backgroundColor: "#E74C3C",
+        padding: 16,
+        borderRadius: 8,
         alignItems: "center",
         width: "100%",
-        marginTop: 10,
+        marginTop: 20,
+        shadowColor: "#E74C3C",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+        elevation: 5,
     },
     buttonText: {
         color: "white",
-        fontSize: 16,
+        fontSize: 18,
+        fontWeight: "600",
     },
     errorText: {
-        color: "red",
+        color: "#E74C3C",
         marginBottom: 10,
+        textAlign: "center",
+    },
+    loginContainer: {
+        flexDirection: "row",
+        marginTop: 25,
+        alignItems: "center",
     },
     loginText: {
-        marginTop: 10,
+        color: "#95A5A6",
+        fontSize: 15,
     },
-    link: {
-        color: "blue",
+    loginLink: {
+        color: "#E74C3C",
+        fontSize: 15,
+        fontWeight: "600",
     },
 });
 

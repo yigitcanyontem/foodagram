@@ -1,19 +1,48 @@
-import {ScrollView, StyleSheet, View} from 'react-native';
+import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {useNavigation} from "@react-navigation/native";
-import React from "react";
+import React, {useEffect, useState} from "react";
 import {useAppContext} from "@/context/AppContext";
 import FGTabBar from "@/app/shared/FGTabBar";
 import shared_styles from "@/shared_styles";
+import {ContentService} from "@/services/content-service";
+import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
+import PostsSection from "@/app/shared/profile/PostsSection";
+import {AntDesign} from "@expo/vector-icons";
 
 
 const BookmarkedPage = () => {
     const navigation = useNavigation();
     const { setUserData, userData } = useAppContext()
+    const [posts, setPosts] = useState<PostResponseDto[]>([]);
+
+    const fetchPosts = async () => {
+        try {
+            const response = await ContentService.getSavedPostsByUser(userData);
+            setPosts(response);
+        } catch (error) {
+            console.error("Failed to fetch saves posts", error);
+        }
+    };
+
+
+    useEffect(() => {
+        fetchPosts();
+    }, [userData]);
+
 
     return (
         <View style={shared_styles.body_container}>
             <ScrollView contentContainerStyle={styles.container} >
-
+               <View style={[shared_styles.row, shared_styles.justify_between, {width: "100%", padding: 20}]}>
+                   <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                       <AntDesign name="arrowleft" size={24} color="black"/>
+                   </TouchableOpacity>
+                   <Text style={styles.title}>Saved Posts</Text>
+                   <Text style={styles.title}></Text>
+               </View>
+                <View>
+                    <PostsSection key={`posts_of_logged_in_user`} posts={posts}/>
+                </View>
             </ScrollView>
             <FGTabBar/>
         </View>
@@ -22,10 +51,10 @@ const BookmarkedPage = () => {
 
 const styles = StyleSheet.create({
     container: {
-        alignItems: "center",
-        padding: 20,
         backgroundColor: "#fff",
-        paddingTop: 150,
+    },
+    backButton: {
+        marginBottom: 10,
     },
     title: {
         fontSize: 24,

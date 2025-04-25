@@ -1,6 +1,6 @@
-import {ScrollView, StyleSheet, Text, View, Image, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform} from 'react-native';
+import {Dimensions, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {useNavigation, useRoute} from "@react-navigation/native";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {useAppContext} from "@/context/AppContext";
 import FGTabBar from "@/app/shared/FGTabBar";
 import shared_styles from "@/shared_styles";
@@ -9,6 +9,7 @@ import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
 import {ContentService} from "@/services/content-service";
 import {GlobalConstants} from "@/utils/GlobalConstants";
 import {formatPostDate} from "@/utils/dayjsConfig";
+import Carousel from 'react-native-anchor-carousel';
 import {CommentService} from "@/services/comment-service";
 import {CommentResponseDto} from "@/models/content/dto/CommentResponseDto";
 import {CommentCreateDto} from "@/models/content/dto/CommentCreateDto";
@@ -17,6 +18,7 @@ import { Video } from 'expo-av';
 type PostDetailParams = {
     postId: string;
 };
+const {width} = Dimensions.get('window');
 
 const PostDetailPage = () => {
     const navigation = useNavigation();
@@ -25,8 +27,8 @@ const PostDetailPage = () => {
     const [post, setPost] = useState<PostResponseDto>()
     const {setUserData, userData} = useAppContext()
     const [hasLiked, setHasLiked] = useState<boolean>(false);
-    const [comments, setComments] = useState<CommentResponseDto[]>([]);
-    const [newComment, setNewComment] = useState<string>('');
+    const [hasSaved, setHasSaved] = useState<boolean>(false);
+    const carouselRef = useRef(null);
 
     const fetchPost = async () => {
         try {
@@ -34,19 +36,36 @@ const PostDetailPage = () => {
             setPost(postResponse);
             const liked = await ContentService.hasUserLikedPost(postId, userData);
             setHasLiked(liked);
+            const saved = await ContentService.hasUserSavedPost(postId, userData);
+            setHasSaved(saved);
         } catch (error) {
             console.error("Failed to fetch users posts", error);
         }
     };
 
-    const fetchComments = async () => {
-        try {
-            const commentsResponse = await CommentService.getCommentsByPost(postId, userData);
-            setComments(commentsResponse);
-        } catch (error) {
-            console.error("Failed to fetch comments", error);
-        }
+    const renderMedia = ({ item }: { item: string }) => {
+        const uri = GlobalConstants.s3Url + item;
+        const isVideo =
+            uri.toLowerCase().endsWith('.mp4') || uri.toLowerCase().includes('video');
+
+        return isVideo ? (
+            <Video
+                source={{ uri }}
+                style={styles.postImage}
+                useNativeControls        // kullanıcıya oynat/duraklat vs. ver
+                resizeMode="contain"
+                isMuted={false}
+                shouldPlay={false}       // otomatik oynatma istemiyorsan
+            />
+        ) : (
+            <Image
+                source={{ uri }}
+                style={styles.postImage}
+                accessibilityLabel="Post Image"
+            />
+        );
     };
+
 
     const handleLike = async () => {
         try {
@@ -63,32 +82,29 @@ const PostDetailPage = () => {
         }
     };
 
-    const handleComment = async () => {
-        if (!newComment.trim()) return;
-        
+    const handleSave = async () => {
         try {
-            const commentDto: CommentCreateDto = {
-                content: newComment,
-                postId: postId,
-                parentReplyId: null,
-                createdByUsername: userData.username,
-            };
-            
-            await CommentService.createComment(commentDto, userData);
-            setNewComment('');
-            fetchComments(); // Refresh comments after adding new one
+            if (hasSaved) {
+                await ContentService.unsavePost(postId, userData);
+                setPost(prevPost => prevPost ? {...prevPost, saves: prevPost.saves - 1} : prevPost);
+            } else {
+                await ContentService.savePost(postId, userData);
+                setPost(prevPost => prevPost ? {...prevPost, saves: prevPost.saves + 1} : prevPost);
+            }
+            setHasSaved(!hasSaved);
         } catch (error) {
-            console.error("Failed to create comment", error);
+            console.error("Failed to like/unlike post", error);
         }
     };
 
+
+
     useEffect(() => {
         fetchPost();
-        fetchComments();
     }, [postId, userData]);
 
     return (
-        <KeyboardAvoidingView 
+        <View
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={{flex: 1}}
         >
@@ -105,80 +121,102 @@ const PostDetailPage = () => {
                     </View>
 
                     {/* Post Image */}
-                    {post?.mediaUrls?.[0] && (() => {
-                        const mediaUrl = GlobalConstants.s3Url + post.mediaUrls[0];
-                        const isVideo = mediaUrl.endsWith('.mp4') || mediaUrl.includes('video');
+                    <View
+                        style={[styles.imageWrapper, {marginBottom: 10}]}>
+                        <Carousel
+                            ref={carouselRef}
+                            data={post?.mediaUrls}
+                            renderItem={renderMedia}
+                            style={styles.carousel}
+                            itemWidth={width * 0.90}
+                            containerWidth={width}
+                            separatorWidth={0}
+                        />
 
-                        return isVideo ? (
-                            <Video
-                                source={{ uri: mediaUrl }}
-                                style={styles.postImage}
-                                useNativeControls
-                                resizeMode="contain"
-                                isMuted={false}
-                                shouldPlay={false}
-                            />
-                        ) : (
-                            <Image
-                                source={{ uri: mediaUrl }}
-                                style={styles.postImage}
-                            />
-                        );
-                    })()}
+                    </View>
 
                     {/* Post Actions */}
                     <View style={styles.actions}>
                         <TouchableOpacity onPress={handleLike}>
-                            <AntDesign name={hasLiked ? "heart" : "hearto"} size={24} color="black"/>
+                            <AntDesign name={hasLiked ? "heart" : "hearto"} size={24} color={hasLiked ? "#E21E25" : "black"}/>
                         </TouchableOpacity>
-                        <TouchableOpacity>
-                            <FontAwesome name="comment-o" size={24} color="black"/>
+                        <TouchableOpacity
+                            onPress={() => navigation.navigate('Comments', {postId})}
+                        >
+                            <View style={[shared_styles.row, {alignItems: 'center'}]}>
+                                <FontAwesome name="comment-o" size={24} color="black"/>
+                                <Text style={{marginLeft: 10}}>
+                                    {post?.comments}
+                                </Text>
+                            </View>
                         </TouchableOpacity>
-                        <TouchableOpacity>
-                            <FontAwesome name="send-o" size={24} color="black"/>
+                        <TouchableOpacity
+                            onPress={
+                                handleSave
+                            }
+                        >
+                            <View style={[shared_styles.row, {alignItems: 'center'}]}>
+                                <FontAwesome name={hasSaved ? 'bookmark' : 'bookmark-o'} size={24} color="black"/>
+                                <Text style={{marginLeft: 10}}>
+                                    {post?.saves}
+                                </Text>
+                            </View>
                         </TouchableOpacity>
                     </View>
 
                     {/* Post Details */}
-                    <Text style={styles.likes}>{post?.likes} likes</Text>
-                    <Text style={styles.description}><Text style={styles.username}>{post?.username} </Text>{post?.content}</Text>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('Likes', {postId})}
+                    >
+                        <Text style={styles.likes}>{post?.likes} likes</Text>
+                    </TouchableOpacity>
+
+                    <View>
+                        <Text style={styles.description}><Text
+                            style={styles.username}>{post?.username} </Text>{post?.content}
+                        </Text>
+                        {
+                            post?.tags && post.tags.map((tag, index) => (
+                                <TouchableOpacity
+                                    onPress={
+                                        () => navigation.navigate('Tag', {tag})
+                                    }
+                                >
+                                    <Text key={index} style={styles.tag}>#{tag}</Text>
+                                </TouchableOpacity>
+                            ))
+                        }
+                    </View>
                     {post?.createdAt && (
                         <Text style={styles.date}>{formatPostDate(post.createdAt)}</Text>
                     )}
 
-                    {/* Comments Section */}
-                    <View style={styles.commentsSection}>
-                        <Text style={styles.commentsTitle}>Comments</Text>
-                        {comments.map((comment) => (
-                            <View key={comment.id} style={styles.commentItem}>
-                                <Text style={styles.commentUsername}>{comment.createdByUsername}</Text>
-                                <Text style={styles.commentContent}>{comment.content}</Text>
-                                <Text style={styles.commentDate}>{formatPostDate(comment.createdAt)}</Text>
-                            </View>
+                    <View style={styles.recipeSection}>
+                        <Text style={styles.recipeTitle}>Recipe: {post?.recipe?.title}</Text>
+                        <Text style={styles.recipeDescription}>{post?.recipe?.description}</Text>
+                        <Text style={styles.recipeSubtitle}>Ingredients:</Text>
+                        {post?.recipe?.ingredients.map((ingredient) => (
+                            <Text key={ingredient.id} style={styles.ingredientItem}>
+                                - {ingredient.amount} {ingredient.unit} {ingredient.name}
+                            </Text>
                         ))}
+                        <Text style={styles.recipeSubtitle}>Instructions:</Text>
+                        {post?.recipe?.instructions.map((instruction, index) => (
+                            <Text key={index} style={styles.instructionItem}>
+                                {index + 1}. {instruction}
+                            </Text>
+                        ))}
+                        <Text style={styles.recipeDetails}>
+                            Cuisine: {post?.recipe?.cuisineType} | Difficulty: {post?.recipe?.difficultyLevel} | Prep Time: {post?.recipe?.prepTime} mins
+                        </Text>
                     </View>
+
                 </ScrollView>
 
-                {/* Comment Input */}
-                <View style={styles.commentInputContainer}>
-                    <TextInput
-                        style={styles.commentInput}
-                        placeholder="Add a comment..."
-                        value={newComment}
-                        onChangeText={setNewComment}
-                        multiline
-                    />
-                    <TouchableOpacity 
-                        style={styles.sendButton} 
-                        onPress={handleComment}
-                        disabled={!newComment.trim()}
-                    >
-                        <FontAwesome name="send" size={20} color={newComment.trim() ? "#007AFF" : "#999"}/>
-                    </TouchableOpacity>
-                </View>
+
                 <FGTabBar/>
             </View>
-        </KeyboardAvoidingView>
+        </View>
     );
 };
 
@@ -187,6 +225,11 @@ const styles = StyleSheet.create({
         padding: 20,
         backgroundColor: "#fff",
     },
+    carousel: {
+        flex: 1,
+        backgroundColor: 'white',
+    },
+
     backButton: {
         marginBottom: 10,
     },
@@ -217,6 +260,10 @@ const styles = StyleSheet.create({
     description: {
         marginBottom: 5,
     },
+    tag: {
+       color: 'blue',
+    },
+
     date: {
         color: 'gray',
         fontSize: 12,
@@ -268,6 +315,49 @@ const styles = StyleSheet.create({
     },
     sendButton: {
         padding: 10,
+    },
+    imageWrapper: {
+        width: '100%',
+        height: 300,
+        overflow: 'hidden',
+        borderRadius: 6,
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    recipeSection: {
+        marginTop: 20,
+        padding: 10,
+        backgroundColor: '#f8f8f8',
+        borderRadius: 8,
+    },
+    recipeTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    recipeDescription: {
+        fontSize: 14,
+        marginBottom: 10,
+    },
+    recipeSubtitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginTop: 10,
+        marginBottom: 5,
+    },
+    ingredientItem: {
+        fontSize: 14,
+        marginBottom: 5,
+    },
+    instructionItem: {
+        fontSize: 14,
+        marginBottom: 5,
+    },
+    recipeDetails: {
+        fontSize: 12,
+        color: 'gray',
+        marginTop: 10,
     },
     mediaContainer: {
         width: '100%',

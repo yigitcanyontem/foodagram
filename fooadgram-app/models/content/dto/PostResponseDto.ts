@@ -17,4 +17,5 @@ export interface PostResponseDto {
     createdAt: string;
     updatedAt: string;
     username: string;
+    saves: number;
 } 

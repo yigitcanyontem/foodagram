@@ -24,4 +24,5 @@ public class PostUpdateDto {
     private RecipeUpdateDto recipe;
     private Long likes;
     private Long comments;
+    private Long saves;
 } 

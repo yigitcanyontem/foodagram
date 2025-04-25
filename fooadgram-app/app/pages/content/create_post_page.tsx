@@ -70,6 +70,7 @@ const CreatePostPage = () => {
                             await uploadMedia(asset);
                             const predictionLabel = predictionResult.prediction || "food";
                             setTags(prev => prev ? `${prev}, ${predictionLabel}` : predictionLabel);
+                            setIsImageValid(true);
                             Toast.show({
                                 type: 'success',
                                 text1: "Video uploaded",

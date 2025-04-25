@@ -12,7 +12,6 @@ import {PredictionDto} from "@/models/ai/PredictionDto";
 export class AIService {
     static baseUrl: string = GlobalConstants.baseUrl + 'ai';
 
-    // First call - image upload and initial prediction
     static predict(file: ImagePickerAsset): Promise<PredictionDto> {
         const formData = ImageUtil.getFormDataFrom(
             file.uri,
@@ -22,10 +21,54 @@ export class AIService {
         return axios.post(`${this.baseUrl}/predict`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         })
-            .then(response => response.data);
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Image prediction failed:', error);
+                throw error;
+            });
     }
 
-    // Second call - verify the food name with image id
+
+    static predictVideo(file: ImagePickerAsset): Promise<PredictionDto> {
+        const formData = ImageUtil.getFormDataFrom(
+            file.uri,
+            file.fileName ?? 'file'
+        );
+
+
+        const isVideo = file.uri.toLowerCase().endsWith('.mp4') || file.mimeType?.includes('video');
+        const endpoint = isVideo ? '/process-video/' : '/predict';
+
+        return axios.post(`${this.baseUrl}${endpoint}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        })
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Prediction failed:', error);
+                throw error;
+            });
+    }
+
+    static predictVideoWithFoodName(file: ImagePickerAsset, foodName: string): Promise<PredictionDto> {
+        const formData = ImageUtil.getFormDataFrom(
+            file.uri,
+            file.fileName ?? 'file'
+        );
+
+        const cleanedName = foodName?.trim();
+        if (cleanedName && cleanedName.toLowerCase() !== 'none') {
+            formData.append("food_name", cleanedName);
+        }
+
+        return axios.post(`${this.baseUrl}/process-video/`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        })
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Video verification with food name failed:', error);
+                throw error;
+            });
+    }
     static verify(imageId: string, foodName: string): Promise<PredictionDto> {
         return axios.post(`${this.baseUrl}/verify`, {
             image_id: imageId,

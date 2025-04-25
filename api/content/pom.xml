@@ -93,6 +93,12 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.foodagram</groupId>
+            <artifactId>user</artifactId>
+            <version>${project.version}</version>   <!-- 0.0.1-SNAPSHOT in your repo -->
+            <scope>compile</scope>
+        </dependency>
 
     </dependencies>
 

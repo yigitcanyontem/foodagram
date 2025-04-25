@@ -53,4 +53,7 @@ public interface UsersClient {
     @PostMapping(path = "api/v1/user-profile/ids")
     ResponseEntity<List<UsersProfileDto>> getUsersByIds(@RequestBody List<UUID>userIds);
 
+    @GetMapping("/api/v1/user-engagement/following/{userId}")
+    ResponseEntity<List<UsersProfileDto>> getUserFollowing(
+            @PathVariable("userId") UUID userId);
 }

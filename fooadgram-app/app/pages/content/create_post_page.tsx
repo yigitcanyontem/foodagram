@@ -50,7 +50,7 @@ const CreatePostPage = () => {
     const [ingredientUnit, setIngredientUnit] = useState('');
 
     // Handle image picker
-    const pickImage = async () => {
+    const pickMedia = async () => {
         try {
             const result = await ImagePicker.launchImageLibraryAsync({
                 mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -60,8 +60,65 @@ const CreatePostPage = () => {
 
             if (!result.canceled && result.assets?.length > 0) {
                 const asset = result.assets[0];
+                const isVideo = asset.type === 'video';
 
                 try {
+                    if (isVideo) {
+                        let predictionResult = await AIService.predictVideo(asset);
+
+                        if (predictionResult.approved) {
+                            await uploadMedia(asset);
+                            const predictionLabel = predictionResult.prediction || "food";
+                            setTags(prev => prev ? `${prev}, ${predictionLabel}` : predictionLabel);
+                            setIsImageValid(true);
+                            Toast.show({
+                                type: 'success',
+                                text1: "Video uploaded",
+                                text2: `Approved video with ${predictionResult.food_percentage} food content.`,
+                            });
+                        } else if (predictionResult.requires_manual_verification) {
+                            const foodName = await promptFoodName();
+
+                            if (!foodName) {
+                                Toast.show({
+                                    type: 'error',
+                                    text1: "Verification cancelled",
+                                    text2: "No food name provided.",
+                                });
+                                return;
+                            }
+
+                            const verifyResult = await AIService.predictVideoWithFoodName(asset, foodName);
+
+                            if (verifyResult.approved) {
+                                await uploadMedia(asset);
+                                setTags(prevTags => prevTags
+                                    ? `${prevTags}, ${verifyResult.prediction}`
+                                    : verifyResult.prediction);
+                                Toast.show({
+                                    type: 'success',
+                                    text1: "Video verified!",
+                                    text2: verifyResult.reason || "Approved via food name.",
+                                });
+                            } else {
+                                Toast.show({
+                                    type: 'error',
+                                    text1: "Video rejected",
+                                    text2: verifyResult.reason,
+                                });
+                            }
+                        } else {
+                            Toast.show({
+                                type: 'error',
+                                text1: "Video rejected",
+                                text2: predictionResult.reason || "Low food content.",
+                            });
+                        }
+
+                        return;
+                    }
+
+
                     let predictionResult = await AIService.predict(asset);
 
                     if (predictionResult.image_id) {
@@ -89,7 +146,7 @@ const CreatePostPage = () => {
                             Toast.show({
                                 type: 'error',
                                 text1: "Upload canceled",
-                                text2: "You must enter a food name."
+                                text2: "You must enter a food name.",
                             });
                             return;
                         }
@@ -98,7 +155,7 @@ const CreatePostPage = () => {
                             Toast.show({
                                 type: 'error',
                                 text1: "Error",
-                                text2: "Image ID missing."
+                                text2: "Image ID missing.",
                             });
                             return;
                         }
@@ -127,15 +184,17 @@ const CreatePostPage = () => {
                         }
                     }
                 } catch (error) {
-                    console.error("Error processing image:", error);
+                    console.error("Error processing media:", error);
                     setIsImageValid(false);
                 }
             }
         } catch (error) {
-            console.error('Error picking image:', error);
-            setError('Failed to pick image. Please try again.');
+            console.error('Error picking media:', error);
+            setError('Failed to pick media. Please try again.');
         }
     };
+
+
 
     const promptFoodName = (): Promise<string | null> => {
         return new Promise((resolve) => {
@@ -325,7 +384,7 @@ const CreatePostPage = () => {
                     <Text style={styles.label}>Media</Text>
                     <TouchableOpacity
                         style={styles.mediaButton}
-                        onPress={pickImage}
+                        onPress={pickMedia}
                         disabled={isLoading}
                     >
                         <Text style={styles.mediaButtonText}>Add Media</Text>
@@ -565,31 +624,40 @@ const CreatePostPage = () => {
                     transparent
                     animationType="fade"
                 >
-                    <View style={{
-                        flex: 1,
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        justifyContent: 'center',
-                        alignItems: 'center'
-                    }}>
-                        <View style={{
-                            width: '80%',
-                            backgroundColor: 'white',
-                            padding: 20,
-                            borderRadius: 10
-                        }}>
-                            <Text style={{ fontSize: 18, marginBottom: 10 }}>Enter Food Name</Text>
+                    <View
+                        style={{
+                            flex: 1,
+                            backgroundColor: 'rgba(0,0,0,0.5)',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <View
+                            style={{
+                                width: '80%',
+                                backgroundColor: 'white',
+                                padding: 20,
+                                borderRadius: 10,
+                            }}
+                        >
+                            <Text style={{ fontSize: 18, marginBottom: 10 }}>
+                                Enter Food Name
+                            </Text>
+
                             <TextInput
                                 style={{
                                     borderWidth: 1,
                                     borderColor: '#ccc',
                                     borderRadius: 5,
                                     padding: 10,
-                                    marginBottom: 10
+                                    marginBottom: 10,
                                 }}
                                 placeholder="Type food name"
                                 value={manualFoodName}
                                 onChangeText={setManualFoodName}
+                                autoFocus
                             />
+
                             <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
                                 <TouchableOpacity onPress={handleModalCancel} style={{ marginRight: 10 }}>
                                     <Text style={{ color: 'red' }}>Cancel</Text>

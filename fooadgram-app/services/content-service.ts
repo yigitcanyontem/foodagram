@@ -65,13 +65,26 @@ export class ContentService {
 
     // File upload endpoint
     static async uploadMedia(file: ImagePickerAsset, userData: any): Promise<GenericResponse> {
-        let fileUri = file.uri;
+        const fileUri = file.uri;
 
-        const formData = ImageUtil.getFormDataFrom(
-            fileUri,
-            file.fileName ? file.fileName : 'media_file.jpg',
-        );
+        const isVideo = file.type === 'video' || file.mimeType?.includes('video');
 
+
+        const extension = isVideo ? '.mp4' : '.jpg';
+
+        let fileName = file.fileName ?? `media_file${extension}`;
+
+        if (!fileName.endsWith(extension)) {
+            fileName += extension;
+        }
+
+        const formData = new FormData();
+        formData.append('file', {
+            uri: fileUri,
+            name: fileName,
+            type: isVideo ? 'video/mp4' : 'image/jpeg',
+        } as any);
+        console.log("Uploading media file:", fileName);
         return axios.post(`${this.contentMediaBaseUrl}/upload`, formData, {
             headers: {
                 ...this.getAuthHeaders(userData),

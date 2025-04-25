@@ -74,6 +74,12 @@ spring:
           uri: lb://CONTENT
           predicates:
             - Path=/api/v1/comment-vote/**
+        - id: content-feed
+          uri: lb://CONTENT
+          predicates:
+              - Path=/api/v1/content/**
+          filters:
+              - RewritePath=/api/v1/content/(?<segment>.*), /api/v1/content/${segment}
 
 management:
   tracing:

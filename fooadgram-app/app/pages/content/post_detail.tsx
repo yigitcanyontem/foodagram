@@ -10,6 +10,10 @@ import {ContentService} from "@/services/content-service";
 import {GlobalConstants} from "@/utils/GlobalConstants";
 import {formatPostDate} from "@/utils/dayjsConfig";
 import Carousel from 'react-native-anchor-carousel';
+import {CommentService} from "@/services/comment-service";
+import {CommentResponseDto} from "@/models/content/dto/CommentResponseDto";
+import {CommentCreateDto} from "@/models/content/dto/CommentCreateDto";
+import { Video } from 'expo-av';
 
 type PostDetailParams = {
     postId: string;
@@ -37,6 +41,29 @@ const PostDetailPage = () => {
         } catch (error) {
             console.error("Failed to fetch users posts", error);
         }
+    };
+
+    const renderMedia = ({ item }: { item: string }) => {
+        const uri = GlobalConstants.s3Url + item;
+        const isVideo =
+            uri.toLowerCase().endsWith('.mp4') || uri.toLowerCase().includes('video');
+
+        return isVideo ? (
+            <Video
+                source={{ uri }}
+                style={styles.postImage}
+                useNativeControls        // kullanıcıya oynat/duraklat vs. ver
+                resizeMode="contain"
+                isMuted={false}
+                shouldPlay={false}       // otomatik oynatma istemiyorsan
+            />
+        ) : (
+            <Image
+                source={{ uri }}
+                style={styles.postImage}
+                accessibilityLabel="Post Image"
+            />
+        );
     };
 
 
@@ -99,13 +126,7 @@ const PostDetailPage = () => {
                         <Carousel
                             ref={carouselRef}
                             data={post?.mediaUrls}
-                            renderItem={({item}) => (
-                                <Image
-                                    source={{uri: GlobalConstants.s3Url + item}}
-                                    style={styles.postImage}
-                                    accessibilityLabel={"Post Image"}
-                                />
-                            )}
+                            renderItem={renderMedia}
                             style={styles.carousel}
                             itemWidth={width * 0.90}
                             containerWidth={width}
@@ -338,6 +359,34 @@ const styles = StyleSheet.create({
         color: 'gray',
         marginTop: 10,
     },
+    mediaContainer: {
+        width: '100%',
+        aspectRatio: 4 / 5,
+        borderRadius: 16,
+        overflow: 'hidden',
+        backgroundColor: '#000',
+        marginVertical: 16,
+    },
+    media: {
+        width: '100%',
+        height: '100%',
+    },
+
+    postHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    profileImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 10,
+    },
+    usernameAndDate: {
+        flexDirection: 'column',
+    },
+
 });
 
 export default PostDetailPage;

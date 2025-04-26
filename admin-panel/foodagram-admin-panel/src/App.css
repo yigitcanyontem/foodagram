@@ -1,0 +1,61 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+
+.main_container {
+  min-height: 100vh;
+}
+
+.login_main_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.header_container{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.common_container{
+  display: flex;
+  width: clamp(300px, 80%, 1200px);
+  margin: 0 auto;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .common_container{
+    width: 100%;
+  }
+}
+
+.custom_scrollbar::-webkit-scrollbar {
+  height: 20px;
+  width: 15px;
+}
+
+.custom_scrollbar::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.custom_scrollbar::-webkit-scrollbar-thumb {
+  background-color: #d6dee1;
+  border-radius: 20px;
+  border: 6px solid transparent;
+  background-clip: content-box;
+  min-height: 20px;
+}
+
+.custom_scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #a8bbbf;
+}
+
+.width-full {
+  width: 100%;
+}

@@ -1,0 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Nova+Mono&display=swap');
+
+.nova-mono-regular {
+    font-family: "Nova Mono", monospace;
+    font-weight: 400;
+    font-style: normal;
+}

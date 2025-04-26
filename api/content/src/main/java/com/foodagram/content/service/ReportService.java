@@ -63,7 +63,7 @@ public class ReportService {
                 .reportedEntityId(reportCreationDto.getReportedEntityId())
                 .reason(reportCreationDto.getReason())
                 .additionalNotes(reportCreationDto.getAdditionalNotes())
-                .isResolved(false)
+                .resolved(false)
                 .build();
 
         // Save the report to the database
@@ -108,7 +108,7 @@ public class ReportService {
                 report.getReportedEntityId(),
                 report.getReason(),
                 report.getAdditionalNotes(),
-                report.isResolved()
+                report.getResolved()
         );
     }
 
@@ -127,7 +127,7 @@ public class ReportService {
                         report.getReportedEntityId(),
                         report.getReason(),
                         report.getAdditionalNotes(),
-                        report.isResolved()
+                        report.getResolved()
                 ))
                 .collect(Collectors.toList());
     }
@@ -141,7 +141,7 @@ public class ReportService {
                 report.getReportedEntityId(),
                 report.getReason(),
                 report.getAdditionalNotes(),
-                report.isResolved()
+                report.getResolved()
         );
     }
 

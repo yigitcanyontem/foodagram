@@ -21,5 +21,5 @@ public class ReportResponseDto {
     private UUID reportedEntityId;
     private ReportReason reason;
     private String additionalNotes;
-    private boolean isResolved;
+    private boolean resolved;
 }

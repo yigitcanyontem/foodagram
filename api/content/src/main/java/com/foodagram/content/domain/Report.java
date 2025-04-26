@@ -40,7 +40,7 @@ public class Report extends BaseEntity {
 
     // Status of the report (resolved or pending)
     @Column(nullable = false)
-    private boolean isResolved = false;
+    private Boolean resolved = false;
 
     // Additional notes or comments from the reporter
     @Column(columnDefinition = "TEXT")

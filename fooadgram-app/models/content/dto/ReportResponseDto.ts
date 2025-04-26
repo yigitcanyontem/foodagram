@@ -6,5 +6,5 @@ export interface ReportResponseDto {
     reportedEntityId: string;
     reason: string;
     additionalNotes?: string;
-    isResolved: boolean;
+    resolved: boolean;
 }

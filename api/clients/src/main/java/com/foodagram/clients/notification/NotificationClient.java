@@ -1,19 +1,19 @@
 package com.foodagram.clients.notification;
 
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @FeignClient(
         name = "notification"
 )
 public interface NotificationClient {
     @GetMapping(path = "api/v1/notification/{notificationId}")
-    NotificationDto getNotification(@PathVariable("notificationId") Integer notificationId);
+    NotificationDto getNotification(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, @PathVariable("notificationId") UUID notificationId);
 
-    @PostMapping("api/v1/notification")
-    NotificationDto sendNotification(@RequestBody NotificationCreateDto notificationCreateDto);
-
+    @GetMapping(path = "api/v1/notification/mine")
+    List<NotificationDto> getMyNotifications(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken);
 }

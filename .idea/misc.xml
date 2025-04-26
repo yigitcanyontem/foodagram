@@ -11,6 +11,7 @@
         <option value="$PROJECT_DIR$/api/amqp/pom.xml" />
         <option value="$PROJECT_DIR$/api/user/pom.xml" />
         <option value="$PROJECT_DIR$/api/cache/pom.xml" />
+        <option value="$PROJECT_DIR$/api/notification/pom.xml" />
       </list>
     </option>
   </component>

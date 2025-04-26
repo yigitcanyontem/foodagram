@@ -1,0 +1,57 @@
+server:
+  port: 8089
+
+spring:
+  cloud:
+    compatibility-verifier:
+      enabled: false
+  zipkin:
+    base-url: http://localhost:9411
+  rabbitmq:
+    addresses: localhost:5672
+  application:
+    name: notification
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  datasource:
+    username: 'postgres'
+    url: jdbc:postgresql://localhost:5432/notification
+    password: 'password'
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+
+
+management:
+  tracing:
+    enabled: true
+    sampler:
+      probability: 1.0
+
+
+eureka:
+  instance:
+    appname: notification
+    hostname: localhost
+
+  client:
+    enabled: true
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+    fetch-registry: true
+    register-with-eureka: true
+
+rabbitmq:
+  exchanges:
+    internal: internal.exchange
+  queues:
+    notification: notification.queue
+  routing-keys:
+    internal-notification: internal.notification.routing-key

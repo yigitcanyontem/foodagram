@@ -1,0 +1,30 @@
+package com.foodagram.notification;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+
+@EnableFeignClients(
+        basePackageClasses = {
+                com.foodagram.clients.users.UsersClient.class,
+                com.foodagram.clients.notification.NotificationClient.class,
+                com.foodagram.clients.auth.AuthClient.class,
+                com.foodagram.clients.cache.CacheClient.class,
+                com.foodagram.clients.files.FilesClient.class,
+                com.foodagram.clients.content.ContentClient.class,
+                com.foodagram.clients.notification.NotificationClient.class
+        }
+)
+@SpringBootApplication(
+        scanBasePackages = {
+                "com.foodagram.notification",
+                "com.foodagram.amqp"
+        }
+)
+public class NotificationApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(NotificationApplication.class, args);
+    }
+
+}

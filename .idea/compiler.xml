@@ -8,6 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="apigw" />
+        <module name="notification" />
         <module name="cache" />
         <module name="clients" />
         <module name="auth" />
@@ -31,6 +32,7 @@
       <module name="eureka-server" options="-parameters" />
       <module name="files" options="-parameters" />
       <module name="foodagram" options="" />
+      <module name="notification" options="-parameters" />
       <module name="user" options="-parameters" />
       <module name="validator" options="-parameters" />
     </option>

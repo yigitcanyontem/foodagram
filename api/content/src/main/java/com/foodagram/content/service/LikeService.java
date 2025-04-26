@@ -1,19 +1,25 @@
 package com.foodagram.content.service;
 
+import com.foodagram.clients.notification.NotificationCreateDto;
+import com.foodagram.clients.notification.dto.NotificationType;
+import com.foodagram.clients.shared.dto.GenericRabbitMQMessage;
 import com.foodagram.clients.users.UsersClient;
 import com.foodagram.clients.users.dto.UsersDto;
 import com.foodagram.clients.users.profile.UsersProfileDto;
 import com.foodagram.content.domain.Like;
 import com.foodagram.content.domain.Post;
+import com.foodagram.content.rabbitmq.AMQPService;
 import com.foodagram.content.repository.LikeRepository;
 import com.foodagram.content.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LikeService {
@@ -21,6 +27,7 @@ public class LikeService {
     private final LikeRepository likeRepository;
     private final PostRepository postRepository;
     private final UsersClient usersClient;
+    private final AMQPService aMQPService;
 
     @Transactional
     public void likePost(UUID userId, UUID postId) {
@@ -40,6 +47,26 @@ public class LikeService {
         likeRepository.save(like);
         post.setLikes(post.getLikes() + 1);
         postRepository.save(post);
+
+        if (!userId.equals(post.getUserId())){
+            try {
+                aMQPService.publishToNotificationQueue(
+                        new GenericRabbitMQMessage(
+                                "createNotification",
+                                new NotificationCreateDto(
+                                        post.getUserId(),
+                                        "New Like",
+                                        "",
+                                        NotificationType.LIKE,
+                                        "PostDetail/" + post.getId(),
+                                        userId
+                                )
+                        )
+                );
+            } catch (Exception e) {
+                log.error("Error while publishing to notification queue: {}", e.getMessage());
+            }
+        }
     }
 
     @Transactional

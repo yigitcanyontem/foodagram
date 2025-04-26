@@ -3,10 +3,12 @@ package com.foodagram.content.service;
 import com.foodagram.amqp.RabbitMQMessageProducer;
 import com.foodagram.clients.content.dto.*;
 import com.foodagram.clients.notification.NotificationCreateDto;
+import com.foodagram.clients.notification.dto.NotificationType;
 import com.foodagram.clients.shared.dto.GenericRabbitMQMessage;
 import com.foodagram.clients.users.dto.UsersDto;
 import com.foodagram.content.domain.Comment;
 import com.foodagram.content.domain.Post;
+import com.foodagram.content.rabbitmq.AMQPService;
 import com.foodagram.content.repository.CommentRepository;
 import com.foodagram.content.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -23,6 +25,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final RabbitMQMessageProducer rabbitMQMessageProducer;
+    private final AMQPService aMQPService;
 
     public CommentResponseDto createComment(CommentCreateDto commentCreateDto) {
         Post post = postRepository.findById(commentCreateDto.getPostId())
@@ -45,6 +48,23 @@ public class CommentService {
                 "internal.exchange",
                 "internal.content.routing-key"
         );
+
+        if (!comment.getUserId().equals(post.getUserId())) {
+            aMQPService.publishToNotificationQueue(
+                    new GenericRabbitMQMessage(
+                            "createNotification",
+                            new NotificationCreateDto(
+                                    post.getUserId(),
+                                    "New Comment",
+                                    comment.getContent(),
+                                    NotificationType.COMMENT,
+                                    "PostDetail/" + post.getId(),
+                                    comment.getUserId()
+                            )
+                    )
+            );
+        }
+
         return mapToResponseDto(commentRepository.save(comment));
     }
 

@@ -49,6 +49,7 @@ import UserProfilePage from "@/app/pages/profile/user_profile_page";
 import LikesPage from "@/app/pages/content/LikesPage";
 import CommentsPage from "@/app/pages/content/CommentsPage";
 import TagPage from "@/app/pages/content/TagPage";
+import NotificationsPage from "@/app/pages/NotificationsPage";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -99,7 +100,7 @@ export default function RootLayout() {
     return (
         <SafeAreaView style={{flex: 1}}>
             <AppProvider>
-                <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                <ThemeProvider value={DefaultTheme}>
                     <Stack.Navigator
                         screenOptions={{
                             header: ({navigation, route}) => <Header title={route.name}/>,
@@ -121,6 +122,7 @@ export default function RootLayout() {
                         <Stack.Screen name="Likes" component={LikesPage} />
                         <Stack.Screen name="Comments" component={CommentsPage} />
                         <Stack.Screen name="Tag" component={TagPage} />
+                        <Stack.Screen name="Notifications" component={NotificationsPage} />
                     </Stack.Navigator>
                 </ThemeProvider>
                 <Toast/>

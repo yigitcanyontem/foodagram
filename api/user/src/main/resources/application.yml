@@ -55,3 +55,4 @@ rabbitmq:
     user: user.queue
   routing-keys:
     internal-user: internal.user.routing-key
+    internal-notification: internal.notification.routing-key

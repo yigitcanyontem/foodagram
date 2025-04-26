@@ -1,5 +1,7 @@
 package com.foodagram.user.service;
 
+import com.foodagram.clients.notification.dto.NotificationType;
+import com.foodagram.user.rabbitmq.AMQPService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ public class UsersEngagementService {
     private final RabbitMQMessageProducer rabbitMQMessageProducer;
     private final UsersEngagementRepository usersEngagementRepository;
     private final UsersProfileService usersProfileService;
+    private final AMQPService aMQPService;
 
     public List<UsersProfileDto> getUserFollowers(UUID userId) {
         List<UsersEngagement> usersEngagements = usersEngagementRepository.getUsersEngagementsByEngagedUserIdAndUserEngagementType(userId, UserEngagementType.FOLLOW);
@@ -54,6 +57,24 @@ public class UsersEngagementService {
                 "internal.exchange",
                 "internal.user.routing-key"
         );
+
+        try {
+            aMQPService.publishToNotificationQueue(
+                    new GenericRabbitMQMessage(
+                            "createNotification",
+                            new NotificationCreateDto(
+                                    engagedUserId,
+                                    "New Follower",
+                                    usersProfileService.getUsersProfileByUsersId(userId).getUsername() + " started following you.",
+                                    NotificationType.LIKE,
+                                    "Profile/" + userId,
+                                    userId
+                            )
+                    )
+            );
+        } catch (Exception e) {
+            log.error("Error while publishing to notification queue: {}", e.getMessage());
+        }
     }
 
     @Transactional

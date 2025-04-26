@@ -78,11 +78,6 @@ public class UsersService {
 
         usersProfileService.createDefaultProfile(newUser.getId());
 
-        rabbitMQMessageProducer.publish(
-                new NotificationCreateDto(user.getId(), "User created"),
-                "internal.exchange",
-                "internal.notifications.routing-key"
-        );
         return user;
     }
 

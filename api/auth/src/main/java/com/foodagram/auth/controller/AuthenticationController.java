@@ -29,6 +29,14 @@ public class AuthenticationController {
         return ResponseEntity.ok(authenticationService.authenticate(request));
     }
 
+    @PostMapping("/admin-login")
+    public ResponseEntity<AuthenticationResponse> authenticateAdmin(
+            @RequestBody AuthenticationRequest request
+    ) throws LoginException {
+        return ResponseEntity.ok(authenticationService.authenticateAdmin(request));
+    }
+
+
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(@RequestBody UserRegisterDTO request) {
         return ResponseEntity.ok(authenticationService.register(request));

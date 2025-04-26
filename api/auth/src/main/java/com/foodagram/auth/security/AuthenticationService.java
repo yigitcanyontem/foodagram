@@ -62,6 +62,14 @@ public class AuthenticationService {
                 .build();
     }
 
+    public AuthenticationResponse authenticateAdmin(AuthenticationRequest request) throws LoginException {
+        AuthenticationResponse response = authenticate(request);
+        if (!response.getUser().getRole().equals(Role.ADMIN)){
+            throw new LoginException("You are not an admin");
+        }
+        return response;
+    }
+
     private void saveUserToken(UsersDto user, String jwtToken) {
         var token = Token.builder()
                 .userId(user.getId())

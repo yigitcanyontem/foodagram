@@ -13,16 +13,16 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://192.168.0.11:8083',
-        rewrite: (path) => path.replace(/^\/api/, '/api/v1'),
-        changeOrigin: true,
-        secure: false,
-      },
-    },
-  },
+  // server: {
+  //   proxy: {
+  //     '/api': {
+  //       target: 'http://192.168.0.12:8083',
+  //       rewrite: (path) => path.replace(/^\/api/, '/api/v1'),
+  //       changeOrigin: true,
+  //       secure: false,
+  //     },
+  //   },
+  // },
   define: {
     global: {}
   }

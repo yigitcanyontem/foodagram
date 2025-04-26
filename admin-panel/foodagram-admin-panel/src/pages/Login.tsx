@@ -1,6 +1,6 @@
 import {AuthService} from "../services/auth-service.ts";
 import {AuthenticationRequest} from "../models/auth/AuthenticationRequest.ts";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {AuthenticationResponse} from "../models/auth/AuthenticationResponse.ts";
 import { toast } from "sonner"
 import {Link, useNavigate} from "react-router-dom";
@@ -10,8 +10,6 @@ import {Label} from "../components/ui/label.tsx";
 import {Button} from "../components/ui/button.tsx";
 
 const Login = () => {
-
-
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);

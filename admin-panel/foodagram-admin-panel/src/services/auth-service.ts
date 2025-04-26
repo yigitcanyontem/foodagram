@@ -2,7 +2,6 @@ import axios from 'axios';
 import { GlobalConstants } from '../utils/GlobalConstants';
 import {AuthenticationRequest} from "../models/auth/AuthenticationRequest.ts";
 import { AuthenticationResponse } from '../models/auth/AuthenticationResponse.ts';
-import { UserRegisterDTO } from '../models/auth/UserCreateDto.ts';
 
 export class AuthService {
     static baseUrl: string = GlobalConstants.baseUrl + 'auth';
@@ -36,5 +35,12 @@ export class AuthService {
 
     static isAuthenticated(): boolean {
         return sessionStorage.getItem('token') !== null;
+    }
+
+    static getUserData(): { username: string | null, email: string | null, token: string | null } {
+        const username = sessionStorage.getItem('username');
+        const email = sessionStorage.getItem('email');
+        const token = sessionStorage.getItem('token');
+        return { username, email, token };
     }
 }

@@ -1,6 +1,6 @@
 import {AuthService} from "../services/auth-service.ts";
 import {AuthenticationRequest} from "../models/auth/AuthenticationRequest.ts";
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import {AuthenticationResponse} from "../models/auth/AuthenticationResponse.ts";
 import { toast } from "sonner"
 import {Link, useNavigate} from "react-router-dom";
@@ -13,6 +13,7 @@ const Login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [response, setResponse] = useState<AuthenticationResponse | null>(null);
     const navigate = useNavigate();
 
@@ -28,6 +29,7 @@ const Login = () => {
             setResponse(result);
             setError(null);
             navigate('/');
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             toast("Error while logging in");
             setError('Login failed. Please check your credentials.');

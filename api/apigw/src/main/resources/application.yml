@@ -76,6 +76,10 @@ spring:
           uri: lb://CONTENT
           predicates:
             - Path=/api/v1/comment-vote/**
+        - id: reports
+          uri: lb://CONTENT
+          predicates:
+            - Path=/api/v1/reports/**
         - id: content-feed
           uri: lb://CONTENT
           predicates:

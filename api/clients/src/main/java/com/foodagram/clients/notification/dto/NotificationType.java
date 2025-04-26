@@ -7,5 +7,6 @@ public enum NotificationType {
     FOLLOW,
     POST,
     REPOST,
-    MENTION
+    MENTION,
+    REPORT
 }

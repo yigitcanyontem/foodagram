@@ -23,4 +23,5 @@ public class NotificationDto {
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
     private String mediaUrl;
+    private Boolean forAdmins;
 }

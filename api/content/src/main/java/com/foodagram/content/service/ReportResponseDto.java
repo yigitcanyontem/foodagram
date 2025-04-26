@@ -1,0 +1,25 @@
+package com.foodagram.content.service;
+
+import com.foodagram.clients.content.enums.ReportReason;
+import com.foodagram.clients.content.enums.ReportType;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.UUID;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class ReportResponseDto {
+    private UUID reportId;
+    private UUID reporterId;
+    private String reporterUsername;
+    private ReportType reportType;
+    private UUID reportedEntityId;
+    private ReportReason reason;
+    private String additionalNotes;
+    private boolean isResolved;
+}

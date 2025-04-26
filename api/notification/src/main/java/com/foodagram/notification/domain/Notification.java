@@ -20,6 +20,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @SuperBuilder
 public class Notification extends BaseEntity {
+    @Column(name = "for_admins")
+    private Boolean forAdmins;
+
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 

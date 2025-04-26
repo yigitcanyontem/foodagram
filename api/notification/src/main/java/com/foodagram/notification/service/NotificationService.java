@@ -29,6 +29,7 @@ public class NotificationService {
 
     public void createNotification(NotificationCreateDto request) {
         Notification notification = Notification.builder()
+                .forAdmins(request.getForAdmins())
                 .userId(request.getUserId())
                 .title(request.getTitle())
                 .content(request.getContent())
@@ -93,6 +94,7 @@ public class NotificationService {
                 .createdDate(n.getCreatedDate())
                 .updatedDate(n.getUpdatedDate())
                 .mediaUrl(getMediaUrlForNotification(n))
+                .forAdmins(n.getForAdmins())
                 .build();
     }
 

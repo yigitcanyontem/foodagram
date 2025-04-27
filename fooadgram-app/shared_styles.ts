@@ -1,5 +1,4 @@
 import {Dimensions, StyleSheet} from "react-native";
-import {getStatusBarHeight} from "react-native-status-bar-height";
 
 const shared_styles = StyleSheet.create({
     page_notch_margin: {},
@@ -133,8 +132,13 @@ const shared_styles = StyleSheet.create({
     },
     justify_between: {
         justifyContent: 'space-between'
+    },
+    titleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+        justifyContent: 'space-between',
     }
-
 });
 
 export default shared_styles;

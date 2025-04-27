@@ -9,6 +9,9 @@ import {UsersProfileDto} from "@/models/user/UsersProfileDto";
 import {useBase64Image} from "@/hooks/useBase64Image";
 import UserResultCard from "@/app/shared/profile/UserResultCard";
 import Toast from "react-native-toast-message";
+import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
+import {ContentService} from "@/services/content-service";
+import PostsSection from "@/app/shared/profile/PostsSection";
 
 const ExplorePage = () => {
     const navigation = useNavigation();
@@ -17,6 +20,16 @@ const ExplorePage = () => {
     const [results, setResults] = useState<UsersProfileDto[]>([]);
     const [error, setError] = useState<string | null>(null);
     const {getBase64Uri} = useBase64Image();
+    const [posts, setPosts] = useState<PostResponseDto[]>([]);
+
+    const fetchPosts = async () => {
+        try {
+            const response = await ContentService.getRandomPublicPostsForExplore(userData);
+            setPosts(response);
+        } catch (error) {
+            console.error("Failed to fetch saves posts", error);
+        }
+    };
 
     const handleSearch = async () => {
         try {
@@ -32,6 +45,9 @@ const ExplorePage = () => {
             setResults([]);
         }
     };
+    useEffect(() => {
+        fetchPosts()
+    }, [userData]);
 
     useEffect(() => {
         handleSearch()
@@ -40,7 +56,7 @@ const ExplorePage = () => {
     return (
         <View style={shared_styles.body_container}>
             <ScrollView contentContainerStyle={styles.container}>
-                <View style={shared_styles.row}>
+                <View style={[shared_styles.row, {padding: 20}]}>
                     <TextInput
                         style={styles.input}
                         placeholder="Search users..."
@@ -48,9 +64,19 @@ const ExplorePage = () => {
                         onChangeText={setQuery}
                     />
                 </View>
+                {
+                    posts.length > 0 && (
+                        <View style={shared_styles.column}>
+                            <View style={[shared_styles.row, {paddingHorizontal: 20}]}>
+                                <Text style={styles.section_title}>Posts</Text>
+                            </View>
+                            <PostsSection key={`explore_posts`} posts={posts}/>
+                        </View>
+                    )
+                }
                 {error && <Text style={styles.errorText}>{error}</Text>}
                 {results.map((profile) => (
-                   <UserResultCard
+                    <UserResultCard
                         key={profile.id}
                         profile={profile}
                     />
@@ -63,7 +89,6 @@ const ExplorePage = () => {
 
 const styles = StyleSheet.create({
     container: {
-        padding: 20,
         backgroundColor: "#fff",
     },
     input: {
@@ -91,6 +116,11 @@ const styles = StyleSheet.create({
     resultText: {
         fontSize: 16,
     },
+    section_title: {
+        fontSize: 18,
+        fontWeight: "bold",
+        marginBottom: 10,
+    }
 });
 
 export default ExplorePage;

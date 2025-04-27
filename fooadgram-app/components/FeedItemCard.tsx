@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { AntDesign, FontAwesome } from '@expo/vector-icons';
 import { ContentService } from '@/services/content-service';
 import { UserData } from '@/models/user/UserData';
+import {formatPostDate} from "@/utils/dayjsConfig";
 
 interface Props {
     post: Post;
@@ -97,7 +98,7 @@ const FeedItemCard: React.FC<Props> = ({ post, user, setScrollEnabled }) => {
                 <>
                     <Text style={styles.username}>{post.username}</Text>
                     <Text style={styles.timestamp}>
-                        {new Date(post.createdAt).toLocaleString()}
+                        {formatPostDate(post.createdAt)}
                     </Text>
                 </>
             )}

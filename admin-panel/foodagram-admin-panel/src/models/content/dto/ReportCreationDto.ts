@@ -1,7 +1,13 @@
+import {ReportReason} from "./ReportReason.ts";
+import {ReportType} from "./ReportType.ts";
+
 export interface ReportCreationDto {
-    reportType: 'POST' | 'COMMENT' | 'USER';
+    reportType: ReportType;
     reportedEntityId: string;
     reporterUsername: string;
-    reason: string;
+    reason: ReportReason;
     additionalNotes?: string;
 }
+
+
+

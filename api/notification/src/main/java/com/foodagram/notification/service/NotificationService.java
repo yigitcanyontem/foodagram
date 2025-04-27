@@ -43,7 +43,7 @@ public class NotificationService {
     }
 
     public List<NotificationDto> getNotificationsByUserId(UUID userId) {
-        List<NotificationDto> notificationDtos = notificationRepository.findByUserId(userId)
+        List<NotificationDto> notificationDtos = notificationRepository.findByUserIdOrderByCreatedDateDesc(userId)
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());

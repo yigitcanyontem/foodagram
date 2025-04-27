@@ -29,9 +29,7 @@ export default function Header({title}) {
     }
 
     useEffect(() => {
-        setInterval(() => {
-            getUnreadNotificationsCount()
-        }, 20000);
+        getUnreadNotificationsCount()
     }, [userData])
 
 

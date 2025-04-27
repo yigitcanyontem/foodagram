@@ -24,6 +24,8 @@ import {CommentResponseDto} from "@/models/content/dto/CommentResponseDto";
 import {CommentCreateDto} from "@/models/content/dto/CommentCreateDto";
 import {UsersProfileDto} from "@/models/user/UsersProfileDto";
 import UserResultCard from "@/app/shared/profile/UserResultCard";
+import ReportModal from "@/app/shared/content/ReportModal";
+import {ReportType} from "@/models/content/dto/ReportType";
 
 type CommentsParams = {
     postId: string;
@@ -32,8 +34,8 @@ type CommentsParams = {
 const CommentsPage = () => {
     const navigation = useNavigation();
     const route = useRoute();
-    const { postId } = route.params as CommentsParams;
-    const { setUserData, userData } = useAppContext();
+    const {postId} = route.params as CommentsParams;
+    const {setUserData, userData} = useAppContext();
     const [comments, setComments] = useState<CommentResponseDto[]>([]);
     const [newComment, setNewComment] = useState<string>('');
     const [replyTo, setReplyTo] = useState<string | null>(null); // Track the comment being replied to
@@ -72,7 +74,18 @@ const CommentsPage = () => {
             .filter((comment) => comment.parentReplyId === parentId)
             .map((comment) => (
                 <View key={comment.id} style={styles.commentItem}>
-                    <Text style={styles.commentUsername}>{comment.createdByUsername}</Text>
+                    <View style={shared_styles.titleContainer}>
+                        <Text style={styles.commentUsername}>{comment.createdByUsername}</Text>
+
+                        {
+                            comment?.userId != userData?.id &&
+                            <ReportModal
+                                reportType={ReportType.COMMENT}
+                                reportedEntityId={comment.id}
+                            />
+                        }
+
+                    </View>
                     <Text style={styles.commentContent}>{comment.content}</Text>
                     <Text style={styles.commentDate}>{formatPostDate(comment.createdAt)}</Text>
                     <TouchableOpacity onPress={() => setReplyTo(comment.id)}>
@@ -91,9 +104,9 @@ const CommentsPage = () => {
     }, [postId, userData]);
 
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{flex: 1}}>
             <View style={shared_styles.body_container}>
-                <View style={[styles.container, { marginTop: 10 }]}>
+                <View style={[styles.container, {marginTop: 10}]}>
                     <Text style={styles.commentsTitle}>Comments</Text>
                 </View>
                 <ScrollView contentContainerStyle={styles.container}>
@@ -121,10 +134,10 @@ const CommentsPage = () => {
                         onPress={handleComment}
                         disabled={!newComment.trim()}
                     >
-                        <FontAwesome name="send" size={20} color={newComment.trim() ? "#007AFF" : "#999"} />
+                        <FontAwesome name="send" size={20} color={newComment.trim() ? "#007AFF" : "#999"}/>
                     </TouchableOpacity>
                 </View>
-                <FGTabBar />
+                <FGTabBar/>
             </View>
         </View>
     );

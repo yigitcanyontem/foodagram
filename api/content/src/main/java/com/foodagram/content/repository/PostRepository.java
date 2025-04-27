@@ -21,4 +21,6 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     List<Post> findAllByIdIn(List<UUID> ids);
 
     List<Post> findPostsByTagsContainingAndVisibilityNotOrderByCreatedDateDesc(String tags, Visibility visibility);
+
+    List<Post> findAllByUserIdNotAndVisibilityNotOrderByCreatedDateDesc(UUID id, Visibility visibility);
 }

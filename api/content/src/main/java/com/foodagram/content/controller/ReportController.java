@@ -25,14 +25,13 @@ public class ReportController {
     private final ReportService reportService;
     private final UsersUtil usersUtil;
 
-    @PostMapping
+    @PostMapping()
     public ResponseEntity<ReportResponseDto> createReport(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, @RequestBody ReportCreationDto reportCreationDto) {
         try {
             UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
-            throwIfNotAdmin(user);
             return ResponseEntity.ok(reportService.createReport(user, reportCreationDto));
         } catch (Exception e) {
-            log.error("Error while getting report by id: {}", e.getMessage());
+            log.error("Error while creating report by id: {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -62,6 +61,18 @@ public class ReportController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+    @PatchMapping("/{id}/resolve")
+    public ResponseEntity<ReportResponseDto> resolveReport(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, @PathVariable("id") UUID reportId) {
+        try {
+            UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
+            throwIfNotAdmin(user);
+            return ResponseEntity.ok(reportService.resolveReport(reportId, user.getId()));
+        } catch (Exception e) {
+            log.error("Error while resolving report: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     private void throwIfNotAdmin(UsersDto user) {

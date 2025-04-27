@@ -60,6 +60,7 @@ public class ReportService {
         Report report = Report.builder()
                 .reporterId(usersDto.getId())
                 .reportType(reportCreationDto.getReportType())
+                .reporterUsername(reportCreationDto.getReporterUsername())
                 .reportedEntityId(reportCreationDto.getReportedEntityId())
                 .reason(reportCreationDto.getReason())
                 .additionalNotes(reportCreationDto.getAdditionalNotes())
@@ -130,6 +131,25 @@ public class ReportService {
                         report.getResolved()
                 ))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ReportResponseDto resolveReport(UUID reportId, UUID resolverId) {
+        // Step 1: Find the report by ID
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new IllegalArgumentException("Report not found"));
+
+        // Step 2: Update the report's resolved status and timestamp
+        report.setResolved(true);
+        report.setResolvedAt(System.currentTimeMillis());
+        report.setResolverId(resolverId);
+
+        // Step 3: Save the updated report
+        Report updatedReport = reportRepository.save(report);
+        log.info("Report resolved successfully: {}", updatedReport);
+
+        // Step 4: Map the updated report to a DTO and return it
+        return mapToDto(updatedReport);
     }
 
     public ReportResponseDto mapToDto(Report report) {

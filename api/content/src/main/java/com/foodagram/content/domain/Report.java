@@ -50,5 +50,13 @@ public class Report extends BaseEntity {
     @Column(name = "resolved_at")
     private Long resolvedAt;
 
+    // ID of the user who resolved the report (if applicable)
+    @Column(name = "resolver_id")
+    private UUID resolverId;
+
+    // Additional notes or comments from the resolver
+    @Column(name = "resolution_notes", columnDefinition = "TEXT")
+    private String resolutionNotes;
+
 }
 

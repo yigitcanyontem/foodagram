@@ -1,4 +1,4 @@
-import {Dimensions, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {Dimensions, Image, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {useNavigation, useRoute} from "@react-navigation/native";
 import React, {useEffect, useRef, useState} from "react";
 import {useAppContext} from "@/context/AppContext";
@@ -14,6 +14,10 @@ import {CommentService} from "@/services/comment-service";
 import {CommentResponseDto} from "@/models/content/dto/CommentResponseDto";
 import {CommentCreateDto} from "@/models/content/dto/CommentCreateDto";
 import { Video } from 'expo-av';
+import Toast from "react-native-toast-message";
+import {ReportReason} from "@/models/content/dto/ReportReason";
+import {ReportType} from "@/models/content/dto/ReportType";
+import ReportModal from "@/app/shared/content/ReportModal";
 
 type PostDetailParams = {
     postId: string;
@@ -118,6 +122,14 @@ const PostDetailPage = () => {
                     {/* Post Header */}
                     <View style={styles.header}>
                         <Text style={styles.username}>{post?.username}</Text>
+
+                        {
+                            post?.userId != userData?.id &&
+                            <ReportModal
+                                reportType={ReportType.POST}
+                                reportedEntityId={postId}
+                            />
+                        }
                     </View>
 
                     {/* Post Image */}
@@ -190,29 +202,31 @@ const PostDetailPage = () => {
                     {post?.createdAt && (
                         <Text style={styles.date}>{formatPostDate(post.createdAt)}</Text>
                     )}
+                    {
+                        post?.recipe &&
 
-                    <View style={styles.recipeSection}>
-                        <Text style={styles.recipeTitle}>Recipe: {post?.recipe?.title}</Text>
-                        <Text style={styles.recipeDescription}>{post?.recipe?.description}</Text>
-                        <Text style={styles.recipeSubtitle}>Ingredients:</Text>
-                        {post?.recipe?.ingredients.map((ingredient) => (
-                            <Text key={ingredient.id} style={styles.ingredientItem}>
-                                - {ingredient.amount} {ingredient.unit} {ingredient.name}
+                        <View style={styles.recipeSection}>
+                            <Text style={styles.recipeTitle}>Recipe: {post?.recipe?.title}</Text>
+                            <Text style={styles.recipeDescription}>{post?.recipe?.description}</Text>
+                            <Text style={styles.recipeSubtitle}>Ingredients:</Text>
+                            {post?.recipe?.ingredients.map((ingredient) => (
+                                <Text key={ingredient.id} style={styles.ingredientItem}>
+                                    - {ingredient.amount} {ingredient.unit} {ingredient.name}
+                                </Text>
+                            ))}
+                            <Text style={styles.recipeSubtitle}>Instructions:</Text>
+                            {post?.recipe?.instructions.map((instruction, index) => (
+                                <Text key={index} style={styles.instructionItem}>
+                                    {index + 1}. {instruction}
+                                </Text>
+                            ))}
+                            <Text style={styles.recipeDetails}>
+                                Cuisine: {post?.recipe?.cuisineType} | Difficulty: {post?.recipe?.difficultyLevel} | Prep Time: {post?.recipe?.prepTime} mins
                             </Text>
-                        ))}
-                        <Text style={styles.recipeSubtitle}>Instructions:</Text>
-                        {post?.recipe?.instructions.map((instruction, index) => (
-                            <Text key={index} style={styles.instructionItem}>
-                                {index + 1}. {instruction}
-                            </Text>
-                        ))}
-                        <Text style={styles.recipeDetails}>
-                            Cuisine: {post?.recipe?.cuisineType} | Difficulty: {post?.recipe?.difficultyLevel} | Prep Time: {post?.recipe?.prepTime} mins
-                        </Text>
-                    </View>
+                        </View>
+                    }
 
                 </ScrollView>
-
 
                 <FGTabBar/>
             </View>
@@ -237,6 +251,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 10,
+        justifyContent: 'space-between',
     },
     username: {
         fontWeight: 'bold',
@@ -386,7 +401,34 @@ const styles = StyleSheet.create({
     usernameAndDate: {
         flexDirection: 'column',
     },
-
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        width: '80%',
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 20,
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 20,
+    },
+    modalOption: {
+        fontSize: 16,
+        marginVertical: 10,
+        color: 'blue',
+    },
+    modalCancel: {
+        fontSize: 16,
+        marginTop: 20,
+        color: 'red',
+    }
 });
 
 export default PostDetailPage;

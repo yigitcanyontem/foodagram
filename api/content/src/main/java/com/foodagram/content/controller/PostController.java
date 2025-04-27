@@ -62,6 +62,18 @@ public class PostController {
         }
     }
 
+    @GetMapping("/explore")
+    public ResponseEntity<List<PostResponseDto>> getRandomPublicPostsForExplore(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken) {
+        try {
+            UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
+            return ResponseEntity.ok(postService.getRandomPublicPostsForExplore(user.getId()));
+        } catch (Exception e) {
+            log.error("Error while fetching post by user: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
     @PutMapping("/{id}")
     public ResponseEntity<PostResponseDto> updatePost(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, @PathVariable UUID id, @RequestBody PostUpdateDto postUpdateDto) {
         try {

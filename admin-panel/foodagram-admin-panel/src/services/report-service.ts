@@ -1,37 +1,21 @@
 import axios from 'axios';
 import { GlobalConstants } from '../utils/GlobalConstants';
-import {ReportCreationDto} from "../models/content/dto/ReportCreationDto.ts";
 import {ReportResponseDto} from "../models/content/dto/ReportResponseDto.ts";
+import {AuthService} from "./auth-service.ts";
 
 export class ReportService {
-    static baseUrl: string = GlobalConstants.baseUrl + '/reports';
+    static baseUrl: string = GlobalConstants.baseUrl + 'reports';
 
-    // Create a report
-    static createReport(jwtToken: string, reportCreationDto: ReportCreationDto): Promise<ReportResponseDto> {
-        return axios.post(
-            `${this.baseUrl}`,
-            reportCreationDto,
-            {
-                headers: {
-                    'Authorization': `Bearer ${jwtToken}`,
-                },
-            }
-        )
-            .then(response => response.data)
-            .catch(error => {
-                console.error('Error while creating the report:', error);
-                throw error;
-            });
+    static getAuthHeaders() {
+        return {Authorization: AuthService.getUserData().token ?? ''};
     }
 
     // Get a report by its ID
-    static getReportById(jwtToken: string, reportId: string): Promise<ReportResponseDto> {
+    static getReportById(reportId: string): Promise<ReportResponseDto> {
         return axios.get(
             `${this.baseUrl}/${reportId}`,
             {
-                headers: {
-                    'Authorization': `Bearer ${jwtToken}`,
-                },
+                headers: this.getAuthHeaders()
             }
         )
             .then(response => response.data)
@@ -42,18 +26,48 @@ export class ReportService {
     }
 
     // Get all unresolved reports
-    static getAllUnresolvedReports(jwtToken: string): Promise<ReportResponseDto[]> {
+    static getAllUnresolvedReports(): Promise<ReportResponseDto[]> {
         return axios.get(
             `${this.baseUrl}/unresolved`,
             {
-                headers: {
-                    'Authorization': `Bearer ${jwtToken}`,
-                },
+                headers: this.getAuthHeaders()
             }
         )
             .then(response => response.data)
             .catch(error => {
                 console.error('Error while fetching unresolved reports:', error);
+                throw error;
+            });
+    }
+
+    static getAllResolvedReports(): Promise<ReportResponseDto[]> {
+        return axios.get(
+            `${this.baseUrl}/resolved`,
+            {
+                headers: this.getAuthHeaders()
+            }
+        )
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while fetching unresolved reports:', error);
+                throw error;
+            });
+    }
+
+
+    // Add a method to resolve a report by its ID
+    static resolveReport(reportId: string, resolutionNotes: string): Promise<ReportResponseDto> {
+        console.log(this.getAuthHeaders())
+        return axios.patch(
+            `${this.baseUrl}/${reportId}/resolve?resolutionNotes=${resolutionNotes}`,
+            null,
+            {
+                headers: this.getAuthHeaders()
+            }
+        )
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while resolving the report:', error);
                 throw error;
             });
     }

@@ -42,6 +42,7 @@ const Header = () => {
                 <div style={{display: "flex", columnGap: '10px', justifyContent: 'flex-end', flexBasis: '33.33%'}}>
                     {isAuthenticated ? (
                         <>
+                            <Button onClick={navigateToPage('reports')}>Reports</Button>
                             <Button onClick={navigateToPage('profile')}>Profile</Button>
                             <Button onClick={logout()}>Logout</Button>
                         </>

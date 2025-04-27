@@ -1,7 +1,13 @@
+import {ReportReason} from "@/models/content/dto/ReportReason";
+import {ReportType} from "@/models/content/dto/ReportType";
+
 export interface ReportCreationDto {
-    reportType: 'POST' | 'COMMENT' | 'USER';
+    reportType: ReportType;
     reportedEntityId: string;
     reporterUsername: string;
-    reason: string;
+    reason: ReportReason;
     additionalNotes?: string;
 }
+
+
+

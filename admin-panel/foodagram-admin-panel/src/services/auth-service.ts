@@ -7,7 +7,7 @@ export class AuthService {
     static baseUrl: string = GlobalConstants.baseUrl + 'auth';
 
     static authenticate(request: AuthenticationRequest): Promise<AuthenticationResponse> {
-        return axios.post(`${this.baseUrl}/login`, request)
+        return axios.post(`${this.baseUrl}/admin-login`, request)
             .then(response => {
                 this.setSessionStorage(response.data);
                 return response.data;

@@ -60,6 +60,7 @@ public class ReportService {
         Report report = Report.builder()
                 .reporterId(usersDto.getId())
                 .reportType(reportCreationDto.getReportType())
+                .reporterUsername(reportCreationDto.getReporterUsername())
                 .reportedEntityId(reportCreationDto.getReportedEntityId())
                 .reason(reportCreationDto.getReason())
                 .additionalNotes(reportCreationDto.getAdditionalNotes())
@@ -132,6 +133,26 @@ public class ReportService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public ReportResponseDto resolveReport(UUID reportId, UUID resolverId, String resolutionNotes) {
+        // Step 1: Find the report by ID
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new IllegalArgumentException("Report not found"));
+
+        // Step 2: Update the report's resolved status and timestamp
+        report.setResolved(true);
+        report.setResolvedAt(System.currentTimeMillis());
+        report.setResolverId(resolverId);
+        report.setResolutionNotes(resolutionNotes);
+
+        // Step 3: Save the updated report
+        Report updatedReport = reportRepository.save(report);
+        log.info("Report resolved successfully: {}", updatedReport);
+
+        // Step 4: Map the updated report to a DTO and return it
+        return mapToDto(updatedReport);
+    }
+
     public ReportResponseDto mapToDto(Report report) {
         return new ReportResponseDto(
                 report.getId(),
@@ -145,4 +166,22 @@ public class ReportService {
         );
     }
 
+    public List<ReportResponseDto> getAllResolvedReports() {
+        // Step 1: Fetch all unresolved reports
+        List<Report> unresolvedReports = reportRepository.findByResolved(true);
+
+        // Step 2: Map the reports to response DTOs
+        return unresolvedReports.stream()
+                .map(report -> new ReportResponseDto(
+                        report.getId(),
+                        report.getReporterId(),
+                        report.getReporterUsername(),
+                        report.getReportType(),
+                        report.getReportedEntityId(),
+                        report.getReason(),
+                        report.getAdditionalNotes(),
+                        report.getResolved()
+                ))
+                .collect(Collectors.toList());
+    }
 }

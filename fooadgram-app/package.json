@@ -48,6 +48,7 @@
     "dayjs": "^1.11.13",
     "expo": "~52.0.46",
     "expo-app-loading": "^2.1.1",
+    "expo-av": "~15.0.2",
     "expo-blur": "~14.0.3",
     "expo-constants": "~17.0.7",
     "expo-file-system": "~18.0.11",
@@ -77,8 +78,7 @@
     "react-native-toast-message": "^2.2.1",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.13",
-    "react-native-webview": "13.12.5",
-    "expo-av": "~15.0.2"
+    "react-native-webview": "13.12.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

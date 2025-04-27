@@ -4,7 +4,7 @@ import {ReportCreationDto} from "@/models/content/dto/ReportCreationDto";
 import {ReportResponseDto} from "@/models/content/dto/ReportResponseDto";
 
 export class ReportService {
-    static baseUrl: string = GlobalConstants.baseUrl + '/reports';
+    static baseUrl: string = GlobalConstants.baseUrl + 'reports';
 
     static getAuthHeaders(userData: any) {
         return {Authorization: userData?.token ?? ''};
@@ -12,6 +12,7 @@ export class ReportService {
 
     // Create a report
     static createReport(reportCreationDto: ReportCreationDto, userData: any): Promise<ReportResponseDto> {
+        console.log(this.baseUrl)
         return axios.post(
             `${this.baseUrl}`,
             reportCreationDto,

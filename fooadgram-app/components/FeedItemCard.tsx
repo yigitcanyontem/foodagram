@@ -1,73 +1,156 @@
-// fooadgram-app/components/FeedItemCard.tsx
 import React from 'react';
-import { Image, Text, View, StyleSheet } from 'react-native';
+import { Image, Text, View, StyleSheet, Dimensions, FlatList, TouchableOpacity } from 'react-native';
+import Carousel from 'react-native-anchor-carousel';
+import { Video } from 'expo-av';
 import { Post } from '../services/feed';
 import { GlobalConstants } from '@/utils/GlobalConstants';
-import { Video } from 'expo-av';
+import { useNavigation } from '@react-navigation/native';
+
+import { AntDesign, FontAwesome } from '@expo/vector-icons';
+import { ContentService } from '@/services/content-service';
+import { UserData } from '@/models/user/UserData';
+import {formatPostDate} from "@/utils/dayjsConfig";
 
 interface Props {
     post: Post;
+    user: UserData;
+    setScrollEnabled: (v: boolean) => void;
 }
 
-// --- CONFIG ---
-// Gateway / CDN base used to turn relative media paths into absolute URLs.
-// Change this single value when you switch environments.
-const MEDIA_HOST = GlobalConstants.s3Url;
-// ---------------
+const MEDIA_HOST = GlobalConstants.s3Url;      // …/api/v1/content-media/
 
-function makeUrl(path: string): string {
-    // is the URL already absolute?
-    return path.startsWith('http://') || path.startsWith('https://')
-        ? path
-        : `${MEDIA_HOST}${path}`;                          // MEDIA_HOST already ends with '/'
+function makeUrl(p: string) {
+    return p.startsWith('http') ? p : `${MEDIA_HOST}${p}`;
 }
 
-const FeedItemCard: React.FC<Props> = ({ post }) => {
-    console.log('[FeedItemCard] post =', post);
-    const firstImage = post.mediaUrls?.length ? makeUrl(post.mediaUrls[0]) : null;
-    console.log(firstImage)
+const { width } = Dimensions.get('window');
+
+const FeedItemCard: React.FC<Props> = ({ post, user, setScrollEnabled }) => {
+    const [cardWidth, setCardWidth] = React.useState<number | null>(null);
+    const [commentCount, setCommentCount] = React.useState<number>(post.comments ?? 0);
+
+    const [liked, setLiked] = React.useState<boolean>(false);
+    const [likeCount, setLikeCount] = React.useState<number>(post.likes ?? 0);
+
+    const [saved, setSaved]           = React.useState<boolean>(false);
+    const [saveCount, setSaveCount]   = React.useState<number>(post.saves ?? 0);
+
+    const navigation = useNavigation();
+
+    React.useEffect(() => {
+        let mounted = true;
+        ContentService.hasUserLikedPost(post.id, user)
+            .then(res => mounted && setLiked(res))
+            .catch(() => {/* ignore */});
+
+        ContentService.hasUserSavedPost(post.id, user)
+            .then(res => mounted && setSaved(res))
+            .catch(() => {/* ignore */});
+        return () => { mounted = false };
+    }, [post.id, user]);
+
+    const toggleLike = async () => {
+        try {
+            if (liked) {
+                await ContentService.unlikePost(post.id, user);
+                setLikeCount(c => c - 1);
+            } else {
+                await ContentService.likePost(post.id, user);
+                setLikeCount(c => c + 1);
+            }
+            setLiked(!liked);
+        } catch (_) { /* toast error if you like */ }
+    };
+
+    const toggleSave = async () => {
+        try {
+            if (saved) {
+                await ContentService.unsavePost(post.id, user);
+                setSaveCount(c => c - 1);
+            } else {
+                await ContentService.savePost(post.id, user);
+                setSaveCount(c => c + 1);
+            }
+            setSaved(!saved);
+        } catch (_) {/* toast error if you like */}
+    };
+
+    const renderMedia = ({ item }: { item: string }) => {
+        const uri = makeUrl(item);
+        const isVideo = uri.toLowerCase().endsWith('.mp4') || uri.includes('video');
+        return isVideo ? (
+            <Video
+                source={{ uri }}
+                style={{ width: '100%', height: '100%' }}
+                useNativeControls
+                resizeMode="contain"
+                shouldPlay={false}
+                isMuted={false}
+            />
+        ) : (
+            <Image source={{ uri }} style={{ width: '100%', height: '100%' }} />
+        );
+    };
 
     return (
-        <View style={styles.card}>
-            {/* Header */}
-            {post.username && (
+        <View style={styles.card} onLayout={e => setCardWidth(e.nativeEvent.layout.width)}>
+            {!!post.username && (
                 <>
                     <Text style={styles.username}>{post.username}</Text>
                     <Text style={styles.timestamp}>
-                        {new Date(post.createdAt).toLocaleString()}
+                        {formatPostDate(post.createdAt)}
                     </Text>
                 </>
             )}
 
-            {/* Body */}
-            <Text style={styles.content}>
-                {post.content || '(no description)'}
-            </Text>
+            <Text style={styles.content}>{post.content || '(no description)'}</Text>
 
-            {/* Media */}
-            {firstImage && (() => {
-                const isVideo = firstImage.endsWith('.mp4') || firstImage.includes('video');
-                return isVideo ? (
-                    <Video
-                        source={{ uri: firstImage }}
-                        style={styles.image}
-                        useNativeControls
-                        resizeMode="contain"
-                        isMuted
-                        shouldPlay={false}
+            {cardWidth && post.mediaUrls?.length ? (
+                <View style={styles.carouselContainer}>
+                    <Carousel
+                        data={post.mediaUrls}
+                        renderItem={renderMedia}
+                        containerWidth={cardWidth - 32}
+                        itemWidth={cardWidth - 32}
+                        separatorWidth={0}
+                        onScrollBeginDrag={() => setScrollEnabled(false)}
+                        onScrollEndDrag={() => setScrollEnabled(true)}
+                        onMomentumScrollEnd={() => setScrollEnabled(true)}
+                        inScrollView={false}
+                        style={styles.carousel}
                     />
-                ) : (
-                    <Image
-                        source={{ uri: firstImage }}
-                        style={styles.image}
-                    />
-                );
-            })()}
+                </View>
+            ) : null}
 
-            {/* Footer */}
             <View style={styles.footer}>
-                <Text style={styles.footerText}>❤️ {post.likes ?? 0}</Text>
-                <Text style={styles.footerText}>💬 {post.comments ?? 0}</Text>
+                {/* like button — already done earlier */}
+                <TouchableOpacity onPress={toggleLike} style={styles.footerButton}>
+                    <AntDesign
+                        name={liked ? 'heart' : 'hearto'}
+                        size={20}
+                        color={liked ? '#E21E25' : '#444'}
+                    />
+                    <Text style={styles.footerText}>{likeCount}</Text>
+                </TouchableOpacity>
+
+                {/* comment button */}
+                <TouchableOpacity
+                    style={styles.footerButton}
+                    onPress={() => navigation.navigate('Comments', { postId: post.id })}
+                >
+                    <AntDesign name="message1" size={18} color="#444" />
+                    <Text style={styles.footerText}>{commentCount}</Text>
+                </TouchableOpacity>
+
+                {/* save / bookmark */}
+                <TouchableOpacity onPress={toggleSave} style={styles.footerButton}>
+                    <FontAwesome
+                        name={saved ? 'bookmark' : 'bookmark-o'}
+                        size={20}
+                        color={saved ? '#007AFF' : '#444'}
+                      />
+                    <Text style={styles.footerText}>{saveCount}</Text>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -76,7 +159,7 @@ const FeedItemCard: React.FC<Props> = ({ post }) => {
 const styles = StyleSheet.create({
     card: {
         width: '100%',
-        backgroundColor: '#ffffff',
+        backgroundColor: '#fff',
         padding: 16,
         borderRadius: 16,
         marginBottom: 16,
@@ -85,19 +168,30 @@ const styles = StyleSheet.create({
         shadowRadius: 6,
         elevation: 3,
     },
-
     username: { fontSize: 18, fontWeight: '600', color: '#000' },
     timestamp: { fontSize: 12, color: '#666', marginTop: 2 },
     content: { marginTop: 8, fontSize: 14, color: '#000' },
-    image: {
+
+    /* carousel & media */
+    carouselContainer: {
         width: '100%',
-        height: 240,
-        resizeMode: 'cover',
-        borderRadius: 12,
-        marginTop: 10,
+        aspectRatio: 4 / 5, // Instagram style (optional, clearer way)
+        overflow: 'hidden',
     },
+
+    carousel: {
+        width: '100%',
+        height: '100%',
+    },
+    media: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 12,
+    },
+
     footer: { flexDirection: 'row', marginTop: 12 },
-    footerText: { marginRight: 24, color: '#444' },
+    footerText: { marginRight: 24, marginLeft: 6, color: '#444' },
+    footerButton: { flexDirection: 'row', alignItems: 'center', marginRight: 24 },
 });
 
 export default FeedItemCard;

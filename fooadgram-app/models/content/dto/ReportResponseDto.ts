@@ -1,10 +1,13 @@
+import {ReportReason} from "@/models/content/dto/ReportReason";
+import {ReportType} from "@/models/content/dto/ReportType";
+
 export interface ReportResponseDto {
-    id: string;
+    reportId: string;
     reporterId: string;
     reporterUsername: string;
-    reportType: 'POST' | 'COMMENT' | 'USER';
+    reportType: ReportType;
     reportedEntityId: string;
-    reason: string;
+    reason: ReportReason;
     additionalNotes?: string;
     resolved: boolean;
 }

@@ -5,6 +5,7 @@ import com.foodagram.clients.content.enums.Visibility;
 import com.foodagram.clients.files.FilesClient;
 import com.foodagram.clients.users.UsersClient;
 import com.foodagram.clients.users.dto.UsersDto;
+import com.foodagram.clients.users.enums.Role;
 import com.foodagram.content.domain.Ingredient;
 import com.foodagram.content.domain.Post;
 import com.foodagram.content.domain.Recipe;
@@ -85,7 +86,7 @@ public class PostService {
     @Transactional
     public PostResponseDto updatePost(UUID id, PostUpdateDto postUpdateDto, UsersDto usersDto) {
         Post post = findPostById(id);
-        throwIfUserIsNotOwnerOfPost(usersDto.getId(), post.getUserId());
+        throwIfUserIsNotOwnerOfPostOrAdmin(usersDto.getId(), post.getUserId());
 
         post.setTitle(postUpdateDto.getTitle());
         post.setContent(postUpdateDto.getContent());
@@ -102,7 +103,7 @@ public class PostService {
     @Transactional
     public void deletePost(UUID id, UsersDto usersDto) {
         Post post = findPostById(id);
-        throwIfUserIsNotOwnerOfPost(usersDto.getId(), post.getUserId());
+        throwIfUserIsNotOwnerOfPostOrAdmin(usersDto.getId(), post.getUserId());
         postRepository.deleteById(id);
     }
 
@@ -185,9 +186,14 @@ public class PostService {
     }
 
 
-    private void throwIfUserIsNotOwnerOfPost(UUID userId, UUID creatorId) {
+    private void throwIfUserIsNotOwnerOfPostOrAdmin(UUID userId, UUID creatorId) {
         if (!userId.equals(creatorId)) {
             throw new ForbiddenException("You are not owner of this post");
+        }
+
+        UsersDto user = usersClient.getUserById(userId).getBody();
+        if (user == null || !user.getRole().equals(Role.ADMIN)) {
+            throw new ForbiddenException("You are not an admin");
         }
     }
 
@@ -208,6 +214,14 @@ public class PostService {
 
     public List<PostResponseDto> getPostsByTag(String tag) {
         return postRepository.findPostsByTagsContainingAndVisibilityNotOrderByCreatedDateDesc(tag, Visibility.PRIVATE).stream()
+                .map(this::mapToResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<PostResponseDto> getRandomPublicPostsForExplore(UUID id) {
+        return postRepository
+                .findAllByUserIdNotAndVisibilityNotOrderByCreatedDateDesc(id, Visibility.PRIVATE)
+                .stream()
                 .map(this::mapToResponseDto)
                 .collect(Collectors.toList());
     }

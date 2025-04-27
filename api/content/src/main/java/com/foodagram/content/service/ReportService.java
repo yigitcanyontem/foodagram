@@ -134,7 +134,7 @@ public class ReportService {
     }
 
     @Transactional
-    public ReportResponseDto resolveReport(UUID reportId, UUID resolverId) {
+    public ReportResponseDto resolveReport(UUID reportId, UUID resolverId, String resolutionNotes) {
         // Step 1: Find the report by ID
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new IllegalArgumentException("Report not found"));
@@ -143,6 +143,7 @@ public class ReportService {
         report.setResolved(true);
         report.setResolvedAt(System.currentTimeMillis());
         report.setResolverId(resolverId);
+        report.setResolutionNotes(resolutionNotes);
 
         // Step 3: Save the updated report
         Report updatedReport = reportRepository.save(report);
@@ -165,4 +166,22 @@ public class ReportService {
         );
     }
 
+    public List<ReportResponseDto> getAllResolvedReports() {
+        // Step 1: Fetch all unresolved reports
+        List<Report> unresolvedReports = reportRepository.findByResolved(true);
+
+        // Step 2: Map the reports to response DTOs
+        return unresolvedReports.stream()
+                .map(report -> new ReportResponseDto(
+                        report.getId(),
+                        report.getReporterId(),
+                        report.getReporterUsername(),
+                        report.getReportType(),
+                        report.getReportedEntityId(),
+                        report.getReason(),
+                        report.getAdditionalNotes(),
+                        report.getResolved()
+                ))
+                .collect(Collectors.toList());
+    }
 }

@@ -2,7 +2,7 @@ import {ReportType} from "./ReportType.ts";
 import {ReportReason} from "./ReportReason.ts";
 
 export interface ReportResponseDto {
-    id: string;
+    reportId: string;
     reporterId: string;
     reporterUsername: string;
     reportType: ReportType;

@@ -3,6 +3,7 @@ import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 import {Toaster} from "./components/ui/sonner.tsx";
 import Login from "./pages/Login.tsx";
 import Header from "./shared/Header.tsx";
+import { ReportsPage } from "./pages/ReportsPage.tsx";
 
 function App() {
     return (
@@ -10,6 +11,7 @@ function App() {
             <Header/>
             <Routes>
                 <Route path="/login" element={<Login/>}/>
+                <Route path="/reports" element={<ReportsPage/>}/>
                 <Route path="*" element={<div>404</div>}/>
             </Routes>
             <Toaster/>

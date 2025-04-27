@@ -63,12 +63,28 @@ public class ReportController {
 
     }
 
-    @PatchMapping("/{id}/resolve")
-    public ResponseEntity<ReportResponseDto> resolveReport(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, @PathVariable("id") UUID reportId) {
+    @GetMapping("/resolved")
+    public ResponseEntity<List<ReportResponseDto>> getAllResolvedReports(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken) {
         try {
             UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
             throwIfNotAdmin(user);
-            return ResponseEntity.ok(reportService.resolveReport(reportId, user.getId()));
+            return ResponseEntity.ok(reportService.getAllResolvedReports());
+        } catch (Exception e) {
+            log.error("Error while getting unresolved reports: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+
+    @PatchMapping("/{id}/resolve")
+    public ResponseEntity<ReportResponseDto> resolveReport(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken,
+                                                           @RequestParam("resolutionNotes") String resolutionNotes,
+                                                           @PathVariable("id") UUID reportId) {
+        try {
+            UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
+            throwIfNotAdmin(user);
+            return ResponseEntity.ok(reportService.resolveReport(reportId, user.getId(), resolutionNotes));
         } catch (Exception e) {
             log.error("Error while resolving report: {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);

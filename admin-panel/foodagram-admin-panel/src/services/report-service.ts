@@ -40,10 +40,27 @@ export class ReportService {
             });
     }
 
+    static getAllResolvedReports(): Promise<ReportResponseDto[]> {
+        return axios.get(
+            `${this.baseUrl}/resolved`,
+            {
+                headers: this.getAuthHeaders()
+            }
+        )
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while fetching unresolved reports:', error);
+                throw error;
+            });
+    }
+
+
     // Add a method to resolve a report by its ID
-    static resolveReport(reportId: string): Promise<ReportResponseDto> {
+    static resolveReport(reportId: string, resolutionNotes: string): Promise<ReportResponseDto> {
+        console.log(this.getAuthHeaders())
         return axios.patch(
-            `${this.baseUrl}/${reportId}/resolve`,
+            `${this.baseUrl}/${reportId}/resolve?resolutionNotes=${resolutionNotes}`,
+            null,
             {
                 headers: this.getAuthHeaders()
             }

@@ -62,7 +62,7 @@ const FeedList: React.FC<Props> = ({ user }) => {
             keyExtractor={item => item.id}
             scrollEnabled={scrollEnabled}
             renderItem={({ item }) => (
-                <FeedItemCard post={item} setScrollEnabled={setScrollEnabled}/>
+                <FeedItemCard post={item} user={user!} setScrollEnabled={setScrollEnabled}/>
             )}
             contentContainerStyle={{ padding: 16 }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}

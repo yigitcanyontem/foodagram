@@ -1,9 +1,3 @@
-// fooadgram-app/components/FeedList.tsx
-// -----------------------------------------------------------------------------
-// Smart list component that fetches the personalised feed and shows cards.
-// Expects the whole `userData` object (exactly what Create‑Post passes to
-// ContentService) so it can attach the bearer token internally.
-// -----------------------------------------------------------------------------
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { Video } from 'expo-av';
@@ -12,7 +6,7 @@ import {
     FlatList,
     RefreshControl,
     Text,
-    View
+    View,
 } from 'react-native';
 
 import FeedItemCard from './FeedItemCard';
@@ -28,9 +22,9 @@ const FeedList: React.FC<Props> = ({ user }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [refreshing, setRefreshing] = useState(false);
+    const [scrollEnabled, setScrollEnabled] = useState(true);
 
     const load = useCallback(async () => {
-        console.log('[FeedList] load(): user =', user?.username ?? null);
         if (!user) {
             setError('You need to log in first');
             return;
@@ -39,85 +33,42 @@ const FeedList: React.FC<Props> = ({ user }) => {
         setError(null);
         try {
             const data = await fetchFeed(user);
-            console.log('[FeedList] fetched', data.length, 'posts');
             setPosts(data);
         } catch (e: any) {
-            console.log('[FeedList] error while fetching:', e);
             setError(e.message ?? 'Unknown error');
         } finally {
             setLoading(false);
         }
     }, [user]);
 
-    useEffect(() => {
-        load();
-    }, [load]);
+    useEffect(() => { load(); }, [load]);
 
-    // Pull‑to‑refresh
     const onRefresh = useCallback(async () => {
         if (!user) return;
         setRefreshing(true);
-        try {
-            setPosts(await fetchFeed(user));
-        } catch (_) {/* ignore */}
-        finally { setRefreshing(false); }
+        try { setPosts(await fetchFeed(user)); }
+        catch (_) { } finally { setRefreshing(false); }
     }, [user]);
 
-    // ─────────── render branches ───────────
-
-    if (!user) {
-        return (
-            <View className="flex-1 items-center justify-center px-6">
-                <Text className="text-base text-gray-600 dark:text-gray-300 text-center">
-                    Please log in to see your personalised feed.
-                </Text>
-            </View>
-        );
-    }
-
-    if (loading && posts === null) {
-        return (
-            <View className="flex-1 items-center justify-center">
-                <ActivityIndicator size="large" />
-            </View>
-        );
-    }
-
-    if (error) {
-        return (
-            <View className="flex-1 items-center justify-center px-6">
-                <Text className="text-red-600 dark:text-red-400 mb-4 text-center">
-                    {error}
-                </Text>
-                <Text className="text-blue-600 dark:text-blue-400" onPress={load}>
-                    Tap to retry
-                </Text>
-            </View>
-        );
-    }
-
-    if (posts?.length === 0) {
-        return (
-            <View className="flex-1 items-center justify-center">
-                <Text className="text-gray-500 dark:text-gray-300">
-                    Nobody you follow has posted in the last 24 hours.
-                </Text>
-            </View>
-        );
-    }
+    if (!user) return <View><Text>Please log in first.</Text></View>;
+    if (loading && posts === null) return <ActivityIndicator />;
+    if (error) return <Text>{error}</Text>;
+    if (posts?.length === 0) return <Text>No recent posts.</Text>;
 
     return (
         <FlatList
             style={{ flex: 1 }}
             data={posts ?? []}
             keyExtractor={item => item.id}
-            renderItem={({ item }) => <FeedItemCard post={item} />}
+            scrollEnabled={scrollEnabled}
+            renderItem={({ item }) => (
+                <FeedItemCard post={item} setScrollEnabled={setScrollEnabled}/>
+            )}
             contentContainerStyle={{ padding: 16 }}
-            refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         />
     );
 };
+
 
 export default FeedList;

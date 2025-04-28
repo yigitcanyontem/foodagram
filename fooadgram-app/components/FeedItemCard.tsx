@@ -76,21 +76,36 @@ const FeedItemCard: React.FC<Props> = ({ post, user, setScrollEnabled }) => {
     };
 
     const renderMedia = ({ item }: { item: string }) => {
+        if (!item) return null;
         const uri = makeUrl(item);
-        const isVideo = uri.toLowerCase().endsWith('.mp4') || uri.includes('video');
-        return isVideo ? (
-            <Video
-                source={{ uri }}
-                style={{ width: '100%', height: '100%' }}
-                useNativeControls
-                resizeMode="contain"
-                shouldPlay={false}
-                isMuted={false}
-            />
-        ) : (
-            <Image source={{ uri }} style={{ width: '100%', height: '100%' }} />
+        const isVideo = uri.toLowerCase().endsWith('.mp4') || uri.toLowerCase().endsWith('.mov');
+
+        return (
+            <View key={uri} style={{ width: '100%', height: '100%' }}>
+                {isVideo ? (
+                    <Video
+                        source={{ uri }}
+                        style={{ width: '100%', height: '100%', borderRadius: 12 }}
+                        useNativeControls
+                        resizeMode="cover"
+                        shouldPlay={false}
+                        isMuted
+                        onError={(e) => {
+                            const err = e?.nativeEvent?.error;
+                            console.warn('Video error:', err || 'Unknown error');
+                        }}
+                    />
+                ) : (
+                    <Image
+                        source={{ uri }}
+                        style={{ width: '100%', height: '100%', borderRadius: 12 }}
+                        resizeMode="cover"
+                    />
+                )}
+            </View>
         );
     };
+
 
     return (
         <View style={styles.card} onLayout={e => setCardWidth(e.nativeEvent.layout.width)}>
@@ -112,7 +127,7 @@ const FeedItemCard: React.FC<Props> = ({ post, user, setScrollEnabled }) => {
                         renderItem={renderMedia}
                         containerWidth={cardWidth - 32}
                         itemWidth={cardWidth - 32}
-                        separatorWidth={0}
+                        separatorWidth={8}
                         onScrollBeginDrag={() => setScrollEnabled(false)}
                         onScrollEndDrag={() => setScrollEnabled(true)}
                         onMomentumScrollEnd={() => setScrollEnabled(true)}

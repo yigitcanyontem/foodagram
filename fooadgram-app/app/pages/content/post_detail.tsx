@@ -33,6 +33,8 @@ const PostDetailPage = () => {
     const [hasLiked, setHasLiked] = useState<boolean>(false);
     const [hasSaved, setHasSaved] = useState<boolean>(false);
     const carouselRef = useRef(null);
+    const [activeSlide, setActiveSlide] = useState<number>(0);
+    const videoRefs = useRef<{ [key: string]: Video | null }>({});
 
     const fetchPost = async () => {
         try {
@@ -47,28 +49,43 @@ const PostDetailPage = () => {
         }
     };
 
-    const renderMedia = ({ item }: { item: string }) => {
-        const uri = GlobalConstants.s3Url + item;
-        const isVideo =
-            uri.toLowerCase().endsWith('.mp4') || uri.toLowerCase().includes('video');
 
-        return isVideo ? (
-            <Video
-                source={{ uri }}
-                style={styles.postImage}
-                useNativeControls        // kullanıcıya oynat/duraklat vs. ver
-                resizeMode="contain"
-                isMuted={false}
-                shouldPlay={false}       // otomatik oynatma istemiyorsan
-            />
-        ) : (
+
+    const renderMedia = ({ item, index }: { item: string, index: number }) => {
+        const uri = GlobalConstants.s3Url + item;
+        const isVideo = uri.toLowerCase().endsWith('.mp4') || uri.toLowerCase().includes('video');
+        const isActive = index === activeSlide;
+
+        if (isVideo) {
+            return (
+                <View key={uri}>
+                    <Video
+                        ref={(ref) => { videoRefs.current[uri] = ref; }}
+                        source={{ uri }}
+                        style={styles.postImage}
+                        useNativeControls
+                        resizeMode="contain"
+                        isMuted
+                        shouldPlay={isActive}
+                        onError={(e) => console.error('Video loading error', e)}
+                        onLoadStart={() => console.log('Video loading started')}
+                        onLoad={() => console.log('Video loaded successfully')}
+                    />
+                </View>
+            );
+        }
+
+        return (
             <Image
                 source={{ uri }}
                 style={styles.postImage}
-                accessibilityLabel="Post Image"
+                key={uri}
             />
         );
     };
+
+
+
 
 
     const handleLike = async () => {
@@ -105,6 +122,15 @@ const PostDetailPage = () => {
 
     useEffect(() => {
         fetchPost();
+
+        return () => {
+            console.log('Cleaning up videos');
+            Object.values(videoRefs.current).forEach((video) => {
+                if (video && 'unloadAsync' in video) {
+                    (video as any).unloadAsync?.();
+                }
+            });
+        };
     }, [postId, userData]);
 
     return (
@@ -139,11 +165,17 @@ const PostDetailPage = () => {
                             ref={carouselRef}
                             data={post?.mediaUrls}
                             renderItem={renderMedia}
+                            keyExtractor={(item, index) => `${item}-${index}`}
                             style={styles.carousel}
                             itemWidth={width * 0.90}
                             containerWidth={width}
                             separatorWidth={0}
+                            onSnapToItem={(index) => {
+                                console.log('Active Slide Changed:', index);
+                                setActiveSlide(index);
+                            }}
                         />
+
 
                     </View>
 
@@ -190,6 +222,7 @@ const PostDetailPage = () => {
                         {
                             post?.tags && post.tags.map((tag, index) => (
                                 <TouchableOpacity
+                                    key={index}
                                     onPress={
                                         () => navigation.navigate('Tag', {tag})
                                     }

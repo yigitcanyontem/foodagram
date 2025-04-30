@@ -1,5 +1,5 @@
-import {UsersDto} from "@/models/auth/UsersDto";
-import {UsersProfileDto} from "@/models/user/UsersProfileDto";
+import {UsersDto} from "../auth/UsersDto.ts";
+import {UsersProfileDto} from "./UsersProfileDto.ts";
 
 export interface UsersCompleteDto {
     user: UsersDto;

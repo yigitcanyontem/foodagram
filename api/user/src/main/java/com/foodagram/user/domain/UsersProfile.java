@@ -32,7 +32,7 @@ public class UsersProfile extends BaseEntity {
             name = "usersId",
             nullable = false
     )
-    @OnDelete(action = OnDeleteAction.NO_ACTION)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Users usersId;
 
     private String firstName;

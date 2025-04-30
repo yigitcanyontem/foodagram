@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {Link} from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import {AuthService} from "../services/auth-service.ts";
@@ -10,7 +10,6 @@ import {Label} from "../components/ui/label.tsx";
 const Header = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const navigate = useNavigate();
-
 
     useEffect(() => {
         setIsAuthenticated(AuthService.isAuthenticated());
@@ -42,6 +41,8 @@ const Header = () => {
                 <div style={{display: "flex", columnGap: '10px', justifyContent: 'flex-end', flexBasis: '33.33%'}}>
                     {isAuthenticated ? (
                         <>
+                            <Button onClick={navigateToPage('users')}>Users</Button>
+                            <Button onClick={navigateToPage('posts')}>Posts</Button>
                             <Button onClick={navigateToPage('reports')}>Reports</Button>
                             <Button onClick={navigateToPage('profile')}>Profile</Button>
                             <Button onClick={logout()}>Logout</Button>

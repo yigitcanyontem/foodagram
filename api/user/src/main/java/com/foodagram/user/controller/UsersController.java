@@ -6,11 +6,15 @@ import com.foodagram.clients.users.dto.UsersDto;
 import com.foodagram.user.service.UsersService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -75,5 +79,28 @@ public class UsersController {
         return usersService.userExists(user);
     }
 
+    @GetMapping("all")
+    public ResponseEntity<List<UsersCompleteDto>> getAllUsers(){
+        try {
+            //TODO check if user is admin
+            return new ResponseEntity<>(usersService.getAllUsers(), HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error while fetching all users: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> deleteUser(
+            @PathVariable("id") UUID id,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken) {
+        try {
+            //TODO check if user is admin
+            usersService.deleteUser(id, jwtToken);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            log.error("Error while deleting user: {}", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

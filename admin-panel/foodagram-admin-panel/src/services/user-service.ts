@@ -78,4 +78,21 @@ export class UserService {
             });
     }
 
+    static getAllUsersProfiles(): Promise<UsersCompleteDto[]> {
+        return axios.get(`${this.userBaseUrl}/all`)
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while fetching all users:', error);
+                throw error;
+            });
+    }
+
+    static deleteUser(userId: string, userData: any): Promise<void> {
+        return axios.delete(`${this.userBaseUrl}/${userId}`, {headers: this.getAuthHeaders(userData)})
+            .then(response => response.data)
+            .catch(error => {
+                console.error('Error while deleting user:', error);
+                throw error;
+            });
+    }
 }

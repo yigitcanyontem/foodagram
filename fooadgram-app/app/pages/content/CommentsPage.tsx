@@ -7,7 +7,8 @@ import {
     TouchableOpacity,
     TextInput,
     KeyboardAvoidingView,
-    Platform
+    Platform,
+    Alert
 } from 'react-native';
 import {useNavigation, useRoute} from "@react-navigation/native";
 import React, {useEffect, useState} from "react";
@@ -26,6 +27,7 @@ import {UsersProfileDto} from "@/models/user/UsersProfileDto";
 import UserResultCard from "@/app/shared/profile/UserResultCard";
 import ReportModal from "@/app/shared/content/ReportModal";
 import {ReportType} from "@/models/content/dto/ReportType";
+import Toast from 'react-native-toast-message';
 
 type CommentsParams = {
     postId: string;
@@ -69,6 +71,28 @@ const CommentsPage = () => {
         }
     };
 
+    const handleDeleteComment = (id: string) => {
+        Alert.alert(
+            'Delete comment',
+            'Are you sure? Any replies will also disappear.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await CommentService.deleteComment(id, userData);
+                            fetchComments();                     // refresh list
+                        } catch {
+                            Toast.show({ type: 'error', text1: 'Failed to delete' });
+                        }
+                    },
+                },
+            ],
+        );
+    };
+
     const renderComments = (comments: CommentResponseDto[], parentId: string | null = null) => {
         return comments
             .filter((comment) => comment.parentReplyId === parentId)
@@ -77,14 +101,21 @@ const CommentsPage = () => {
                     <View style={shared_styles.titleContainer}>
                         <Text style={styles.commentUsername}>{comment.createdByUsername}</Text>
 
-                        {
-                            comment?.userId != userData?.id &&
-                            <ReportModal
-                                reportType={ReportType.COMMENT}
-                                reportedEntityId={comment.id}
-                            />
-                        }
+                        {/* right-side icons */}
+                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                            {comment.userId !== userData?.id && (
+                                <ReportModal
+                                    reportType={ReportType.COMMENT}
+                                    reportedEntityId={comment.id}
+                                />
+                            )}
 
+                            {comment.userId === userData?.id && (
+                                <TouchableOpacity onPress={() => handleDeleteComment(comment.id)}>
+                                    <AntDesign name="delete" size={18} color="red" />
+                                </TouchableOpacity>
+                            )}
+                        </View>
                     </View>
                     <Text style={styles.commentContent}>{comment.content}</Text>
                     <Text style={styles.commentDate}>{formatPostDate(comment.createdAt)}</Text>

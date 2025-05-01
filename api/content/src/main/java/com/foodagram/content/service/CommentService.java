@@ -43,29 +43,31 @@ public class CommentService {
                 .downvoteCount(0L)
                 .build();
 
+        Comment saved = commentRepository.save(comment);
+
         rabbitMQMessageProducer.publish(
                 new GenericRabbitMQMessage("updatePostComments", post.getId()),
                 "internal.exchange",
                 "internal.content.routing-key"
         );
 
-        if (!comment.getUserId().equals(post.getUserId())) {
+        if (!saved.getUserId().equals(post.getUserId())) {
             aMQPService.publishToNotificationQueue(
                     new GenericRabbitMQMessage(
                             "createNotification",
                             new NotificationCreateDto(
                                     post.getUserId(),
                                     "New Comment",
-                                    comment.getContent(),
+                                    saved.getContent(),
                                     NotificationType.COMMENT,
                                     "PostDetail/" + post.getId(),
-                                    comment.getUserId()
+                                    saved.getUserId()
                             )
                     )
             );
         }
 
-        return mapToResponseDto(commentRepository.save(comment));
+        return mapToResponseDto(commentRepository.save(saved));
     }
 
     public CommentResponseDto getCommentById(UUID id) {
@@ -86,16 +88,35 @@ public class CommentService {
         return mapToResponseDto(commentRepository.save(comment));
     }
 
-    public void deleteComment(UUID id, UsersDto usersDto) {
+
+    public void deleteComment(UUID id, UsersDto user) {
+
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Comment not found with id: " + id));
 
-        throwIfUserIsNotOwnerOfComment(comment.getUserId(), usersDto.getId());
+        throwIfUserIsNotOwnerOfComment(comment.getUserId(), user.getId());
 
-        comment.setDeleted(true);
-        comment.setContent("This comment has been deleted");
-        commentRepository.save(comment);
+        markDeletedRecursive(comment);
+
+        rabbitMQMessageProducer.publish(
+                new GenericRabbitMQMessage("updatePostComments",
+                        comment.getPost().getId()),
+                "internal.exchange",
+                "internal.content.routing-key"
+        );
     }
+
+
+    private void markDeletedRecursive(Comment c) {
+        c.setDeleted(true);
+        c.setContent("This comment has been deleted");
+
+        if (c.getReplies() != null && !c.getReplies().isEmpty()) {
+            c.getReplies().forEach(this::markDeletedRecursive);
+        }
+        commentRepository.save(c);        // JPA cascades to children because of mappedBy
+    }
+
 
     private CommentResponseDto mapToResponseDto(Comment comment) {
         return CommentResponseDto.builder()
@@ -122,11 +143,15 @@ public class CommentService {
     }
 
     public List<CommentResponseDto> getCommentsByPost(UUID postId) {
-        return commentRepository.findByPostId(postId).stream().map(this::mapToResponseDto).toList();
+        return commentRepository
+                .findByPostIdAndIsDeletedFalse(postId)
+                .stream()
+                .map(this::mapToResponseDto)
+                .toList();
     }
 
     public long getCommentCountByPost(UUID postId) {
-        return commentRepository.countCommentsByPost_Id(postId);
+        return commentRepository.countByPost_IdAndIsDeletedFalse(postId);
     }
 
     public void deleteCommentsByPostId(UUID postId) {

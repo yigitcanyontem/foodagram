@@ -1,10 +1,10 @@
-import {Dimensions, Image, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import {useNavigation, useRoute} from "@react-navigation/native";
-import React, {useEffect, useRef, useState} from "react";
+import {Alert, Dimensions, Image, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {useNavigation, useRoute, useFocusEffect} from "@react-navigation/native";
+import React, {useEffect, useRef, useState, useCallback} from "react";
 import {useAppContext} from "@/context/AppContext";
 import FGTabBar from "@/app/shared/FGTabBar";
 import shared_styles from "@/shared_styles";
-import {AntDesign, FontAwesome} from '@expo/vector-icons';
+import {AntDesign, FontAwesome, Entypo} from '@expo/vector-icons';
 import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
 import {ContentService} from "@/services/content-service";
 import {GlobalConstants} from "@/utils/GlobalConstants";
@@ -33,6 +33,8 @@ const PostDetailPage = () => {
     const [hasLiked, setHasLiked] = useState<boolean>(false);
     const [hasSaved, setHasSaved] = useState<boolean>(false);
     const carouselRef = useRef(null);
+    const [activeSlide, setActiveSlide] = useState<number>(0);
+    const videoRefs = useRef<{ [key: string]: Video | null }>({});
 
     const fetchPost = async () => {
         try {
@@ -47,28 +49,43 @@ const PostDetailPage = () => {
         }
     };
 
-    const renderMedia = ({ item }: { item: string }) => {
-        const uri = GlobalConstants.s3Url + item;
-        const isVideo =
-            uri.toLowerCase().endsWith('.mp4') || uri.toLowerCase().includes('video');
 
-        return isVideo ? (
-            <Video
-                source={{ uri }}
-                style={styles.postImage}
-                useNativeControls        // kullanıcıya oynat/duraklat vs. ver
-                resizeMode="contain"
-                isMuted={false}
-                shouldPlay={false}       // otomatik oynatma istemiyorsan
-            />
-        ) : (
+
+    const renderMedia = ({ item, index }: { item: string, index: number }) => {
+        const uri = GlobalConstants.s3Url + item;
+        const isVideo = uri.toLowerCase().endsWith('.mp4') || uri.toLowerCase().includes('video');
+        const isActive = index === activeSlide;
+
+        if (isVideo) {
+            return (
+                <View key={uri}>
+                    <Video
+                        ref={(ref) => { videoRefs.current[uri] = ref; }}
+                        source={{ uri }}
+                        style={styles.postImage}
+                        useNativeControls
+                        resizeMode="contain"
+                        isMuted
+                        shouldPlay={isActive}
+                        onError={(e) => console.error('Video loading error', e)}
+                        onLoadStart={() => console.log('Video loading started')}
+                        onLoad={() => console.log('Video loaded successfully')}
+                    />
+                </View>
+            );
+        }
+
+        return (
             <Image
                 source={{ uri }}
                 style={styles.postImage}
-                accessibilityLabel="Post Image"
+                key={uri}
             />
         );
     };
+
+
+
 
 
     const handleLike = async () => {
@@ -101,11 +118,48 @@ const PostDetailPage = () => {
         }
     };
 
+    const handleDeletePost = () => {
+        Alert.alert(
+            'Delete post',
+            'Are you sure you want to delete this post? This cannot be undone.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await ContentService.deletePost(postId, userData);
+                            Toast.show({ type: 'success', text1: 'Post deleted.' });
+                            navigation.goBack();       // or navigation.navigate('Home')
+                        } catch (e) {
+                            Toast.show({ type: 'error', text1: 'Delete failed' });
+                        }
+                    },
+                },
+            ],
+        );
+    };
+
 
 
     useEffect(() => {
-        fetchPost();
+
+        return () => {
+            console.log('Cleaning up videos');
+            Object.values(videoRefs.current).forEach((video) => {
+                if (video && 'unloadAsync' in video) {
+                    (video as any).unloadAsync?.();
+                }
+            });
+        };
     }, [postId, userData]);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchPost();
+        }, [postId, userData])
+    );
 
     return (
         <View
@@ -130,6 +184,11 @@ const PostDetailPage = () => {
                                 reportedEntityId={postId}
                             />
                         }
+                        {post?.userId === userData?.id && (
+                            <TouchableOpacity onPress={handleDeletePost}>
+                                <Entypo name="trash" size={22} color="red" />
+                            </TouchableOpacity>
+                        )}
                     </View>
 
                     {/* Post Image */}
@@ -139,11 +198,17 @@ const PostDetailPage = () => {
                             ref={carouselRef}
                             data={post?.mediaUrls}
                             renderItem={renderMedia}
+                            keyExtractor={(item, index) => `${item}-${index}`}
                             style={styles.carousel}
                             itemWidth={width * 0.90}
                             containerWidth={width}
                             separatorWidth={0}
+                            onSnapToItem={(index) => {
+                                console.log('Active Slide Changed:', index);
+                                setActiveSlide(index);
+                            }}
                         />
+
 
                     </View>
 
@@ -190,6 +255,7 @@ const PostDetailPage = () => {
                         {
                             post?.tags && post.tags.map((tag, index) => (
                                 <TouchableOpacity
+                                    key={index}
                                     onPress={
                                         () => navigation.navigate('Tag', {tag})
                                     }

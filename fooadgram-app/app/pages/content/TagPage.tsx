@@ -8,6 +8,8 @@ import shared_styles from "@/shared_styles";
 import { formatPostDate } from "@/utils/dayjsConfig";
 import FGTabBar from "@/app/shared/FGTabBar";
 import {GlobalConstants} from "@/utils/GlobalConstants";
+import { Video } from 'expo-av';
+import { FlatList } from 'react-native';
 
 type TagPageParams = {
     tag: string;
@@ -36,22 +38,71 @@ const TagPage = () => {
         fetchPostsByTag();
     }, [tag]);
 
+    /*
+    const renderMedia = (mediaPath: string) => {
+        const mediaUrl = GlobalConstants.s3Url + mediaPath;
+        const isVideo = mediaUrl.endsWith('.mp4') || mediaUrl.includes('video');
+        const [videoError, setVideoError] = useState(false);
+
+        if (isVideo && !videoError) {
+            return (
+                <Video
+                    source={{ uri: mediaUrl }}
+                    style={styles.postImage}
+                    useNativeControls={false}
+                    resizeMode="cover"
+                    isMuted
+                    shouldPlay={false}
+                    onError={(e) => {
+                        console.error("Video load failed:", e);
+                        setVideoError(true);
+                    }}
+                />
+            );
+        } else {
+            const fallbackImage = mediaUrl.replace('.mp4', '.jpg');  //Need to update the backend to save frames
+            return (
+                <Image
+                    source={{ uri: fallbackImage }}
+                    style={styles.postImage}
+                    accessibilityLabel="Post Thumbnail"
+                />
+            );
+        }
+    };
+     */
+
     return (
         <View style={shared_styles.body_container}>
-            <ScrollView contentContainerStyle={styles.container}>
-                <Text style={styles.title}>Posts tagged with #{tag}</Text>
-                {error && <Text style={styles.errorText}>{error}</Text>}
-                {posts.map((post) => (
+            <FlatList
+                data={posts}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item: post }) => (
                     <TouchableOpacity
-                        key={post.id}
                         style={styles.postItem}
                         onPress={() => navigation.navigate("PostDetail", { postId: post.id })}
                     >
-                        <Image
-                            source={{ uri: GlobalConstants.s3Url + post.mediaUrls[0] }}
-                            style={styles.postImage}
-                            accessibilityLabel="Post Image"
-                        />
+                        {(() => {
+                            const mediaUrl = GlobalConstants.s3Url + post.mediaUrls[0];
+                            const isVideo = mediaUrl.endsWith('.mp4') || mediaUrl.includes('video');
+
+                            return isVideo ? (
+                                <Video
+                                    source={{ uri: mediaUrl }}
+                                    style={styles.postImage}
+                                    useNativeControls={false}
+                                    resizeMode="cover"
+                                    isMuted
+                                    shouldPlay={false}
+                                />
+                            ) : (
+                                <Image
+                                    source={{ uri: mediaUrl }}
+                                    style={styles.postImage}
+                                    accessibilityLabel="Post Image"
+                                />
+                            );
+                        })()}
                         <View style={styles.postDetails}>
                             <Text style={styles.postUsername}>{post.username}</Text>
                             <Text style={styles.postContent} numberOfLines={2}>
@@ -60,8 +111,18 @@ const TagPage = () => {
                             <Text style={styles.postDate}>{formatPostDate(post.createdAt)}</Text>
                         </View>
                     </TouchableOpacity>
-                ))}
-            </ScrollView>
+                )}
+                ListHeaderComponent={
+                    <>
+                        <Text style={styles.title}>Posts tagged with #{tag}</Text>
+                        {error && <Text style={styles.errorText}>{error}</Text>}
+                    </>
+                }
+                contentContainerStyle={styles.container}
+                windowSize={5}
+                initialNumToRender={5}
+                maxToRenderPerBatch={5}
+            />
             <FGTabBar />
         </View>
     );

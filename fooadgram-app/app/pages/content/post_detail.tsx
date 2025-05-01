@@ -1,6 +1,6 @@
 import {Alert, Dimensions, Image, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import {useNavigation, useRoute} from "@react-navigation/native";
-import React, {useEffect, useRef, useState} from "react";
+import {useNavigation, useRoute, useFocusEffect} from "@react-navigation/native";
+import React, {useEffect, useRef, useState, useCallback} from "react";
 import {useAppContext} from "@/context/AppContext";
 import FGTabBar from "@/app/shared/FGTabBar";
 import shared_styles from "@/shared_styles";
@@ -144,7 +144,6 @@ const PostDetailPage = () => {
 
 
     useEffect(() => {
-        fetchPost();
 
         return () => {
             console.log('Cleaning up videos');
@@ -155,6 +154,12 @@ const PostDetailPage = () => {
             });
         };
     }, [postId, userData]);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchPost();
+        }, [postId, userData])
+    );
 
     return (
         <View

@@ -12,6 +12,7 @@ import {
 import FeedItemCard from './FeedItemCard';
 import { fetchFeed, Post } from '../services/feed';
 import { UserData } from '@/models/user/UserData';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface Props {
     user: UserData | null;   // null when not logged‑in yet
@@ -41,6 +42,12 @@ const FeedList: React.FC<Props> = ({ user }) => {
         }
     }, [user]);
 
+    useFocusEffect(
+        React.useCallback(() => {
+            load();
+        }, [load])
+    );
+
     useEffect(() => { load(); }, [load]);
 
     const onRefresh = useCallback(async () => {
@@ -49,6 +56,9 @@ const FeedList: React.FC<Props> = ({ user }) => {
         try { setPosts(await fetchFeed(user)); }
         catch (_) { } finally { setRefreshing(false); }
     }, [user]);
+
+
+
 
     if (!user) return <View><Text>Please log in first.</Text></View>;
     if (loading && posts === null) return <ActivityIndicator />;
@@ -62,7 +72,11 @@ const FeedList: React.FC<Props> = ({ user }) => {
             keyExtractor={item => item.id}
             scrollEnabled={scrollEnabled}
             renderItem={({ item }) => (
-                <FeedItemCard post={item} user={user!} setScrollEnabled={setScrollEnabled}/>
+                <FeedItemCard
+                    post={item}
+                    user={user}
+                    setScrollEnabled={setScrollEnabled}
+                />
             )}
             contentContainerStyle={{ padding: 16 }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}

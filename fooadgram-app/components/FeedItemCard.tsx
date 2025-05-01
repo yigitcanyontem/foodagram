@@ -1,182 +1,171 @@
-    import React from 'react';
-    import { Image, Text, View, StyleSheet, Dimensions, FlatList, TouchableOpacity } from 'react-native';
-    import Carousel from 'react-native-anchor-carousel';
-    import { Video } from 'expo-av';
-    import { Post } from '../services/feed';
-    import { GlobalConstants } from '@/utils/GlobalConstants';
-    import { useNavigation } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import { Image, Text, View, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import Carousel from 'react-native-anchor-carousel';
+import { Video } from 'expo-av';
+import { useNavigation } from '@react-navigation/native';
+import { AntDesign, FontAwesome } from '@expo/vector-icons';
+import ReportModal from '@/app/shared/content/ReportModal';
+import { ReportType } from '@/models/content/dto/ReportType';
+import { ContentService } from '@/services/content-service';
+import { GlobalConstants } from '@/utils/GlobalConstants';
+import { formatPostDate } from '@/utils/dayjsConfig';
+import { Post } from '../services/feed';
+import { UserData } from '@/models/user/UserData';
+import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
 
-    import { AntDesign, FontAwesome } from '@expo/vector-icons';
-    import { ContentService } from '@/services/content-service';
-    import { UserData } from '@/models/user/UserData';
-    import {formatPostDate} from "@/utils/dayjsConfig";
-    import ReportModal from '@/app/shared/content/ReportModal';
-    import { ReportType } from '@/models/content/dto/ReportType';
+interface Props {
+    post: Post;
+    user: UserData;
+    setScrollEnabled: (v: boolean) => void;
+}
 
-    interface Props {
-        post: Post;
-        user: UserData;
-        setScrollEnabled: (v: boolean) => void;
-    }
+const { width } = Dimensions.get('window');
+const MEDIA_HOST = GlobalConstants.s3Url;
 
-    const MEDIA_HOST = GlobalConstants.s3Url;      // …/api/v1/content-media/
+function makeUrl(p: string) {
+    return p.startsWith('http') ? p : `${MEDIA_HOST}${p}`;
+}
 
-    function makeUrl(p: string) {
-        return p.startsWith('http') ? p : `${MEDIA_HOST}${p}`;
-    }
+const FeedItemCard: React.FC<Props> = ({ post, user, setScrollEnabled }) => {
 
-    const { width } = Dimensions.get('window');
+    // like / save status
+    const [liked, setLiked]                         = useState(false);
+    const [saved, setSaved]                         = useState(false);
+    const [savedInitialised, setSavedInitialised]   = useState(false);
+    const [isSaving, setIsSaving]                 = useState(false);
 
-    const FeedItemCard: React.FC<Props> = ({ post, user, setScrollEnabled }) => {
-        const [cardWidth, setCardWidth] = React.useState<number | null>(null);
-        const [commentCount, setCommentCount] = React.useState<number>(post.comments ?? 0);
+    const [cardWidth, setCardWidth] = useState<number | null>(null);
+    const navigation = useNavigation();
+    const [localPost, setLocalPost] = useState<PostResponseDto>();
 
-        const [liked, setLiked] = React.useState<boolean>(false);
-        const [likeCount, setLikeCount] = React.useState<number>(post.likes ?? 0);
+    // ─── 1) run once: fetch liked/saved flags ───────────────────────────────
+    useEffect(() => {
+        let mounted = true;
+        ContentService.hasUserLikedPost(post.id, user)
+            .then(res => mounted && setLiked(res))
+            .catch(() => {});
 
-        const [saved, setSaved]           = React.useState<boolean>(false);
-        const [saveCount, setSaveCount]   = React.useState<number>(post.saves ?? 0);
-
-        const navigation = useNavigation();
-
-        React.useEffect(() => {
-            let mounted = true;
-            ContentService.hasUserLikedPost(post.id, user)
-                .then(res => mounted && setLiked(res))
-                .catch(() => {/* ignore */});
-
-            ContentService.hasUserSavedPost(post.id, user)
-                .then(res => mounted && setSaved(res))
-                .catch(() => {/* ignore */});
-            return () => { mounted = false };
-        }, [post.id, user]);
-
-        const toggleLike = async () => {
-            try {
-                if (liked) {
-                    await ContentService.unlikePost(post.id, user);
-                    setLikeCount(c => c - 1);
-                } else {
-                    await ContentService.likePost(post.id, user);
-                    setLikeCount(c => c + 1);
+        ContentService.hasUserSavedPost(post.id, user)
+            .then(res => {
+                if (mounted) {
+                    setSaved(res);
+                    setSavedInitialised(true);
                 }
-                setLiked(!liked);
-            } catch (_) { /* toast error if you like */ }
-        };
+            })
+            .catch(() => {});
 
-        const toggleSave = async () => {
-            try {
-                if (saved) {
-                    await ContentService.unsavePost(post.id, user);
-                    setSaveCount(c => c - 1);
-                } else {
-                    await ContentService.savePost(post.id, user);
-                    setSaveCount(c => c + 1);
-                }
-                setSaved(!saved);
-            } catch (_) {/* toast error if you like */}
-        };
-
-        const renderMedia = ({ item }: { item: string }) => {
-            if (!item) return null;
-            const uri = makeUrl(item);
-            const isVideo = uri.toLowerCase().endsWith('.mp4') || uri.toLowerCase().endsWith('.mov');
-
-            return (
-                <View key={uri} style={{ width: '100%', height: '100%' }}>
-                    {isVideo ? (
-                        <Video
-                            source={{ uri }}
-                            style={{ width: '100%', height: '100%', borderRadius: 12 }}
-                            useNativeControls
-                            resizeMode="cover"
-                            shouldPlay={false}
-                            isMuted
-                            onError={(e) => {
-                                const err = e?.nativeEvent?.error;
-                                console.warn('Video error:', err || 'Unknown error');
-                            }}
-                        />
-                    ) : (
-                        <Image
-                            source={{ uri }}
-                            style={{ width: '100%', height: '100%', borderRadius: 12 }}
-                            resizeMode="cover"
-                        />
-                    )}
-                </View>
-            );
-        };
+        return () => { mounted = false };
+    }, [post.id, user]);
 
 
+    useEffect(() => {
+        let mounted = true;
+        ContentService.getPost(post.id, user)
+            .then(p => mounted && setLocalPost(p))
+            .catch(console.error);
+        return () => { mounted = false };
+    }, [post.id, user]);
+
+    const toggleLike = async () => {
+        if (!localPost) return;
+        if (liked) {
+            await ContentService.unlikePost(localPost.id, user);
+            setLocalPost(lp => lp && { ...lp, likes: lp.likes - 1 });
+        } else {
+            await ContentService.likePost(localPost.id, user);
+            setLocalPost(lp => lp && { ...lp, likes: lp.likes + 1 });
+        }
+        setLiked(!liked);
+    };
+
+    const toggleSave = async () => {
+        // block if we’re already in flight or no data yet
+        if (!localPost || isSaving) return;
+        setIsSaving(true);
+        try {
+            if (saved) {
+                await ContentService.unsavePost(localPost.id, user);
+                setLocalPost(lp => lp && { ...lp, saves: lp.saves - 1 });
+                setSaved(false);
+            } else {
+                await ContentService.savePost(localPost.id, user);
+                setLocalPost(lp => lp && { ...lp, saves: lp.saves + 1 });
+                setSaved(true);
+            }
+        } catch (e) {
+            console.error("Failed to toggle save", e);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const renderMedia = ({ item }: { item: string }) => {
+        const uri = makeUrl(item);
+        const isVideo = uri.toLowerCase().endsWith('.mp4') || uri.toLowerCase().endsWith('.mov');
         return (
-            <View style={styles.card} onLayout={e => setCardWidth(e.nativeEvent.layout.width)}>
-                <View style={styles.headerRow}>
-                    <View style={styles.headerLeft}>
-                        <Text style={styles.username}>{post.username}</Text>
-                        <Text style={styles.timestamp}>{formatPostDate(post.createdAt)}</Text>
-                    </View>
-
-                    {post.userId !== user?.id && (
-                        <ReportModal
-                            reportType={ReportType.POST}
-                            reportedEntityId={post.id}
-                        />
-                    )}
-                </View>
-
-                <Text style={styles.content}>{post.content || '(no description)'}</Text>
-
-                {cardWidth && post.mediaUrls?.length ? (
-                    <View style={styles.carouselContainer}>
-                        <Carousel
-                            data={post.mediaUrls}
-                            renderItem={renderMedia}
-                            containerWidth={cardWidth - 32}
-                            itemWidth={cardWidth - 32}
-                            separatorWidth={8}
-                            onScrollBeginDrag={() => setScrollEnabled(false)}
-                            onScrollEndDrag={() => setScrollEnabled(true)}
-                            onMomentumScrollEnd={() => setScrollEnabled(true)}
-                            inScrollView={false}
-                            style={styles.carousel}
-                        />
-                    </View>
-                ) : null}
-
-                <View style={styles.footer}>
-                    {/* like button — already done earlier */}
-                    <TouchableOpacity onPress={toggleLike} style={styles.footerButton}>
-                        <AntDesign
-                            name={liked ? 'heart' : 'hearto'}
-                            size={20}
-                            color={liked ? '#E21E25' : '#444'}
-                        />
-                        <Text style={styles.footerText}>{likeCount}</Text>
-                    </TouchableOpacity>
-
-                    {/* comment button */}
-                    <TouchableOpacity
-                        style={styles.footerButton}
-                        onPress={() => navigation.navigate('Comments', { postId: post.id })}
-                    >
-                        <AntDesign name="message1" size={18} color="#444" />
-                        <Text style={styles.footerText}>{commentCount}</Text>
-                    </TouchableOpacity>
-
-                    {/* save / bookmark */}
-                    <TouchableOpacity onPress={toggleSave} style={styles.footerButton}>
-                        <FontAwesome
-                            name={saved ? 'bookmark' : 'bookmark-o'}
-                            size={20}
-                            color={saved ? '#007AFF' : '#444'}
-                          />
-                        <Text style={styles.footerText}>{saveCount}</Text>
-                    </TouchableOpacity>
-                </View>
+            <View key={uri} style={{ width: '100%', height: '100%' }}>
+                {isVideo ? (
+                    <Video source={{ uri }} style={{ width: '100%', height: '100%', borderRadius: 12 }}
+                           useNativeControls resizeMode="cover" shouldPlay={false} isMuted />
+                ) : (
+                    <Image source={{ uri }} style={{ width: '100%', height: '100%', borderRadius: 12 }} resizeMode="cover" />
+                )}
             </View>
         );
     };
+
+    return (
+        <View style={styles.card} onLayout={e => setCardWidth(e.nativeEvent.layout.width)}>
+            {/* header */}
+            <View style={styles.headerRow}>
+                <View style={styles.headerLeft}>
+                    <Text style={styles.username}>{post.username}</Text>
+                    <Text style={styles.timestamp}>{formatPostDate(post.createdAt)}</Text>
+                </View>
+                {post.userId !== user.id && (
+                    <ReportModal reportType={ReportType.POST} reportedEntityId={post.id}/>
+                )}
+            </View>
+
+            {/* content */}
+            <Text style={styles.content}>{post.content || '(no description)'}</Text>
+
+            {/* carousel */}
+            {cardWidth && post.mediaUrls?.length ? (
+                <View style={styles.carouselContainer}>
+                    <Carousel data={post.mediaUrls} renderItem={renderMedia}
+                              containerWidth={cardWidth - 32} itemWidth={cardWidth - 32}
+                              separatorWidth={8} onScrollBeginDrag={() => setScrollEnabled(false)}
+                              onScrollEndDrag={() => setScrollEnabled(true)}
+                              onMomentumScrollEnd={() => setScrollEnabled(true)}
+                              inScrollView={false} style={styles.carousel}/>
+                </View>
+            ) : null}
+
+            {/* actions */}
+            <View style={styles.footer}>
+                <TouchableOpacity onPress={toggleLike} style={styles.footerButton}>
+                    <AntDesign name={liked ? 'heart' : 'hearto'} size={20} color={liked ? '#E21E25' : '#444'}/>
+                    <Text style={styles.footerText}>{localPost?.likes ?? post.likes}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={() => navigation.navigate('Comments', { postId: post.id })} style={styles.footerButton}>
+                    <AntDesign name="message1" size={18} color="#444"/>
+                    <Text style={styles.footerText}>{localPost?.comments ?? post.comments}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={toggleSave}
+                                  style={styles.footerButton}
+                                  disabled={!savedInitialised || isSaving}>
+                    <FontAwesome name={saved ? 'bookmark' : 'bookmark-o'}
+                                 size={20}
+                                 color={!savedInitialised ? '#bbb' : saved ? '#007AFF' : '#444'}/>
+                    <Text style={styles.footerText}>{localPost?.saves ?? post.saves}</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+};
 
     const styles = StyleSheet.create({
         card: {

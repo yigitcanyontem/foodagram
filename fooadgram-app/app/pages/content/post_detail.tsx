@@ -1,10 +1,10 @@
-import {Dimensions, Image, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {Alert, Dimensions, Image, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {useNavigation, useRoute} from "@react-navigation/native";
 import React, {useEffect, useRef, useState} from "react";
 import {useAppContext} from "@/context/AppContext";
 import FGTabBar from "@/app/shared/FGTabBar";
 import shared_styles from "@/shared_styles";
-import {AntDesign, FontAwesome} from '@expo/vector-icons';
+import {AntDesign, FontAwesome, Entypo} from '@expo/vector-icons';
 import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
 import {ContentService} from "@/services/content-service";
 import {GlobalConstants} from "@/utils/GlobalConstants";
@@ -118,6 +118,29 @@ const PostDetailPage = () => {
         }
     };
 
+    const handleDeletePost = () => {
+        Alert.alert(
+            'Delete post',
+            'Are you sure you want to delete this post? This cannot be undone.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await ContentService.deletePost(postId, userData);
+                            Toast.show({ type: 'success', text1: 'Post deleted.' });
+                            navigation.goBack();       // or navigation.navigate('Home')
+                        } catch (e) {
+                            Toast.show({ type: 'error', text1: 'Delete failed' });
+                        }
+                    },
+                },
+            ],
+        );
+    };
+
 
 
     useEffect(() => {
@@ -156,6 +179,11 @@ const PostDetailPage = () => {
                                 reportedEntityId={postId}
                             />
                         }
+                        {post?.userId === userData?.id && (
+                            <TouchableOpacity onPress={handleDeletePost}>
+                                <Entypo name="trash" size={22} color="red" />
+                            </TouchableOpacity>
+                        )}
                     </View>
 
                     {/* Post Image */}

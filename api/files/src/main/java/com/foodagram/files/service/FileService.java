@@ -139,6 +139,24 @@ public class FileService {
         }
     }
 
+    public void deleteFileByFileName(String fileName) {
+        try {
+            Files file = fileRepository.findByFileName(fileName)
+                    .orElseThrow(() -> new RuntimeException("File not found: " + fileName));
+
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(fileName)
+                            .build()
+            );
+            fileRepository.delete(file);
+        } catch (Exception e) {
+            throw new RuntimeException("Error deleting file " + fileName + ": " + e.getMessage());
+        }
+    }
+
+
     private FilesDto convertToDto(Files file) {
         return FilesDto.builder()
                 .id(file.getId())

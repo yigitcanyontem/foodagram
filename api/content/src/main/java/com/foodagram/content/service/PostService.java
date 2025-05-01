@@ -21,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,6 +34,8 @@ public class PostService {
     private final CommentService commentService;
     private final LikeService likeService;
     private final SaveRepository saveRepository;
+
+    private final FilesClient filesClient;
 
     @Transactional
     public PostResponseDto createPost(PostCreateDto postCreateDto) {
@@ -107,7 +111,15 @@ public class PostService {
         likeService.deleteLikesByPostId(id);
         commentService.deleteCommentsByPostId(id);
         saveRepository.deleteAllByPost_Id(id);
-        //TODO delete media files
+        post.getMediaUrls().forEach(url -> {
+            try {
+                String key = url.substring(url.indexOf('/') + 1);
+                filesClient.deleteFileByFileName(key);
+            } catch (Exception ex) {
+                log.warn("Could not delete media {} – {}", url, ex.getMessage());
+            }
+        });
+
         postRepository.deleteById(id);
     }
 

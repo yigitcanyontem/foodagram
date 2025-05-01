@@ -24,6 +24,8 @@ public class ApiGwGlobalFilter implements GlobalFilter, Ordered {
             return chain.filter(exchange);
         }
 
+        //TODO add filter for admin endpoints
+
         return chain.filter(exchange.mutate()
                 .request(exchange.getRequest().mutate()
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtToken)

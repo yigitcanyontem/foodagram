@@ -243,4 +243,9 @@ public class UsersProfileService {
         List<UsersProfile> usersProfiles = usersProfileRepository.findAllByUsersId_IdIn(userIds);
         return usersProfiles.stream().map(this::mapDomainToDto).collect(Collectors.toList());
     }
+
+    public List<UsersProfileDto> getAllUsersProfiles() {
+        List<UsersProfile> usersProfiles = usersProfileRepository.findAll();
+        return usersProfiles.stream().map(this::mapDomainToDto).collect(Collectors.toList());
+    }
 }

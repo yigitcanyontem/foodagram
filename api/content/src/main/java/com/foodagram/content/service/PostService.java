@@ -10,6 +10,7 @@ import com.foodagram.content.domain.Ingredient;
 import com.foodagram.content.domain.Post;
 import com.foodagram.content.domain.Recipe;
 import com.foodagram.content.repository.PostRepository;
+import com.foodagram.content.repository.SaveRepository;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.ForbiddenException;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,8 @@ public class PostService {
     private final PostRepository postRepository;
     private final UsersClient usersClient;
     private final CommentService commentService;
+    private final LikeService likeService;
+    private final SaveRepository saveRepository;
 
     @Transactional
     public PostResponseDto createPost(PostCreateDto postCreateDto) {
@@ -94,9 +97,6 @@ public class PostService {
         post.setTags(postUpdateDto.getTags());
         post.setVisibility(postUpdateDto.getVisibility());
         post.setLocation(postUpdateDto.getLocation());
-        post.setLikes(postUpdateDto.getLikes());
-        post.setComments(postUpdateDto.getComments());
-        post.setSaves(postUpdateDto.getSaves());
         return mapToResponseDto(postRepository.save(post));
     }
 
@@ -104,6 +104,10 @@ public class PostService {
     public void deletePost(UUID id, UsersDto usersDto) {
         Post post = findPostById(id);
         throwIfUserIsNotOwnerOfPostOrAdmin(usersDto.getId(), post.getUserId());
+        likeService.deleteLikesByPostId(id);
+        commentService.deleteCommentsByPostId(id);
+        saveRepository.deleteAllByPost_Id(id);
+        //TODO delete media files
         postRepository.deleteById(id);
     }
 
@@ -187,16 +191,19 @@ public class PostService {
 
 
     private void throwIfUserIsNotOwnerOfPostOrAdmin(UUID userId, UUID creatorId) {
-        if (!userId.equals(creatorId)) {
-            throw new ForbiddenException("You are not owner of this post");
+        UsersDto user = usersClient.getUserById(userId).getBody();
+
+        if (user == null) {
+            throw new ForbiddenException("User not found");
         }
 
-        UsersDto user = usersClient.getUserById(userId).getBody();
-        if (user == null || !user.getRole().equals(Role.ADMIN)) {
-            throw new ForbiddenException("You are not an admin");
+        boolean isAdmin = user.getRole().equals(Role.ADMIN);
+        boolean isOwner = userId.equals(creatorId);
+
+        if (!isAdmin && !isOwner) {
+            throw new ForbiddenException("You are neither the owner of this post nor an admin");
         }
     }
-
 
     private void throwIfPostIsHidden(Visibility visibility, UUID id, UUID userId) {
         if (visibility.equals(Visibility.PRIVATE) && !id.equals(userId)) {
@@ -225,4 +232,15 @@ public class PostService {
                 .map(this::mapToResponseDto)
                 .collect(Collectors.toList());
     }
+
+    public List<PostResponseDto> getAllPosts() {
+        return postRepository.findAll()
+                .stream()
+                .map(post -> {
+                    PostResponseDto dto = mapToResponseDto(post);
+                    dto.setUsername(Objects.requireNonNull(usersClient.getUserById(post.getUserId()).getBody()).getUsername());
+                    return dto;
+                }).toList();
+    }
+
 }

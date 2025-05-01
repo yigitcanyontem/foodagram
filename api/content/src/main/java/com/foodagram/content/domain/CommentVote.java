@@ -20,7 +20,7 @@ import java.util.UUID;
 public class CommentVote extends BaseEntity {
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.EAGER)
     @JoinColumn(name = "comment_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.NO_ACTION)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Comment comment;
 
     @Column(name = "user_id", nullable = false)

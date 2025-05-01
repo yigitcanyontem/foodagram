@@ -128,4 +128,15 @@ public class CommentService {
     public long getCommentCountByPost(UUID postId) {
         return commentRepository.countCommentsByPost_Id(postId);
     }
+
+    public void deleteCommentsByPostId(UUID postId) {
+        List<Comment> comments = commentRepository.findByPostId(postId);
+        for (Comment comment : comments) {
+            comment.setDeleted(true);
+            comment.setContent("This comment has been deleted");
+            comment.setPost(null);
+            commentRepository.save(comment);
+        }
+
+    }
 }

@@ -96,4 +96,12 @@ public class LikeService {
         List<UsersProfileDto> usersDtos = usersClient.getUsersByIds(userIds).getBody();
         return usersDtos;
     }
+
+    public void deleteLikesByPostId(UUID id) {
+        List<Like> likes = likeRepository.findByPostId(id);
+        likeRepository.deleteAll(likes);
+        Post post = postRepository.findById(id).orElseThrow(() -> new RuntimeException("Post not found"));
+        post.setLikes(0);
+        postRepository.save(post);
+    }
 }

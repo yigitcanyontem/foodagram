@@ -1,4 +1,4 @@
-import {Role} from "@/models/auth/Role";
+import {Role} from "./Role.ts";
 
 export type UsersDto = {
     id: string;

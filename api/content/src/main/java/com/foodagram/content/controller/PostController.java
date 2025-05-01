@@ -92,7 +92,7 @@ public class PostController {
             postService.deletePost(id, user);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            log.error("Error while updating post by user: {}", e.getMessage());
+            log.error("Error while deleting post by user: {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -200,5 +200,11 @@ public class PostController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping
+    public ResponseEntity<List<PostResponseDto>> getAllPosts() {
+        return ResponseEntity.ok(postService.getAllPosts());
+    }
+
 
 }

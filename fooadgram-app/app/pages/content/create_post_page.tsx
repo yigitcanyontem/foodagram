@@ -14,12 +14,16 @@ import {IngredientCreateDto} from "@/models/content/dto/IngredientCreateDto";
 import Toast from "react-native-toast-message";
 import {AIService} from "@/services/ai-service";
 import { useRef } from 'react';
+import { useActionSheet } from '@expo/react-native-action-sheet';
+
 
 const CreatePostPage = () => {
     const navigation = useNavigation();
     const { setUserData, userData } = useAppContext();
     const [isImageValid, setIsImageValid] = useState(false);
     const [imageId, setImageId] = useState<string | null>(null);
+    const { showActionSheetWithOptions } = useActionSheet();
+
 
     // Form state
     const [title, setTitle] = useState('');
@@ -35,6 +39,8 @@ const CreatePostPage = () => {
     const [manualFoodName, setManualFoodName] = useState('');
     const foodNameResolver = useRef<(name: string | null) => void>();
 
+
+
     // Recipe state
     const [includeRecipe, setIncludeRecipe] = useState(false);
     const [recipeTitle, setRecipeTitle] = useState('');
@@ -44,13 +50,16 @@ const CreatePostPage = () => {
     const [difficulty, setDifficulty] = useState('');
     const [cuisine, setCuisine] = useState('');
 
+
     // Ingredient form state
     const [ingredientName, setIngredientName] = useState('');
     const [ingredientAmount, setIngredientAmount] = useState('');
     const [ingredientUnit, setIngredientUnit] = useState('');
 
-    // Handle image picker
-    const pickMedia = async () => {
+
+
+
+    const pickFromGallery = async () => {
         try {
             const result = await ImagePicker.launchImageLibraryAsync({
                 mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -59,140 +68,162 @@ const CreatePostPage = () => {
             });
 
             if (!result.canceled && result.assets?.length > 0) {
-                const asset = result.assets[0];
-                const isVideo = asset.type === 'video';
-
-                try {
-                    if (isVideo) {
-                        let predictionResult = await AIService.predictVideo(asset);
-
-                        if (predictionResult.approved) {
-                            await uploadMedia(asset);
-                            const predictionLabel = predictionResult.prediction || "food";
-                            setTags(prev => prev ? `${prev}, ${predictionLabel}` : predictionLabel);
-                            setIsImageValid(true);
-                            Toast.show({
-                                type: 'success',
-                                text1: "Video uploaded",
-                                text2: `Approved video with ${predictionResult.food_percentage} food content.`,
-                            });
-                        } else if (predictionResult.requires_manual_verification) {
-                            const foodName = await promptFoodName();
-
-                            if (!foodName) {
-                                Toast.show({
-                                    type: 'error',
-                                    text1: "Verification cancelled",
-                                    text2: "No food name provided.",
-                                });
-                                return;
-                            }
-
-                            const verifyResult = await AIService.predictVideoWithFoodName(asset, foodName);
-
-                            if (verifyResult.approved) {
-                                await uploadMedia(asset);
-                                setTags(prevTags => prevTags
-                                    ? `${prevTags}, ${verifyResult.prediction}`
-                                    : verifyResult.prediction);
-                                Toast.show({
-                                    type: 'success',
-                                    text1: "Video verified!",
-                                    text2: verifyResult.reason || "Approved via food name.",
-                                });
-                            } else {
-                                Toast.show({
-                                    type: 'error',
-                                    text1: "Video rejected",
-                                    text2: verifyResult.reason,
-                                });
-                            }
-                        } else {
-                            Toast.show({
-                                type: 'error',
-                                text1: "Video rejected",
-                                text2: predictionResult.reason || "Low food content.",
-                            });
-                        }
-
-                        return;
-                    }
-
-
-                    let predictionResult = await AIService.predict(asset);
-
-                    if (predictionResult.image_id) {
-                        setImageId(predictionResult.image_id);
-                    }
-
-                    if (predictionResult.prediction !== 'no match') {
-                        setIsImageValid(true);
-                        await uploadMedia(asset);
-
-                        setTags(prevTags => prevTags
-                            ? `${prevTags}, ${predictionResult.prediction}`
-                            : predictionResult.prediction);
-
-                        Toast.show({
-                            type: 'info',
-                            text1: "Image uploaded and processed",
-                            text2: `Detected ${predictionResult.prediction} (${predictionResult.confidence})`,
-                            position: 'top',
-                            topOffset: 60,
-                        });
-                    } else {
-                        const userProvidedName = await promptFoodName();
-                        if (!userProvidedName) {
-                            Toast.show({
-                                type: 'error',
-                                text1: "Upload canceled",
-                                text2: "You must enter a food name.",
-                            });
-                            return;
-                        }
-
-                        if (!predictionResult.image_id) {
-                            Toast.show({
-                                type: 'error',
-                                text1: "Error",
-                                text2: "Image ID missing.",
-                            });
-                            return;
-                        }
-
-                        const verifyResult = await AIService.verify(predictionResult.image_id, userProvidedName);
-                        if (verifyResult.prediction !== 'no match') {
-                            setIsImageValid(true);
-                            await uploadMedia(asset);
-
-                            setTags(prevTags => prevTags
-                                ? `${prevTags}, ${verifyResult.prediction}`
-                                : verifyResult.prediction);
-
-                            Toast.show({
-                                type: 'success',
-                                text1: "Image verified and uploaded",
-                                text2: verifyResult.reason,
-                            });
-                        } else {
-                            setIsImageValid(false);
-                            Toast.show({
-                                type: 'error',
-                                text1: "Verification failed",
-                                text2: verifyResult.reason,
-                            });
-                        }
-                    }
-                } catch (error) {
-                    console.error("Error processing media:", error);
-                    setIsImageValid(false);
-                }
+                await processPickedMedia(result.assets[0]);
             }
         } catch (error) {
             console.error('Error picking media:', error);
             setError('Failed to pick media. Please try again.');
         }
     };
+
+
+
+    const takePhoto = async () => {
+        try {
+            const result = await ImagePicker.launchCameraAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                quality: 1,
+            });
+
+            if (!result.canceled && result.assets?.length > 0) {
+                await processPickedMedia(result.assets[0]);
+            }
+        } catch (error) {
+            console.error('Error taking photo:', error);
+            setError('Failed to take photo. Please try again.');
+        }
+    };
+
+
+
+    const recordVideo = async () => {
+        try {
+            const result = await ImagePicker.launchCameraAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+                quality: 1,
+            });
+
+            if (!result.canceled && result.assets?.length > 0) {
+                await processPickedMedia(result.assets[0]);
+            }
+        } catch (error) {
+            console.error('Error recording video:', error);
+            setError('Failed to record video. Please try again.');
+        }
+    };
+
+
+    const handleMediaChoice = () => {
+        const options = ['Take Photo', 'Record Video', 'Pick from Gallery', 'Cancel'];
+        const cancelButtonIndex = 3;
+
+        showActionSheetWithOptions(
+            {
+                options,
+                cancelButtonIndex,
+            },
+            (buttonIndex) => {
+                switch (buttonIndex) {
+                    case 0:
+                        takePhoto();
+                        break;
+                    case 1:
+                        recordVideo();
+                        break;
+                    case 2:
+                        pickFromGallery();
+                        break;
+                }
+            }
+        );
+    };
+
+
+
+    const processPickedMedia = async (asset: ImagePickerAsset) => {
+        const isVideo = asset.type === 'video';
+
+        try {
+            if (isVideo) {
+                let predictionResult = await AIService.predictVideo(asset);
+
+                if (predictionResult.approved) {
+                    await uploadMedia(asset);
+                    const predictionLabel = predictionResult.prediction || "food";
+                    setTags(prev => prev ? `${prev}, ${predictionLabel}` : predictionLabel);
+                    setIsImageValid(true);
+                    Toast.show({
+                        type: 'success',
+                        text1: "Video uploaded",
+                        text2: `Approved video with ${predictionResult.food_percentage} food content.`,
+                    });
+                } else if (predictionResult.requires_manual_verification) {
+                    const foodName = await promptFoodName();
+                    if (!foodName) {
+                        Toast.show({ type: 'error', text1: "Verification cancelled", text2: "No food name provided." });
+                        return;
+                    }
+
+                    const verifyResult = await AIService.predictVideoWithFoodName(asset, foodName);
+                    if (verifyResult.approved) {
+                        await uploadMedia(asset);
+                        setTags(prevTags => prevTags ? `${prevTags}, ${verifyResult.prediction}` : verifyResult.prediction);
+                        Toast.show({ type: 'success', text1: "Video verified!", text2: verifyResult.reason || "Approved via food name." });
+                    } else {
+                        Toast.show({ type: 'error', text1: "Video rejected", text2: verifyResult.reason });
+                    }
+                } else {
+                    Toast.show({ type: 'error', text1: "Video rejected", text2: predictionResult.reason || "Low food content." });
+                }
+
+                return;
+            }
+
+            // IMAGE FLOW
+            let predictionResult = await AIService.predict(asset);
+            if (predictionResult.image_id) setImageId(predictionResult.image_id);
+
+            if (predictionResult.prediction !== 'no match') {
+                setIsImageValid(true);
+                await uploadMedia(asset);
+                setTags(prevTags => prevTags ? `${prevTags}, ${predictionResult.prediction}` : predictionResult.prediction);
+                Toast.show({
+                    type: 'info',
+                    text1: "Image uploaded and processed",
+                    text2: `Detected ${predictionResult.prediction} (${predictionResult.confidence})`,
+                    position: 'top',
+                    topOffset: 60,
+                });
+            } else {
+                const userProvidedName = await promptFoodName();
+                if (!userProvidedName) {
+                    Toast.show({ type: 'error', text1: "Upload canceled", text2: "You must enter a food name." });
+                    return;
+                }
+
+                if (!predictionResult.image_id) {
+                    Toast.show({ type: 'error', text1: "Error", text2: "Image ID missing." });
+                    return;
+                }
+
+                const verifyResult = await AIService.verify(predictionResult.image_id, userProvidedName);
+                if (verifyResult.prediction !== 'no match') {
+                    setIsImageValid(true);
+                    await uploadMedia(asset);
+                    setTags(prevTags => prevTags ? `${prevTags}, ${verifyResult.prediction}` : verifyResult.prediction);
+                    Toast.show({ type: 'success', text1: "Image verified and uploaded", text2: verifyResult.reason });
+                } else {
+                    setIsImageValid(false);
+                    Toast.show({ type: 'error', text1: "Verification failed", text2: verifyResult.reason });
+                }
+            }
+        } catch (error) {
+            console.error("Error processing media:", error);
+            setIsImageValid(false);
+        }
+    };
+
 
 
 
@@ -218,6 +249,9 @@ const CreatePostPage = () => {
         }
     };
 
+
+
+
     // Upload media
     const uploadMedia = async (file: ImagePickerAsset) => {
         try {
@@ -226,7 +260,7 @@ const CreatePostPage = () => {
             if (response.data) {
                 Toast.show({
                     type: 'success',
-                    text1: 'Media uplaoded successful',
+                    text1: 'Media uploaded successful',
                     text2: response.data,
                     position: 'top',
                     topOffset: 60,
@@ -240,6 +274,9 @@ const CreatePostPage = () => {
             setIsLoading(false);
         }
     };
+
+
+
 
     // Add ingredient
     const addIngredient = () => {
@@ -262,6 +299,8 @@ const CreatePostPage = () => {
         setIngredientUnit('');
     };
 
+
+
     // Remove ingredient
     const removeIngredient = (index: number) => {
         const updatedIngredients = [...ingredients];
@@ -269,10 +308,14 @@ const CreatePostPage = () => {
         setIngredients(updatedIngredients);
     };
 
+
+
     // Add instruction
     const addInstruction = () => {
         setInstructions([...instructions, '']);
     };
+
+
 
     // Update instruction
     const updateInstruction = (index: number, value: string) => {
@@ -384,7 +427,7 @@ const CreatePostPage = () => {
                     <Text style={styles.label}>Media</Text>
                     <TouchableOpacity
                         style={styles.mediaButton}
-                        onPress={pickMedia}
+                        onPress={handleMediaChoice}
                         disabled={isLoading}
                     >
                         <Text style={styles.mediaButtonText}>Add Media</Text>

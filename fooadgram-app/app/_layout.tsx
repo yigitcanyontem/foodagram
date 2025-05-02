@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import {StatusBar} from 'expo-status-bar';
 import React, {useEffect} from 'react';
 import 'react-native-reanimated';
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 
 import {useColorScheme} from '@/hooks/useColorScheme';
 import Header from "@/app/shared/Header";
@@ -99,6 +100,7 @@ export default function RootLayout() {
 
     return (
         <SafeAreaView style={{flex: 1}}>
+            <ActionSheetProvider>
             <AppProvider>
                 <ThemeProvider value={DefaultTheme}>
                     <Stack.Navigator
@@ -127,6 +129,7 @@ export default function RootLayout() {
                 </ThemeProvider>
                 <Toast/>
             </AppProvider>
+            </ActionSheetProvider>
         </SafeAreaView>
     );
 }

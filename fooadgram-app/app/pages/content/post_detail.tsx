@@ -23,6 +23,7 @@ type PostDetailParams = {
     postId: string;
 };
 const {width} = Dimensions.get('window');
+const theme = {primary: '#E74C3C',secondary: '#2C3E50'};
 
 const PostDetailPage = () => {
     const navigation = useNavigation();
@@ -268,29 +269,33 @@ const PostDetailPage = () => {
                     {post?.createdAt && (
                         <Text style={styles.date}>{formatPostDate(post.createdAt)}</Text>
                     )}
-                    {
-                        post?.recipe &&
+                    {post?.recipe && (
+                        <View style={styles.recipeCard}>
+                            <Text style={styles.recipeTitle}>
+                                <FontAwesome name="cutlery" size={18} color={theme.primary} />{' '}
+                                {post.recipe.title}
+                            </Text>
+                            <Text style={styles.recipeDescription}>{post.recipe.description}</Text>
 
-                        <View style={styles.recipeSection}>
-                            <Text style={styles.recipeTitle}>Recipe: {post?.recipe?.title}</Text>
-                            <Text style={styles.recipeDescription}>{post?.recipe?.description}</Text>
-                            <Text style={styles.recipeSubtitle}>Ingredients:</Text>
-                            {post?.recipe?.ingredients.map((ingredient) => (
-                                <Text key={ingredient.id} style={styles.ingredientItem}>
-                                    - {ingredient.amount} {ingredient.unit} {ingredient.name}
+                            <Text style={styles.subheading}>🍅 Ingredients</Text>
+                            {post.recipe.ingredients.map(ing => (
+                                <Text key={ing.id} style={styles.recipeItem}>
+                                    • {ing.amount} {ing.unit} {ing.name}
                                 </Text>
                             ))}
-                            <Text style={styles.recipeSubtitle}>Instructions:</Text>
-                            {post?.recipe?.instructions.map((instruction, index) => (
-                                <Text key={index} style={styles.instructionItem}>
-                                    {index + 1}. {instruction}
+
+                            <Text style={styles.subheading}>📝 Instructions</Text>
+                            {post.recipe.instructions.map((step, idx) => (
+                                <Text key={idx} style={styles.recipeItem}>
+                                    {idx + 1}. {step}
                                 </Text>
                             ))}
-                            <Text style={styles.recipeDetails}>
-                                Cuisine: {post?.recipe?.cuisineType} | Difficulty: {post?.recipe?.difficultyLevel} | Prep Time: {post?.recipe?.prepTime} mins
+
+                            <Text style={styles.recipeFooter}>
+                                Cuisine: {post.recipe.cuisineType} · Difficulty: {post.recipe.difficultyLevel} · Prep: {post.recipe.prepTime} min
                             </Text>
                         </View>
-                    }
+                    )}
 
                 </ScrollView>
 
@@ -342,12 +347,35 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     tag: {
-       color: 'blue',
+        color: 'blue',
+        marginRight: 8,
     },
-
     date: {
         color: 'gray',
         fontSize: 12,
+        marginBottom: 12,
+    },
+    recipeCard: {
+        backgroundColor: '#FFFDF5',
+        padding: 16,
+        marginVertical: 12,
+        borderRadius: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    recipeTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: theme.primary,
+        marginBottom: 8,
+    },
+    recipeDescription: {
+        fontSize: 14,
+        color: theme.secondary,
+        marginBottom: 12,
     },
     commentsSection: {
         marginTop: 20,
@@ -467,12 +495,6 @@ const styles = StyleSheet.create({
     usernameAndDate: {
         flexDirection: 'column',
     },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
     modalContent: {
         width: '80%',
         backgroundColor: 'white',
@@ -494,6 +516,37 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginTop: 20,
         color: 'red',
+    },
+    subheading: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: theme.secondary,
+        marginTop: 12,
+        marginBottom: 6,
+    },
+    recipeItem: {
+        fontSize: 14,
+        color: theme.secondary,
+        marginBottom: 4,
+        lineHeight: 20,
+    },
+    recipeFooter: {
+        fontSize: 12,
+        color: '#777',
+        marginTop: 12,
+        textAlign: 'center',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalBox: {
+        width: '80%',
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        padding: 20,
     }
 });
 

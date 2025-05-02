@@ -212,6 +212,7 @@ const CreatePostPage = () => {
                     setIsImageValid(true);
                     await uploadMedia(asset);
                     setTags(prevTags => prevTags ? `${prevTags}, ${verifyResult.prediction}` : verifyResult.prediction);
+                    setIsImageValid(true);
                     Toast.show({ type: 'success', text1: "Image verified and uploaded", text2: verifyResult.reason });
                 } else {
                     setIsImageValid(false);

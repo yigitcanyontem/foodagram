@@ -5,6 +5,7 @@ import com.foodagram.clients.content.dto.*;
 import com.foodagram.clients.notification.NotificationCreateDto;
 import com.foodagram.clients.notification.dto.NotificationType;
 import com.foodagram.clients.shared.dto.GenericRabbitMQMessage;
+import com.foodagram.clients.shared.dto.PaginatedResponse;
 import com.foodagram.clients.users.dto.UsersDto;
 import com.foodagram.content.domain.Comment;
 import com.foodagram.content.domain.Post;
@@ -14,6 +15,8 @@ import com.foodagram.content.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.ws.rs.ForbiddenException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -142,12 +145,27 @@ public class CommentService {
         }
     }
 
-    public List<CommentResponseDto> getCommentsByPost(UUID postId) {
-        return commentRepository
-                .findByPostIdAndIsDeletedFalse(postId)
-                .stream()
-                .map(this::mapToResponseDto)
-                .toList();
+    public PaginatedResponse getCommentsByPost(UUID postId, int page, int size) {
+        if (page < 0 || size <= 0) {
+            throw new IllegalArgumentException("Page and size must be greater than 0");
+        }
+
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
+
+        Page<Comment> comments = commentRepository
+                .findByPostIdAndIsDeletedFalse(postId, pageable);
+
+        PaginatedResponse paginatedResponse =
+                new PaginatedResponse(
+                        comments.getContent().stream()
+                                .map(this::mapToResponseDto)
+                                .toList(),
+                        page,
+                        size,
+                        comments.getTotalElements(),
+                        comments.getTotalPages()
+                );
+        return paginatedResponse;
     }
 
     public long getCommentCountByPost(UUID postId) {

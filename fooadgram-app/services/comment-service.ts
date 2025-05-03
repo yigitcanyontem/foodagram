@@ -5,6 +5,7 @@ import axios from 'axios';
     import {CommentResponseDto} from "@/models/content/dto/CommentResponseDto";
     import {CommentVoteCreateDto} from "@/models/content/dto/CommentVoteCreateDto";
     import {CommentVoteResponseDto} from "@/models/content/dto/CommentVoteResponseDto";
+import {PaginatedResponse} from "@/models/shared/PaginatedResponse";
 
     export class CommentService {
         static commentsBaseUrl: string = GlobalConstants.baseUrl + 'comments';
@@ -33,8 +34,8 @@ import axios from 'axios';
                 });
         }
 
-        static getCommentsByPost(postId: string, userData: any): Promise<CommentResponseDto[]> {
-            return axios.get(`${this.commentsBaseUrl}/post/${postId}`, {headers: this.getAuthHeaders(userData)})
+        static getCommentsByPost(postId: string, userData: any, page: number, pageSize: number): Promise<PaginatedResponse> {
+            return axios.get(`${this.commentsBaseUrl}/post/${postId}?page=${page}&size=${pageSize}`, {headers: this.getAuthHeaders(userData)})
                 .then(response => response.data)
                 .catch(error => {
                     console.error('Error while fetching comments by post:', error);

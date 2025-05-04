@@ -3,6 +3,7 @@ package com.foodagram.content.controller;
 import com.foodagram.clients.content.dto.CommentCreateDto;
 import com.foodagram.clients.content.dto.CommentEditDto;
 import com.foodagram.clients.content.dto.CommentResponseDto;
+import com.foodagram.clients.shared.dto.PaginatedResponse;
 import com.foodagram.clients.users.dto.UsersDto;
 import com.foodagram.content.service.CommentService;
 import com.foodagram.content.util.UsersUtil;
@@ -47,9 +48,9 @@ public class CommentController {
     }
 
     @GetMapping("/post/{postId}")
-    public ResponseEntity<List<CommentResponseDto>> getCommentsByPost(@PathVariable UUID postId) {
+    public ResponseEntity<PaginatedResponse> getCommentsByPost(@PathVariable UUID postId, @RequestParam (defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         try {
-            return ResponseEntity.ok(commentService.getCommentsByPost(postId));
+            return ResponseEntity.ok(commentService.getCommentsByPost(postId, page, size));
         } catch (Exception e) {
             log.error("Error while getting comments by post: {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);

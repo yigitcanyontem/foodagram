@@ -176,7 +176,12 @@ const PostDetailPage = () => {
 
                     {/* Post Header */}
                     <View style={styles.header}>
-                        <Text style={styles.username}>{post?.username}</Text>
+                        <TouchableOpacity onPress={() => {
+                            console.log("Navigating to user profile with ID:", post?.userId);
+                            navigation.navigate('Profile', {userId: post?.userId});
+                        }}>
+                            <Text style={[styles.username, { textDecorationLine: 'underline' }]}>{post?.username}</Text>
+                        </TouchableOpacity>
 
                         {
                             post?.userId != userData?.id &&
@@ -191,6 +196,7 @@ const PostDetailPage = () => {
                             </TouchableOpacity>
                         )}
                     </View>
+
 
                     {/* Post Image */}
                     <View
@@ -249,23 +255,29 @@ const PostDetailPage = () => {
                         <Text style={styles.likes}>{post?.likes} likes</Text>
                     </TouchableOpacity>
 
+                    //Added navigation to profile page when clicked on username
                     <View>
-                        <Text style={styles.description}><Text
-                            style={styles.username}>{post?.username} </Text>{post?.content}
+                        <Text style={styles.description}>
+                            <Text
+                                style={styles.username}
+                                onPress={() =>
+                                    navigation.navigate('Profile', { userId: post?.userId })
+                                }
+                            >
+                                {post?.username}{' '}
+                            </Text>
+                            {post?.content}
                         </Text>
-                        {
-                            post?.tags && post.tags.map((tag, index) => (
-                                <TouchableOpacity
-                                    key={index}
-                                    onPress={
-                                        () => navigation.navigate('Tag', {tag})
-                                    }
-                                >
-                                    <Text key={index} style={styles.tag}>#{tag}</Text>
-                                </TouchableOpacity>
-                            ))
-                        }
+                        {post?.tags && post.tags.map((tag, index) => (
+                            <TouchableOpacity
+                                key={index}
+                                onPress={() => navigation.navigate('Tag', { tag })}
+                            >
+                                <Text style={styles.tag}>#{tag}</Text>
+                            </TouchableOpacity>
+                        ))}
                     </View>
+
                     {post?.createdAt && (
                         <Text style={styles.date}>{formatPostDate(post.createdAt)}</Text>
                     )}

@@ -17,4 +17,6 @@ public interface SaveRepository extends JpaRepository<Save, UUID> {
     List<Save> findByPostId(UUID postId);
 
     List<Save> findByUserId(UUID userId);
+
+    void deleteAllByPost_Id(UUID postİd);
 }

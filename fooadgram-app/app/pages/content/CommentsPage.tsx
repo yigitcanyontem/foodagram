@@ -7,7 +7,8 @@ import {
     TouchableOpacity,
     TextInput,
     KeyboardAvoidingView,
-    Platform
+    Platform,
+    Alert
 } from 'react-native';
 import {useNavigation, useRoute} from "@react-navigation/native";
 import React, {useEffect, useState} from "react";
@@ -26,6 +27,8 @@ import {UsersProfileDto} from "@/models/user/UsersProfileDto";
 import UserResultCard from "@/app/shared/profile/UserResultCard";
 import ReportModal from "@/app/shared/content/ReportModal";
 import {ReportType} from "@/models/content/dto/ReportType";
+import Toast from 'react-native-toast-message';
+import {InfiniteScrollerList} from "react-native-infinite-scroller";
 
 type CommentsParams = {
     postId: string;
@@ -39,15 +42,39 @@ const CommentsPage = () => {
     const [comments, setComments] = useState<CommentResponseDto[]>([]);
     const [newComment, setNewComment] = useState<string>('');
     const [replyTo, setReplyTo] = useState<string | null>(null); // Track the comment being replied to
+    const [pageSize, setPageSize] = useState<number>(10);
+    const [page, setPage] = useState<number>(0);
+    const [totalPages, setTotalPages] = useState<number>(0);
+    const [totalLength, setTotalLength] = useState<number>(0);
+    const [isLoading, setIsLoading] = useState<number>(true);
 
     const fetchComments = async () => {
         try {
-            const commentsResponse = await CommentService.getCommentsByPost(postId, userData);
-            setComments(commentsResponse);
+            setIsLoading(true)
+            const commentsResponse = await CommentService.getCommentsByPost(postId, userData, page, pageSize);
+            if (comments.length == 0){
+                setComments(commentsResponse.data);
+            }else {
+                setComments((prevComments) => [...prevComments, ...commentsResponse.data]);
+            }
+            setTotalPages(commentsResponse.totalPages);
+            setTotalLength(commentsResponse.totalElements);
+            setIsLoading(false);
         } catch (error) {
             console.error("Failed to fetch comments", error);
         }
     };
+
+    useEffect(() => {
+        fetchComments()
+    }, [page, pageSize]);
+
+    const incrementPage = () => {
+        const newPage = page + 1;
+        if (newPage >= 0 && newPage < totalPages) {
+            setPage(newPage);
+        }
+    }
 
     const handleComment = async () => {
         if (!newComment.trim()) return;
@@ -69,35 +96,70 @@ const CommentsPage = () => {
         }
     };
 
+    const handleDeleteComment = (id: string) => {
+        Alert.alert(
+            'Delete comment',
+            'Are you sure? Any replies will also disappear.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await CommentService.deleteComment(id, userData);
+                            fetchComments();                     // refresh list
+                        } catch {
+                            Toast.show({ type: 'error', text1: 'Failed to delete' });
+                        }
+                    },
+                },
+            ],
+        );
+    };
+
     const renderComments = (comments: CommentResponseDto[], parentId: string | null = null) => {
         return comments
             .filter((comment) => comment.parentReplyId === parentId)
             .map((comment) => (
-                <View key={comment.id} style={styles.commentItem}>
-                    <View style={shared_styles.titleContainer}>
-                        <Text style={styles.commentUsername}>{comment.createdByUsername}</Text>
+                renderComment(comment)
+            ));
+    };
 
-                        {
-                            comment?.userId != userData?.id &&
+    const renderComment =  (comment: CommentResponseDto, parentId: string | null = null) => {
+        return (
+            <View key={comment.id} style={styles.commentItem}>
+                <View style={shared_styles.titleContainer}>
+                    <Text style={styles.commentUsername}>{comment.createdByUsername}</Text>
+
+                    {/* right-side icons */}
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                        {comment.userId !== userData?.id && (
                             <ReportModal
                                 reportType={ReportType.COMMENT}
                                 reportedEntityId={comment.id}
                             />
-                        }
+                        )}
 
-                    </View>
-                    <Text style={styles.commentContent}>{comment.content}</Text>
-                    <Text style={styles.commentDate}>{formatPostDate(comment.createdAt)}</Text>
-                    <TouchableOpacity onPress={() => setReplyTo(comment.id)}>
-                        <Text style={styles.replyButton}>Reply</Text>
-                    </TouchableOpacity>
-                    {/* Render nested replies */}
-                    <View style={styles.nestedComments}>
-                        {renderComments(comments, comment.id)}
+                        {comment.userId === userData?.id && (
+                            <TouchableOpacity onPress={() => handleDeleteComment(comment.id)}>
+                                <AntDesign name="delete" size={18} color="red" />
+                            </TouchableOpacity>
+                        )}
                     </View>
                 </View>
-            ));
-    };
+                <Text style={styles.commentContent}>{comment.content}</Text>
+                <Text style={styles.commentDate}>{formatPostDate(comment.createdAt)}</Text>
+                <TouchableOpacity onPress={() => setReplyTo(comment.id)}>
+                    <Text style={styles.replyButton}>Reply</Text>
+                </TouchableOpacity>
+                {/* Render nested replies */}
+                <View style={styles.nestedComments}>
+                    {renderComments(comments, comment.id)}
+                </View>
+            </View>
+        );
+    }
 
     useEffect(() => {
         fetchComments();
@@ -109,11 +171,15 @@ const CommentsPage = () => {
                 <View style={[styles.container, {marginTop: 10}]}>
                     <Text style={styles.commentsTitle}>Comments</Text>
                 </View>
-                <ScrollView contentContainerStyle={styles.container}>
-                    <View style={styles.commentsSection}>
-                        {renderComments(comments)}
-                    </View>
-                </ScrollView>
+                <InfiniteScrollerList
+                    contentContainerStyle={styles.container}
+                    data={comments}
+                    keyExtractor={(item) => item.id.toString()}
+                    renderItem={({ item }) => renderComment(item)}
+                    isLoading={isLoading}
+                    totalLength={totalLength}
+                    onFetchTrigger={incrementPage}
+                />
 
                 {/* Comment Input */}
                 <View style={styles.commentInputContainer}>

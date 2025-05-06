@@ -2,6 +2,8 @@ package com.foodagram.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import com.foodagram.amqp.RabbitMQMessageProducer;
 import com.foodagram.clients.auth.AuthClient;
@@ -13,6 +15,8 @@ import com.foodagram.clients.users.profile.UsersProfileDto;
 import com.foodagram.user.domain.Users;
 import com.foodagram.user.repository.UsersRepository;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -95,5 +99,45 @@ public class UsersService {
         UsersProfileDto usersProfileDto = usersProfileService.getUsersProfileByUsersId(usersDto.getId());
         usersDto.setPassword(null);
         return new UsersCompleteDto(usersDto, usersProfileDto);
+    }
+
+    public List<UsersCompleteDto> getAllUsers() {
+        List<UsersCompleteDto> completeDtos = new ArrayList<>();
+
+        List<UsersDto> usersDtos = usersRepository.findAll()
+                .stream()
+                .map(user -> new UsersDto().builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .enabled(user.isEnabled())
+                .createdDate(user.getCreatedDate())
+                .build()).toList();
+
+        for (UsersDto usersDto : usersDtos) {
+            UsersProfileDto usersProfileDto = usersProfileService.getUsersProfileByUsersId(usersDto.getId());
+            usersDto.setPassword(null);
+            completeDtos.add(new UsersCompleteDto(usersDto, usersProfileDto));
+        }
+        return completeDtos;
+    }
+
+    public void deleteUser(UUID id, String jwtToken) {
+        // Validate token and check if user has permission to delete
+        UsersDto usersDto = authClient.validateToken(jwtToken).getBody();
+        if (usersDto == null || !usersDto.getRole().equals("ADMIN")) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        Users user = usersRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Delete user profile first
+        //TODO: Check if user has posts and delete them first
+//        usersProfileService.deleteUsersProfile(user.getId());
+
+        // Delete user
+        usersRepository.delete(user);
     }
 }

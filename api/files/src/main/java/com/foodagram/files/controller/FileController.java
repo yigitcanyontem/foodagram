@@ -54,4 +54,10 @@ public class FileController {
         fileService.deleteFile(fileId);
         return ResponseEntity.ok("File deleted: " + fileId);
     }
+
+    @DeleteMapping("/by-file-name")
+    public ResponseEntity<String> deleteFileByFileName(@RequestParam String fileName) {
+        fileService.deleteFileByFileName(fileName);
+        return ResponseEntity.ok("File deleted: " + fileName);
+    }
 }

@@ -41,7 +41,9 @@ public class Comment extends BaseEntity {
     @JoinColumn(name = "parent_reply_id")
     private Comment parentReply;
 
-    @OneToMany(mappedBy = "parentReply", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    @OneToMany(mappedBy = "parentReply",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<Comment> replies = new ArrayList<>();
 
     private Long upvoteCount;
@@ -51,7 +53,9 @@ public class Comment extends BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-    @OneToMany(mappedBy = "comment", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    @OneToMany(mappedBy = "comment",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<CommentVote> votes = new ArrayList<>();
 
     @Column(name = "edited", nullable = false)

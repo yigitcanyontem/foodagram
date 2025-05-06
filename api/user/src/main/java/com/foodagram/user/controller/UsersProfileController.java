@@ -127,4 +127,15 @@ public class UsersProfileController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping("all")
+    public ResponseEntity<List<UsersProfileDto>> getAllUsersProfiles(){
+        try {
+            //TODO check if user is admin
+            return new ResponseEntity<>(usersProfileService.getAllUsersProfiles(), HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error while fetching all users: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

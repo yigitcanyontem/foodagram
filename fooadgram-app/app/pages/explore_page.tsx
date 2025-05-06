@@ -65,7 +65,7 @@ const ExplorePage = () => {
                     />
                 </View>
                 {
-                    posts.length > 0 && (
+                    posts.length > 0 && query == '' && (
                         <View style={shared_styles.column}>
                             <View style={[shared_styles.row, {paddingHorizontal: 20}]}>
                                 <Text style={styles.section_title}>Posts</Text>

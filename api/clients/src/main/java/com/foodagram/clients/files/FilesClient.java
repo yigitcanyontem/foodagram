@@ -28,4 +28,9 @@ public interface FilesClient {
 
     @DeleteMapping("api/v1/files/{fileId}")
     ResponseEntity<String> deleteFile(@PathVariable("fileId") UUID fileId);
+
+    @DeleteMapping("api/v1/files/by-file-name")
+    ResponseEntity<String> deleteFileByFileName(
+            @RequestParam("fileName") String fileName
+    );
 }

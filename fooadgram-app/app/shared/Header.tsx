@@ -68,6 +68,16 @@ export default function Header({title}) {
                             </View>
                         }
                     </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={() => {
+                            navigation.navigate('Chats');
+                        }}
+                    >
+                        <MessageIcon fill={'#8E8E8E'} width={25} height={25}/>
+
+                    </TouchableOpacity>
+
                 </View>
             }
         </View>

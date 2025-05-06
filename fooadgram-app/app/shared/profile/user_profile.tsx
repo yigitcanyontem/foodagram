@@ -15,6 +15,7 @@ import Toast from "react-native-toast-message";
 import {GlobalConstants} from "@/utils/GlobalConstants";
 import {ContentService} from "@/services/content-service";
 import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
+import { chatSocket } from '@/services/chat-socket';
 
 
 const UserProfile = ({profileId}) => {
@@ -61,10 +62,12 @@ const UserProfile = ({profileId}) => {
         }
     }, [profileId]);
 
-    const logout = async () => {
+        const logout = async () => {
         try {
+            chatSocket.disconnect()
             setUserData(null);
             navigation.navigate("Login");
+
         } catch (error) {
             console.error("Logout failed", error);
         }

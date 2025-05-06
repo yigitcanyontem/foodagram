@@ -5,6 +5,7 @@
     <file url="file://$PROJECT_DIR$/api/apigw/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/api/auth/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/api/cache/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/api/chat/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/api/clients/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/api/content/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/api/eureka-server/src/main/java" charset="UTF-8" />

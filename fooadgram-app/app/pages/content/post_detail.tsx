@@ -5,7 +5,6 @@ import {useAppContext} from "@/context/AppContext";
 import FGTabBar from "@/app/shared/FGTabBar";
 import shared_styles from "@/shared_styles";
 import {AntDesign, FontAwesome, Entypo} from '@expo/vector-icons';
-import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
 import {ContentService} from "@/services/content-service";
 import {GlobalConstants} from "@/utils/GlobalConstants";
 import {formatPostDate} from "@/utils/dayjsConfig";

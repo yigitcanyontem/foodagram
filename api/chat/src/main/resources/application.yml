@@ -1,0 +1,45 @@
+server:
+  port: 8090
+
+spring:
+  cloud:
+    compatibility-verifier:
+      enabled: false
+  zipkin:
+    base-url: http://localhost:9411
+  rabbitmq:
+    addresses: localhost:5672
+  application:
+    name: chat
+  servlet:
+    multipart:
+      max-file-size: 30MB
+      max-request-size: 30MB
+  datasource:
+    username: 'postgres'
+    url: jdbc:postgresql://localhost:5432/chat
+    password: 'password'
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+
+rabbitmq:
+  exchanges:
+    internal: internal.exchange
+  queues:
+    notification: notification.queue
+  routing-keys:
+    internal-notification: internal.notification.routing-key

@@ -1,5 +1,5 @@
 server:
-  address: 192.168.0.12
+  address: 192.168.1.4
   port: 8083
 
 spring:
@@ -19,8 +19,7 @@ spring:
         corsConfigurations:
           '[/**]':
             allowedOrigins:
-              - "http://localhost:5173"
-              - "http://localhost:5174"
+              - "*"
             allowedHeaders: "*"
             allowedMethods:
               - GET
@@ -83,9 +82,17 @@ spring:
         - id: content-feed
           uri: lb://CONTENT
           predicates:
-              - Path=/api/v1/content/**
+            - Path=/api/v1/content/**
           filters:
-              - RewritePath=/api/v1/content/(?<segment>.*), /api/v1/content/${segment}
+            - RewritePath=/api/v1/content/(?<segment>.*), /api/v1/content/${segment}
+        - id: chat-rest
+          uri: lb://CHAT
+          predicates:
+            - Path=/api/v1/chat/**
+        - id: chat-ws
+          uri: lb:ws://CHAT
+          predicates:
+            - Path=/chat/ws/**
 
 management:
   tracing:

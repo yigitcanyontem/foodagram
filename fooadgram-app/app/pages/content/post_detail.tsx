@@ -132,7 +132,7 @@ const PostDetailPage = () => {
                         try {
                             await ContentService.deletePost(postId, userData);
                             Toast.show({ type: 'success', text1: 'Post deleted.' });
-                            navigation.goBack();       // or navigation.navigate('Home')
+                            navigation.goBack();       {/*or navigation.navigate('Home')*/}
                         } catch (e) {
                             Toast.show({ type: 'error', text1: 'Delete failed' });
                         }
@@ -175,12 +175,13 @@ const PostDetailPage = () => {
                     </TouchableOpacity>
 
                     {/* Post Header */}
+                    {/* Added navigation to profile page when clicked on username */}
                     <View style={styles.header}>
                         <TouchableOpacity onPress={() => {
                             console.log("Navigating to user profile with ID:", post?.userId);
                             navigation.navigate('Profile', {userId: post?.userId});
                         }}>
-                            <Text style={[styles.username, { textDecorationLine: 'underline' }]}>{post?.username}</Text>
+                            <Text style={[styles.username]}>{post?.username}</Text>
                         </TouchableOpacity>
 
                         {
@@ -255,7 +256,7 @@ const PostDetailPage = () => {
                         <Text style={styles.likes}>{post?.likes} likes</Text>
                     </TouchableOpacity>
 
-                    //Added navigation to profile page when clicked on username
+                    {/* Added navigation to profile page when clicked on username */}
                     <View>
                         <Text style={styles.description}>
                             <Text

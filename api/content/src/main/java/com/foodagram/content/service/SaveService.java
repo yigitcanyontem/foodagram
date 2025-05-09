@@ -8,6 +8,7 @@ import com.foodagram.content.domain.Save;
 import com.foodagram.content.repository.PostRepository;
 import com.foodagram.content.repository.SaveRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ public class SaveService {
     private final PostService postService;
 
     @Transactional
+
     public void savePost(UUID userId, UUID postId) {
         // Avoid duplicate saves
         if (saveRepository.findByUserIdAndPostId(userId, postId).isPresent()) {
@@ -70,15 +72,18 @@ public class SaveService {
         return usersDtos;
     }
 
-    public List<PostResponseDto> getSavedPostsByUser(UUID userId) {
-        List<UUID> postIds = saveRepository.findByUserId(userId)
-                .stream()
-                .map(
-                        save -> save.getPost().getId()
-                )
-                .toList();
+    public Page<PostResponseDto> getSavedPostsByUser(UUID userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdDate")));
+        Page<UUID> postIdsPage = saveRepository.findPostIdsByUserId(userId, pageable);
 
-        return postService.getAllPostsByIDIn(postIds);
+        List<UUID> postIds = postIdsPage.getContent();
+        Page<Post> postPage = postRepository.findAllByIdIn(postIds, pageable);
+
+        return new PageImpl<>(
+                postService.getAllPostsByIDIn(postIds),
+                pageable,
+                postIdsPage.getTotalElements()
+        );
     }
 
 }

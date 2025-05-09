@@ -2,7 +2,10 @@ package com.foodagram.content.repository;
 
 import com.foodagram.content.domain.Like;
 import com.foodagram.content.domain.Save;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.Collection;
 import java.util.List;
@@ -19,4 +22,7 @@ public interface SaveRepository extends JpaRepository<Save, UUID> {
     List<Save> findByUserId(UUID userId);
 
     void deleteAllByPost_Id(UUID postİd);
+
+    @Query("SELECT s.post.id FROM Save s WHERE s.userId = :userId")
+    Page<UUID> findPostIdsByUserId(UUID userId, Pageable pageable);
 }

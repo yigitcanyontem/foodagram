@@ -268,11 +268,18 @@ def process_video(request):
     print(f"Raw food name: '{raw_food_name}'")
     print(f"Stripped food name: '{food_name}'")
 
+
     if not video_file:
         return Response({'error': 'No video file provided.'}, status=400)
-
     if not (video_file.content_type.startswith("video/") or video_file.content_type == "image/mp4"):
-        return Response({'error': 'File must be a video.'}, status=400)
+        if video_file.content_type == "image/mp4":
+            video_file.content_type = "video/mp4"
+            logger.info(f"Adjusted MIME type to: {video_file.content_type}")
+        else:
+            return Response({'error': 'File must be a video.'}, status=400)
+
+    logger.info(f"Final video file MIME type: {video_file.content_type}")
+    # === END: MIME type adjustment ===
 
     video_id = f"{uuid.uuid4()}.mp4"
     video_path = os.path.join(settings.MEDIA_ROOT, 'videos', video_id)
@@ -307,8 +314,6 @@ def process_video(request):
 
     food_percentage = (food_frame_count / total_frames) * 100
 
-
-
     if food_percentage >= settings.VIDEO_APPROVAL_THRESHOLD:
         most_common_class = Counter(predicted_classes).most_common(1)
         predicted_label = idx_to_class[most_common_class[0][0]] if most_common_class else "unknown"
@@ -321,7 +326,6 @@ def process_video(request):
             'approved': True
         })
 
-
     if not food_name or food_name.lower() == "none":
         return Response({
             'total_frames': total_frames,
@@ -332,7 +336,6 @@ def process_video(request):
             'reason': 'Model rejected video. Food name required for manual verification.'
         }, status=200)
 
-
     if not is_food_name(food_name):
         return Response({
             'total_frames': total_frames,
@@ -340,7 +343,6 @@ def process_video(request):
             'prediction': NO_MATCH,
             'reason': 'Food name not recognized as food.'
         })
-
 
     sampled_frames = frames[:8]
     passed_sim = any(similarity_check(frame, food_name) for frame in sampled_frames)
@@ -361,5 +363,4 @@ def process_video(request):
             'prediction': NO_MATCH,
             'reason': 'Similarity check failed.'
         })
-
 

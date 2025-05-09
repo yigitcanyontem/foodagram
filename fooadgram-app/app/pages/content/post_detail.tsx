@@ -65,7 +65,7 @@ const PostDetailPage = () => {
                         style={styles.postImage}
                         useNativeControls
                         resizeMode="contain"
-                        isMuted
+                        muted
                         shouldPlay={isActive}
                         onError={(e) => console.error('Video loading error', e)}
                         onLoadStart={() => console.log('Video loading started')}
@@ -144,16 +144,17 @@ const PostDetailPage = () => {
 
 
     useEffect(() => {
-
         return () => {
-            console.log('Cleaning up videos');
-            Object.values(videoRefs.current).forEach((video) => {
-                if (video && 'unloadAsync' in video) {
-                    (video as any).unloadAsync?.();
+            console.log('Cleaning up videos (PostDetailPage unmount)');
+            Object.entries(videoRefs.current).forEach(([uri, video]) => {
+                if (video) {
+                    video.pauseAsync?.();
+                    video.unloadAsync?.();
                 }
             });
+            videoRefs.current = {};
         };
-    }, [postId, userData]);
+    }, []);
 
     useFocusEffect(
         React.useCallback(() => {

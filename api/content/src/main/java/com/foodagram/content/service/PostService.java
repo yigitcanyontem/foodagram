@@ -15,8 +15,12 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Objects;
@@ -44,6 +48,7 @@ public class PostService {
         ) {
             throw new BadRequestException("You must provide a valid media url");
         }
+
 
         Post post = Post.builder()
                 .userId(postCreateDto.getUserId())
@@ -231,18 +236,25 @@ public class PostService {
         log.info("Updated post comments: {}", post);
     }
 
-    public List<PostResponseDto> getPostsByTag(String tag) {
-        return postRepository.findPostsByTagsContainingAndVisibilityNotOrderByCreatedDateDesc(tag, Visibility.PRIVATE).stream()
-                .map(this::mapToResponseDto)
-                .collect(Collectors.toList());
+    public Page<PostResponseDto> getPostsByTag(String tag, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdDate")));
+        Page<Post> postPage = postRepository.findPostsByTagsContainingAndVisibilityNotOrderByCreatedDateDesc(tag, Visibility.PRIVATE, pageable);
+
+        return postPage.map(this::mapToResponseDto); // Mapping to PostResponseDto while retaining pagination
     }
 
-    public List<PostResponseDto> getRandomPublicPostsForExplore(UUID id) {
-        return postRepository
-                .findAllByUserIdNotAndVisibilityNotOrderByCreatedDateDesc(id, Visibility.PRIVATE)
-                .stream()
-                .map(this::mapToResponseDto)
-                .collect(Collectors.toList());
+    public Page<PostResponseDto> getRandomPublicPostsForExplore(UUID userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Post> postPage = postRepository.findAllByUserIdNotAndVisibilityNotOrderByCreatedDateDesc(userId,Visibility.PRIVATE, pageable);
+        return postPage.map(this::mapToResponseDto);
+    }
+
+    public Page<PostResponseDto> getSavedPostsByUser(UUID userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdDate")));
+        Page<UUID> savedPostIds = saveRepository.findPostIdsByUserId(userId, pageable);
+        Page<Post> postPage = postRepository.findAllByIdIn(savedPostIds.getContent(), pageable);
+        return postPage.map(this::mapToResponseDto);
     }
 
     public List<PostResponseDto> getAllPosts() {

@@ -45,6 +45,7 @@
     "@rn-primitives/toggle-group": "^1.1.0",
     "@rn-primitives/tooltip": "^1.1.0",
     "@rn-primitives/types": "^1.1.0",
+    "@stomp/stompjs": "^7.1.1",
     "axios": "^1.8.4",
     "dayjs": "^1.11.13",
     "expo": "~52.0.46",

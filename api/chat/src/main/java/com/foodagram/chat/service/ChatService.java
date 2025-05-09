@@ -2,10 +2,12 @@ package com.foodagram.chat.service;
 
 import com.foodagram.chat.domain.Conversation;
 import com.foodagram.chat.domain.Message;
+import com.foodagram.chat.rabbitmq.ChatAMQPService;
 import com.foodagram.chat.repository.ConversationRepository;
 import com.foodagram.chat.repository.MessageRepository;
 import com.foodagram.clients.chat.dto.ChatMessageDto;
 import com.foodagram.clients.chat.dto.ConversationDto;
+import com.foodagram.clients.shared.dto.GenericRabbitMQMessage;
 import com.foodagram.clients.users.UsersClient;
 import com.foodagram.clients.users.dto.UsersDto;
 import com.foodagram.clients.users.profile.UsersProfileDto;
@@ -30,6 +32,8 @@ public class ChatService {
     private final MessageRepository      msgRepo;
     private final SimpMessagingTemplate  broker;
     private final UsersClient            usersClient;
+
+    private final ChatAMQPService amqp;
 
     /* ------------------------------------------------------------------ */
     /*  Conversation helper – guarantees BOTH participants are present    */
@@ -69,6 +73,20 @@ public class ChatService {
                 .content(payload.getContent())
                 .build());
 
+        amqp.publishMessageCreated(
+                new GenericRabbitMQMessage(
+                        "chatMessageCreated",
+                        ChatMessageDto.builder()
+                                .conversationId(conv.getId())
+                                .senderId(senderId)
+                                .receiverId(actualReceiverId)
+                                .content(saved.getContent())
+                                .timestamp(saved.getCreatedDate()
+                                        .toInstant(ZoneOffset.UTC))
+                                .build()
+                )
+        );
+
         conv.setUpdatedDate(LocalDateTime.now());
         convRepo.save(conv);
 
@@ -90,15 +108,15 @@ public class ChatService {
     }
 
     /* ------------------------------------------------------------------ */
-    /*  Existing helpers (unchanged)                                      */
+    /*                     helpers                                        */
     /* ------------------------------------------------------------------ */
 
     public List<ConversationDto> listConversations(UUID userId) {
 
-        /* 1️⃣ pull following from Users‑service ---------------------------------- */
+        /* pull following from Users‑service ---------------------------------- */
         List<UsersProfileDto> followingProfiles =
                 Optional.ofNullable(usersClient.getUserFollowing(userId).getBody())
-                        .orElse(List.of())
+                        .orElse(List.of());
 
         List<UUID> following = followingProfiles.stream()
                 .map(UsersProfileDto::getUsersId)
@@ -122,7 +140,7 @@ public class ChatService {
         UUID other = me.equals(c.getParticipantA()) ? c.getParticipantB()
                 : c.getParticipantA();
 
-        /*  ►►  profile only  ◄◄  */
+        /*  profile only  */
         UsersProfileDto otherProfile = usersClient.getUserProfileByUserId(other);
 
         if (otherProfile == null) {

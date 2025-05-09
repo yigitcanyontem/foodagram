@@ -40,6 +40,8 @@ rabbitmq:
   exchanges:
     internal: internal.exchange
   queues:
-    notification: notification.queue
+    command:  chat.command.queue
+    event:    chat.event.queue
   routing-keys:
-    internal-notification: internal.notification.routing-key
+    chat-command: chat.command.#
+    chat-event:   chat.message.created

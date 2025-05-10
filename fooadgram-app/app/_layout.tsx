@@ -51,6 +51,8 @@ import LikesPage from "@/app/pages/content/LikesPage";
 import CommentsPage from "@/app/pages/content/CommentsPage";
 import TagPage from "@/app/pages/content/TagPage";
 import NotificationsPage from "@/app/pages/NotificationsPage";
+import ChatsPage from "@/app/pages/chat/ChatsPage";
+import ChatRoomPage from "@/app/pages/chat/ChatRoomPage";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -125,6 +127,8 @@ export default function RootLayout() {
                         <Stack.Screen name="Comments" component={CommentsPage} />
                         <Stack.Screen name="Tag" component={TagPage} />
                         <Stack.Screen name="Notifications" component={NotificationsPage} />
+                        <Stack.Screen name="Chats" component={ChatsPage}/>
+                        <Stack.Screen name="ChatRoom" component={ChatRoomPage}/>
                     </Stack.Navigator>
                 </ThemeProvider>
                 <Toast/>

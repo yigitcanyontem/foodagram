@@ -5,7 +5,6 @@ import {useAppContext} from "@/context/AppContext";
 import FGTabBar from "@/app/shared/FGTabBar";
 import shared_styles from "@/shared_styles";
 import {AntDesign, FontAwesome, Entypo} from '@expo/vector-icons';
-import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
 import {ContentService} from "@/services/content-service";
 import {GlobalConstants} from "@/utils/GlobalConstants";
 import {formatPostDate} from "@/utils/dayjsConfig";
@@ -66,7 +65,7 @@ const PostDetailPage = () => {
                         style={styles.postImage}
                         useNativeControls
                         resizeMode="contain"
-                        isMuted
+                        muted
                         shouldPlay={isActive}
                         onError={(e) => console.error('Video loading error', e)}
                         onLoadStart={() => console.log('Video loading started')}
@@ -145,16 +144,17 @@ const PostDetailPage = () => {
 
 
     useEffect(() => {
-
         return () => {
-            console.log('Cleaning up videos');
-            Object.values(videoRefs.current).forEach((video) => {
-                if (video && 'unloadAsync' in video) {
-                    (video as any).unloadAsync?.();
+            console.log('Cleaning up videos (PostDetailPage unmount)');
+            Object.entries(videoRefs.current).forEach(([uri, video]) => {
+                if (video) {
+                    video.pauseAsync?.();
+                    video.unloadAsync?.();
                 }
             });
+            videoRefs.current = {};
         };
-    }, [postId, userData]);
+    }, []);
 
     useFocusEffect(
         React.useCallback(() => {

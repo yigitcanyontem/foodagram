@@ -16,6 +16,7 @@ import { AuthService } from "@/services/auth-service";
 import Toast from "react-native-toast-message";
 import { useAppContext } from "@/context/AppContext";
 import shared_styles from "@/shared_styles";
+import { chatSocket } from "@/services/chat-socket";
 
 type LoginPageProps = {
     navigation: NavigationProp<any>;
@@ -74,7 +75,7 @@ const LoginPage = () => {
                 position: "top",
                 topOffset: 60,
             });
-
+            chatSocket.disconnect()
             navigation.navigate("Home");
         } catch (err) {
             Toast.show({

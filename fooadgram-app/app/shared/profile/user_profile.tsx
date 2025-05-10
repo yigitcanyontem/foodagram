@@ -15,6 +15,7 @@ import Toast from "react-native-toast-message";
 import {GlobalConstants} from "@/utils/GlobalConstants";
 import {ContentService} from "@/services/content-service";
 import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
+import { chatSocket } from '@/services/chat-socket';
 
 
 const UserProfile = ({profileId}) => {
@@ -63,8 +64,10 @@ const UserProfile = ({profileId}) => {
 
     const logout = async () => {
         try {
+            chatSocket.disconnect()
             setUserData(null);
             navigation.navigate("Login");
+
         } catch (error) {
             console.error("Logout failed", error);
         }
@@ -121,170 +124,170 @@ const UserProfile = ({profileId}) => {
     }
 
     return (
-       <>
-           {
-               userProfile &&
-               <>
-                   <View style={[shared_styles.column, {flex: 1, marginTop: 20}]}>
-                       <View style={[shared_styles.row, shared_styles.paddingH_20]}>
-                           <View style={shared_styles.profilePicContainer}>
-                               <Image
-                                   source={
-                                       userProfile?.profilePicture ? { uri:  GlobalConstants.s3Url + userProfile?.profilePicture}
-                                           : require('@/assets/images/dummy-profile.jpeg')
-                                   }
-                                   style={shared_styles.profilePic}
-                               />
-                           </View>
+        <>
+            {
+                userProfile &&
+                <>
+                    <View style={[shared_styles.column, {flex: 1, marginTop: 20}]}>
+                        <View style={[shared_styles.row, shared_styles.paddingH_20]}>
+                            <View style={shared_styles.profilePicContainer}>
+                                <Image
+                                    source={
+                                        userProfile?.profilePicture ? { uri:  GlobalConstants.s3Url + userProfile?.profilePicture}
+                                            : require('@/assets/images/dummy-profile.jpeg')
+                                    }
+                                    style={shared_styles.profilePic}
+                                />
+                            </View>
 
-                           <View style={[shared_styles.column, {flex: 1}]}>
-                               <View style={[shared_styles.row, {marginLeft: 20}]}>
-                                   <Label
-                                       style={{
-                                           fontSize: 15,
-                                           fontFamily: 'Poppins',
-                                           fontWeight: "medium",
-                                           marginBottom: 10
-                                       }}>
-                                       {userProfile?.username || 'Username'}
-                                   </Label>
-                               </View>
+                            <View style={[shared_styles.column, {flex: 1}]}>
+                                <View style={[shared_styles.row, {marginLeft: 20}]}>
+                                    <Label
+                                        style={{
+                                            fontSize: 15,
+                                            fontFamily: 'Poppins',
+                                            fontWeight: "medium",
+                                            marginBottom: 10
+                                        }}>
+                                        {userProfile?.username || 'Username'}
+                                    </Label>
+                                </View>
 
-                               <View
-                                   style={[shared_styles.row, {flex: 1, marginLeft: 20, justifyContent: "space-between"}]}>
-                                   <TouchableOpacity style={[shared_styles.column, {alignItems: "center"}]}>
-                                       <Label
-                                           style={{fontSize: 15, fontWeight: "bold"}}>
-                                           {posts?.length || 0}
-                                       </Label>
-                                       <Label
-                                           style={{fontSize: 15, fontWeight: "medium"}}>
-                                           Posts
-                                       </Label>
-                                   </TouchableOpacity>
-                                   <TouchableOpacity
-                                       onPress={() => {
-                                           navigation.navigate("ProfileFollowDetails", {
-                                               userId: userProfile?.usersId,
-                                               preSelectedTab: 'followers'
-                                           })
-                                       }}
+                                <View
+                                    style={[shared_styles.row, {flex: 1, marginLeft: 20, justifyContent: "space-between"}]}>
+                                    <TouchableOpacity style={[shared_styles.column, {alignItems: "center"}]}>
+                                        <Label
+                                            style={{fontSize: 15, fontWeight: "bold"}}>
+                                            {posts?.length || 0}
+                                        </Label>
+                                        <Label
+                                            style={{fontSize: 15, fontWeight: "medium"}}>
+                                            Posts
+                                        </Label>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            navigation.navigate("ProfileFollowDetails", {
+                                                userId: userProfile?.usersId,
+                                                preSelectedTab: 'followers'
+                                            })
+                                        }}
 
-                                       style={[shared_styles.column, {alignItems: "center"}]}>
-                                       <Label
-                                           style={{fontSize: 15, fontWeight: "bold"}}>
-                                           {userProfile?.followersCount || 0}
-                                       </Label>
-                                       <Label
-                                           style={{fontSize: 15, fontWeight: "medium"}}>
-                                           Followers
-                                       </Label>
-                                   </TouchableOpacity>
+                                        style={[shared_styles.column, {alignItems: "center"}]}>
+                                        <Label
+                                            style={{fontSize: 15, fontWeight: "bold"}}>
+                                            {userProfile?.followersCount || 0}
+                                        </Label>
+                                        <Label
+                                            style={{fontSize: 15, fontWeight: "medium"}}>
+                                            Followers
+                                        </Label>
+                                    </TouchableOpacity>
 
-                                   <TouchableOpacity
-                                       onPress={() => {
-                                           navigation.navigate("ProfileFollowDetails", {
-                                               userId: userProfile?.usersId,
-                                               preSelectedTab: 'following'
-                                           })
-                                       }}
-                                       style={[shared_styles.column, {alignItems: "center"}]}>
-                                       <Label
-                                           style={{fontSize: 15, fontWeight: "bold"}}>
-                                           {userProfile?.followingCount || 0}
-                                       </Label>
-                                       <Label
-                                           style={{fontSize: 15, fontWeight: "medium"}}>
-                                           Following
-                                       </Label>
-                                   </TouchableOpacity>
-                               </View>
-                           </View>
-                       </View>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            navigation.navigate("ProfileFollowDetails", {
+                                                userId: userProfile?.usersId,
+                                                preSelectedTab: 'following'
+                                            })
+                                        }}
+                                        style={[shared_styles.column, {alignItems: "center"}]}>
+                                        <Label
+                                            style={{fontSize: 15, fontWeight: "bold"}}>
+                                            {userProfile?.followingCount || 0}
+                                        </Label>
+                                        <Label
+                                            style={{fontSize: 15, fontWeight: "medium"}}>
+                                            Following
+                                        </Label>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
 
-                       <View style={[shared_styles.column, shared_styles.paddingH_20, {marginTop: 20}]}>
-                           <Label
-                               style={{fontSize: 15, fontFamily: 'Poppins', fontWeight: "medium", marginBottom: 10}}>
-                               {userProfile?.firstName ? (userProfile?.firstName + ' ' + userProfile?.lastName) : ''}
-                           </Label>
-                           <Label
-                               style={{fontSize: 15, fontFamily: 'Poppins', fontWeight: "medium", marginBottom: 10}}>
-                               {userProfile?.bio || ''}
-                           </Label>
+                        <View style={[shared_styles.column, shared_styles.paddingH_20, {marginTop: 20}]}>
+                            <Label
+                                style={{fontSize: 15, fontFamily: 'Poppins', fontWeight: "medium", marginBottom: 10}}>
+                                {userProfile?.firstName ? (userProfile?.firstName + ' ' + userProfile?.lastName) : ''}
+                            </Label>
+                            <Label
+                                style={{fontSize: 15, fontFamily: 'Poppins', fontWeight: "medium", marginBottom: 10}}>
+                                {userProfile?.bio || ''}
+                            </Label>
 
-                       </View>
+                        </View>
 
-                       {
-                           userData && (profileId == userData?.id) &&
-                           <View style={[shared_styles.row, shared_styles.paddingH_20, {marginTop: 20, gap: 10}]}>
-                               <TouchableOpacity style={shared_styles.transparent_button} onPress={() => {
-                                   navigation.navigate("EditProfilePage")
-                               }}>
-                                   <Text style={shared_styles.button_text}>
-                                       Edit Profile
-                                   </Text>
-                               </TouchableOpacity>
+                        {
+                            userData && (profileId == userData?.id) &&
+                            <View style={[shared_styles.row, shared_styles.paddingH_20, {marginTop: 20, gap: 10}]}>
+                                <TouchableOpacity style={shared_styles.transparent_button} onPress={() => {
+                                    navigation.navigate("EditProfilePage")
+                                }}>
+                                    <Text style={shared_styles.button_text}>
+                                        Edit Profile
+                                    </Text>
+                                </TouchableOpacity>
 
-                               <TouchableOpacity style={shared_styles.logout_button} onPress={() => {
-                                   logout()
-                               }}>
-                                   <Text style={shared_styles.button_text}>
-                                       Logout
-                                   </Text>
-                               </TouchableOpacity>
+                                <TouchableOpacity style={shared_styles.logout_button} onPress={() => {
+                                    logout()
+                                }}>
+                                    <Text style={shared_styles.button_text}>
+                                        Logout
+                                    </Text>
+                                </TouchableOpacity>
 
-                           </View>
-                       }
+                            </View>
+                        }
 
-                       {
-                           userData && (profileId != userData?.id) && !userIsFollowed &&
-                           <View style={[shared_styles.row, shared_styles.paddingH_20, {marginTop: 20, gap: 10}]}>
-                               <TouchableOpacity style={shared_styles.transparent_button} onPress={() => {
-                                   followUser(userProfile?.usersId)
-                               }}>
-                                   <Text style={shared_styles.button_text}>
-                                       Follow
-                                   </Text>
-                               </TouchableOpacity>
-                           </View>
-                       }
+                        {
+                            userData && (profileId != userData?.id) && !userIsFollowed &&
+                            <View style={[shared_styles.row, shared_styles.paddingH_20, {marginTop: 20, gap: 10}]}>
+                                <TouchableOpacity style={shared_styles.transparent_button} onPress={() => {
+                                    followUser(userProfile?.usersId)
+                                }}>
+                                    <Text style={shared_styles.button_text}>
+                                        Follow
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        }
 
-                       {
-                           userData && (profileId != userData?.id) && userIsFollowed &&
-                           <View style={[shared_styles.row, shared_styles.paddingH_20, {marginTop: 20, gap: 10}]}>
-                               <TouchableOpacity style={shared_styles.secondary_button} onPress={() => {
-                                   unfollowUser(userProfile?.usersId)
-                               }}>
-                                   <Text style={shared_styles.secondary_button_text}>
-                                       Unfollow
-                                   </Text>
-                               </TouchableOpacity>
-                           </View>
-                       }
-                       <View
-                           style={[shared_styles.bottom_border_separator,
-                               {
-                                   height: 12,
-                                   marginTop: 10,
-                                   marginBottom: 2,
-                               }]}
-                       />
+                        {
+                            userData && (profileId != userData?.id) && userIsFollowed &&
+                            <View style={[shared_styles.row, shared_styles.paddingH_20, {marginTop: 20, gap: 10}]}>
+                                <TouchableOpacity style={shared_styles.secondary_button} onPress={() => {
+                                    unfollowUser(userProfile?.usersId)
+                                }}>
+                                    <Text style={shared_styles.secondary_button_text}>
+                                        Unfollow
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        }
+                        <View
+                            style={[shared_styles.bottom_border_separator,
+                                {
+                                    height: 12,
+                                    marginTop: 10,
+                                    marginBottom: 2,
+                                }]}
+                        />
 
-                       <PostsSection key={`posts_of_${profileId}`} posts={posts}/>
-                   </View>
-               </>
-           }
+                        <PostsSection key={`posts_of_${profileId}`} posts={posts}/>
+                    </View>
+                </>
+            }
 
-           {
-               !userProfile &&
-               <View style={[shared_styles.column, {flex: 1, marginTop: 20}]}>
-                   <Label
-                       style={{fontSize: 15, fontFamily: 'Poppins', fontWeight: "medium", marginBottom: 10}}>
-                       Loading...
-                   </Label>
-               </View>
-           }
-       </>
+            {
+                !userProfile &&
+                <View style={[shared_styles.column, {flex: 1, marginTop: 20}]}>
+                    <Label
+                        style={{fontSize: 15, fontFamily: 'Poppins', fontWeight: "medium", marginBottom: 10}}>
+                        Loading...
+                    </Label>
+                </View>
+            }
+        </>
     );
 };
 

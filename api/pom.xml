@@ -23,6 +23,7 @@
 		<module>cache</module>
 		<module>files</module>
 		<module>content</module>
+		<module>chat</module>
 	</modules>
 	<packaging>pom</packaging>
 

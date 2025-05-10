@@ -422,9 +422,9 @@ const CreatePostPage = () => {
             const response = await ContentService.createPost(postData, userData);
 
             // Navigate back or to the post detail page
-            Alert.alert('Success', 'Post created successfully!');
-            navigation.goBack();
-        } catch (error) {
+                Alert.alert('Success', 'Post created successfully!');
+                 navigation.goBack();
+                 } catch (error) {
             console.error('Error creating post:', error);
             setError('Failed to create post. Please try again.');
         } finally {

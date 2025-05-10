@@ -52,6 +52,8 @@ public class ReportService {
             case USER:
                 UsersProfileDto userProfile = usersClient.getUserProfileByUserId(reportCreationDto.getReportedEntityId());
                 break;
+            case CHAT_MESSAGE:
+                break;
             default:
                 throw new IllegalArgumentException("Invalid report type");
         }

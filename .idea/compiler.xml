@@ -13,6 +13,7 @@
         <module name="clients" />
         <module name="auth" />
         <module name="amqp" />
+        <module name="chat" />
         <module name="validator" />
         <module name="files" />
         <module name="eureka-server" />
@@ -27,6 +28,7 @@
       <module name="apigw" options="-parameters" />
       <module name="auth" options="-parameters" />
       <module name="cache" options="-parameters" />
+      <module name="chat" options="-parameters" />
       <module name="clients" options="-parameters" />
       <module name="content" options="-parameters" />
       <module name="eureka-server" options="-parameters" />

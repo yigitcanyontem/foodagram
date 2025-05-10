@@ -9,10 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -34,10 +31,14 @@ public class FeedController {
     private final UsersUtil usersUtil;
 
     @GetMapping("/feed")
-    public ResponseEntity<List<PostResponseDto>> getFeed(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken) {
+    public ResponseEntity<List<PostResponseDto>> getFeed(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken,
+            @RequestParam(defaultValue = "1") int page,    // Default to page 1
+            @RequestParam(defaultValue = "10") int limit)  // Default to limit 10
+    {
         try {
             UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
-            return ResponseEntity.ok(feedService.getFeed(user.getId()));
+            return ResponseEntity.ok(feedService.getFeed(user.getId(), page, limit));  // Pass page and limit to service
         } catch (Exception e) {
             log.error("Error while fetching feed: {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);

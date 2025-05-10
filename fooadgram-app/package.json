@@ -45,6 +45,7 @@
     "@rn-primitives/toggle-group": "^1.1.0",
     "@rn-primitives/tooltip": "^1.1.0",
     "@rn-primitives/types": "^1.1.0",
+    "@stomp/stompjs": "^7.1.1",
     "axios": "^1.8.4",
     "dayjs": "^1.11.13",
     "expo": "~52.0.46",
@@ -81,7 +82,8 @@
     "react-native-toast-message": "^2.2.1",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.13",
-    "react-native-webview": "13.12.5"
+    "react-native-webview": "13.12.5",
+    "sockjs-client": "^1.6.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

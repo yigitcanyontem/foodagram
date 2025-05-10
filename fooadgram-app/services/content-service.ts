@@ -7,6 +7,7 @@ import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
 import {PostCreateDto} from "@/models/content/dto/PostCreateDto";
 import {PostUpdateDto} from "@/models/content/dto/PostUpdateDto";
 import {UsersProfileDto} from "@/models/user/UsersProfileDto";
+import * as FileSystem from 'expo-file-system';
 
 
 export class ContentService {
@@ -16,6 +17,7 @@ export class ContentService {
     static getAuthHeaders(userData: any) {
         return {Authorization: userData?.token ?? ''};
     }
+
 
     // Post endpoints
     static createPost(createDto: PostCreateDto, userData: any): Promise<PostResponseDto> {
@@ -36,6 +38,7 @@ export class ContentService {
             });
     }
 
+
     static getAllPostsByUser(userId: string): Promise<PostResponseDto[]> {
         return axios.get(`${this.postsBaseUrl}/user/${userId}`)
             .then(response => response.data)
@@ -45,8 +48,9 @@ export class ContentService {
             });
     }
 
-    static getRandomPublicPostsForExplore(userData: any): Promise<PostResponseDto[]> {
-        return axios.get(`${this.postsBaseUrl}/explore`, {headers: this.getAuthHeaders(userData)})
+    static getRandomPublicPostsForExplore(userData: any, page: number = 0, size: number = 10): Promise<{ content: PostResponseDto[], totalPages: number }> {
+        const url = `${this.postsBaseUrl}/explore?page=${page}&size=${size}`;
+        return axios.get(url, { headers: this.getAuthHeaders(userData) })
             .then(response => response.data)
             .catch(error => {
                 console.error('Error while fetching posts for explore:', error);
@@ -73,12 +77,45 @@ export class ContentService {
             });
     }
 
+    static async  waitForFileReady(fileUri: string, timeoutMs = 8000, intervalMs = 200): Promise<void> {
+        const start = Date.now();
+
+        return new Promise<void>((resolve, reject) => {
+            const checkFile = async () => {
+                try {
+                    const fileInfo = await FileSystem.getInfoAsync(fileUri);
+
+                    if (fileInfo.exists && fileInfo.size > 0) {
+                        console.log('✅ File is ready:', fileUri);
+                        resolve();
+                    } else if (Date.now() - start > timeoutMs) {
+                        console.error('❌ File did not become ready in time:', fileUri);
+                        reject(new Error('File not ready after waiting'));
+                    } else {
+                        setTimeout(checkFile, intervalMs);
+                    }
+                } catch (error) {
+                    reject(new Error('Error checking file readiness: ' + error.message));
+                }
+            };
+
+            checkFile();
+        });
+    }
+
+
+
     // File upload endpoint
     static async uploadMedia(file: ImagePickerAsset, userData: any): Promise<GenericResponse> {
         const fileUri = file.uri;
 
-        const isVideo = file.type === 'video' || file.mimeType?.includes('video');
+        console.log("file.uri:", fileUri);
+        console.log("file.type:", file.type);
+        console.log("file.mimeType:", file.mimeType);
+        console.log("file.fileName:", file.fileName);
 
+        const fileExtension = file.fileName?.split('.').pop()?.toLowerCase();
+        const isVideo = file.type === 'video' || file.mimeType?.includes('video') || fileExtension === 'mp4';
 
         const extension = isVideo ? '.mp4' : '.jpg';
 
@@ -88,13 +125,24 @@ export class ContentService {
             fileName += extension;
         }
 
+        // Wait for the file to be fully available before uploading
+        try {
+            console.log('⏳ Waiting for file to be ready...');
+            await this.waitForFileReady(fileUri);
+        } catch (e) {
+            console.error('❌ File never became ready:', e);
+            throw e;
+        }
+
+        // Prepare FormData and upload
         const formData = new FormData();
         formData.append('file', {
             uri: fileUri,
             name: fileName,
             type: isVideo ? 'video/mp4' : 'image/jpeg',
         } as any);
-        console.log("Uploading media file:", fileName);
+
+        console.log("📤 Uploading media file:", fileName);
         return axios.post(`${this.contentMediaBaseUrl}/upload`, formData, {
             headers: {
                 ...this.getAuthHeaders(userData),
@@ -107,6 +155,7 @@ export class ContentService {
                 throw error;
             });
     }
+
 
     // Like endpoints
     static likePost(postId: string, userData: any): Promise<void> {
@@ -154,6 +203,7 @@ export class ContentService {
             });
     }
 
+
     static unsavePost(postId: string, userData: any): Promise<void> {
         return axios.delete(`${this.postsBaseUrl}/saves/${postId}`, { headers: this.getAuthHeaders(userData) })
             .then(response => response.data)
@@ -162,6 +212,8 @@ export class ContentService {
                 throw error;
             });
     }
+
+
 
     static hasUserSavedPost(postId: string, userData: any): Promise<boolean> {
         return axios.get(`${this.postsBaseUrl}/saves/${postId}`, { headers: this.getAuthHeaders(userData) })
@@ -172,8 +224,11 @@ export class ContentService {
             });
     }
 
-    static getSavedPostsByUser(userData: any): Promise<PostResponseDto[]> {
-        return axios.get(`${this.postsBaseUrl}/saved-posts`, {headers: this.getAuthHeaders(userData)})
+
+
+    static getSavedPostsByUser(userData: any, page: number = 0, size: number = 10): Promise<{ content: PostResponseDto[], totalPages: number }> {
+        const url = `${this.postsBaseUrl}/saved-posts?page=${page}&size=${size}`;
+        return axios.get(url, { headers: this.getAuthHeaders(userData) })
             .then(response => response.data)
             .catch(error => {
                 console.error('Error while fetching saved posts:', error);
@@ -181,13 +236,17 @@ export class ContentService {
             });
     }
 
-    static getPostsByTag(tag: string, userData: any): Promise<PostResponseDto[]> {
-        return axios.get(`${this.postsBaseUrl}/tag/${tag}`, { headers: this.getAuthHeaders(userData) })
+
+    static getPostsByTag(tag: string, userData: any, page = 0, size = 10): Promise<{ content: PostResponseDto[]; totalPages: number; }> {
+        const url = `${this.postsBaseUrl}/tag/${encodeURIComponent(tag)}?page=${page}&size=${size}`;
+
+        return axios.get(url, { headers: this.getAuthHeaders(userData) })
             .then(response => response.data)
             .catch(error => {
                 console.error('Error while fetching posts by tag:', error);
                 throw error;
             });
     }
+
 
 }

@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.UUID;
@@ -63,15 +65,20 @@ public class PostController {
     }
 
     @GetMapping("/explore")
-    public ResponseEntity<List<PostResponseDto>> getRandomPublicPostsForExplore(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken) {
-        try {
-            UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
-            return ResponseEntity.ok(postService.getRandomPublicPostsForExplore(user.getId()));
-        } catch (Exception e) {
-            log.error("Error while fetching post by user: {}", e.getMessage());
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        public ResponseEntity<Page<PostResponseDto>> getRandomPublicPostsForExplore(
+                @RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken,
+                @RequestParam(defaultValue = "0") int page,
+                @RequestParam(defaultValue = "10") int size
+        ) {
+            try {
+                UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
+                Page<PostResponseDto> explorePosts = postService.getRandomPublicPostsForExplore(user.getId(), page, size);
+                return ResponseEntity.ok(explorePosts);
+            } catch (Exception e) {
+                log.error("Error while fetching explore posts: {}", e.getMessage());
+                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
         }
-    }
 
 
     @PutMapping("/{id}")
@@ -180,10 +187,15 @@ public class PostController {
     }
 
     @GetMapping("/saved-posts")
-    public ResponseEntity<List<PostResponseDto>> getSavedPostsByUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken) {
+    public ResponseEntity<Page<PostResponseDto>> getSavedPostsByUser(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
         try {
             UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
-            return ResponseEntity.ok(saveService.getSavedPostsByUser(user.getId()));
+            Page<PostResponseDto> savedPosts = saveService.getSavedPostsByUser(user.getId(), page, size);
+            return ResponseEntity.ok(savedPosts);
         } catch (Exception e) {
             log.error("Error while fetching saved posts by user : {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -191,15 +203,22 @@ public class PostController {
     }
 
     @GetMapping("/tag/{tag}")
-    public ResponseEntity<List<PostResponseDto>> getPostsByTag(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, @PathVariable String tag) {
+    public ResponseEntity<Page<PostResponseDto>> getPostsByTag(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken,
+            @PathVariable String tag,
+            @RequestParam(defaultValue = "0") int page,  // Default page is 0
+            @RequestParam(defaultValue = "10") int size  // Default size is 10
+    ) {
         try {
             usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
-            return ResponseEntity.ok(postService.getPostsByTag(tag));
+            Page<PostResponseDto> posts = postService.getPostsByTag(tag, page, size); // Paginated posts
+            return ResponseEntity.ok(posts);
         } catch (Exception e) {
             log.error("Error while getting post by tag : {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     @GetMapping
     public ResponseEntity<List<PostResponseDto>> getAllPosts() {

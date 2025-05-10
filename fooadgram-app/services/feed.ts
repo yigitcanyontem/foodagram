@@ -6,15 +6,15 @@ import { GlobalConstants } from '@/utils/GlobalConstants';
 
 const API = process.env.EXPO_PUBLIC_API_URL ?? GlobalConstants.baseUrl;
 
-export async function fetchFeed(user: UserData): Promise<Post[]> {
-    // 👉  use the real field name
+export async function fetchFeed(user: UserData, page: number = 1, limit: number = 10): Promise<Post[]> {
     const token = user?.token;
     if (!token) throw new Error('missing access token');
+
     const res = await axios.get<Post[]>('/content/feed', {
         baseURL: API,
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        params: { page, limit },  // Send pagination parameters to the backend
     });
 
-
-    return res.data;   // [] if nobody posted in last 24 h
+    return res.data;  // Return the array of posts
 }

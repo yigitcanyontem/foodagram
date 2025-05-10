@@ -5,7 +5,7 @@ import {
     StyleSheet,
     ScrollView,
     TouchableOpacity,
-    Image,
+    Image, FlatList, ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAppContext } from "@/context/AppContext";
@@ -21,26 +21,72 @@ const ChatsPage = () => {
     const navigation = useNavigation();
     const [conversations, setConversations] = useState<ConversationDto[]>([]);
     const [following, setFollowing] = useState<UsersProfileDto[]>([]);
+    const [page, setPage] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
 
-    const loadData = async () => {
-        if (!userData) return;
+    // Load data with pagination
+    const loadData = async (pageNumber = 0) => {
+        if (!userData || loading) return;
+        setLoading(true);
 
-        const list = await ChatService.getMyConversations(userData).catch(() => []);
-        setConversations(list);
+        try {
+            const list = await ChatService.getMyConversations(userData, pageNumber).catch(() => []);
 
-        if (list.length === 0) {
-            const f = await ChatService.getStartableChats(userData).catch(() => []);
-            setFollowing(f);
+            // Group by user, keeping the most recent message only
+            const uniqueConversations = Object.values(
+                list.reduce((acc, conv) => {
+                    acc[conv.otherUserId] = conv;
+                    return acc;
+                }, {} as Record<string, ConversationDto>)
+            );
+
+            if (pageNumber === 0) setConversations(uniqueConversations);
+            else setConversations((prev) => {
+                const combined = [...prev, ...uniqueConversations];
+                const unique = Object.values(
+                    combined.reduce((acc, conv) => {
+                        acc[conv.otherUserId] = conv;
+                        return acc;
+                    }, {} as Record<string, ConversationDto>)
+                );
+                return unique;
+            });
+
+            setHasMore(list.length > 0);
+
+            // Load following if no conversations found
+            if (list.length === 0 && pageNumber === 0) {
+                const f = await ChatService.getStartableChats(userData).catch(() => []);
+                setFollowing(f);
+            }
+        } catch (error) {
+            console.warn("Error loading conversations:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
+    // Initial data load
     useEffect(() => {
-        loadData();
+        if (!userData) return;
+        loadData(0);
+        if (following.length === 0) {
+            ChatService.getStartableChats(userData).then(setFollowing);
+        }
     }, [userData]);
 
-    /* ---------- render helpers ---------- */
+    // Load more when reaching the end
+    const loadMore = () => {
+        if (!loading && hasMore) {
+            const nextPage = page + 1;
+            setPage(nextPage);
+            loadData(nextPage);
+        }
+    };;
 
-    const renderConversation = (c: ConversationDto) => (
+    /* ---------- render helpers ---------- */
+    const renderConversation = ({ item: c }: { item: ConversationDto }) => (
         <TouchableOpacity
             key={c.id}
             style={styles.row}
@@ -67,35 +113,48 @@ const ChatsPage = () => {
         </TouchableOpacity>
     );
 
-    const renderFollowingRow = (p: UsersProfileDto) => (
+    const renderFollowingRow = ({ item: p }: { item: UsersProfileDto }) => (
         <TouchableOpacity
             key={p.userId}
             style={styles.row}
             onPress={() =>
                 navigation.navigate("ChatRoom", {
                     convId: null,
-                    receiverId: p.userId,             // ← ★ here
+                    receiverId: p.userId,
                     receiverName: p.name ?? p.username,
                     receiverAvatar: p.profilePicture,
                 })
-            }>
-            <Image source={{ uri: GlobalConstants.s3Url + p.profilePicture }}
-                   style={styles.avatar}/>
+            }
+        >
+            <Image
+                source={{ uri: GlobalConstants.s3Url + p.profilePicture }}
+                style={styles.avatar}
+            />
             <Text style={styles.name}>{p.name ?? p.username}</Text>
         </TouchableOpacity>
     );
 
     /* ---------- JSX ---------- */
-
     return (
         <View style={{ flex: 1, backgroundColor: "#fff" }}>
-            <ScrollView contentContainerStyle={styles.container}>
-                <Text style={styles.heading}>Messages</Text>
-
-                {conversations.length > 0
-                    ? conversations.map(renderConversation)
-                    : following.map(renderFollowingRow)}
-            </ScrollView>
+            <Text style={styles.heading}>Messages</Text>
+            <FlatList
+                data={conversations.length > 0 ? conversations : (following as any[])}
+                renderItem={(item) =>
+                    conversations.length > 0
+                        ? renderConversation(item as { item: ConversationDto })
+                        : renderFollowingRow(item as { item: UsersProfileDto })
+                }
+                keyExtractor={(item) =>
+                    item.otherUserId ?? item.userId ?? Math.random().toString()
+                }
+                onEndReached={loadMore}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={
+                    loading ? <ActivityIndicator size="large" color="#0000ff" /> : null
+                }
+                ListEmptyComponent={<Text style={styles.noChats}>No conversations yet.</Text>}
+            />
 
             <FGTabBar />
         </View>
@@ -124,6 +183,8 @@ const styles = StyleSheet.create({
         marginLeft: 6,
     },
     badgeText: { color: "#fff", fontSize: 12, fontWeight: "600" },
+    noChats: { textAlign: "center", marginVertical: 20, color: "#555" },
 });
 
 export default ChatsPage;
+

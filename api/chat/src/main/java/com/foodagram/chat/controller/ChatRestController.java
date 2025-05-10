@@ -30,10 +30,13 @@ public class ChatRestController {
     }
 
     @GetMapping("/{conversationId}/messages")
-    public List<ChatMessageDto> history(@PathVariable UUID conversationId,
-                                        @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
+    public List<ChatMessageDto> history(
+            @PathVariable UUID conversationId,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
         UsersDto me = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwt);
-        return chatService.getLast50(conversationId, me.getId());
+        return chatService.getMessagesWithPagination(conversationId, me.getId(), page, size);
     }
 
     @DeleteMapping("/messages/{messageId}")

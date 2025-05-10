@@ -535,8 +535,12 @@ const CreatePostPage = () => {
                 postData.recipe = recipeData;
             }
 
+            console.log("Prepared postData for submission:", JSON.stringify(postData, null, 2));
+
+
             // Create post
             const response = await ContentService.createPost(postData, userData);
+
 
             // Navigate back or to the post detail page
                 Alert.alert('Success', 'Post created successfully!');
@@ -548,6 +552,7 @@ const CreatePostPage = () => {
             setIsLoading(false);
         }
     };
+
 
     return (
         <View style={shared_styles.body_container}>

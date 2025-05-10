@@ -50,26 +50,14 @@ const Header = () => {
     ];
 
     return (
-        <header className="w-full bg-background/80 dark:bg-background/80 backdrop-blur-lg sticky top-0 z-50 border-b">
-            <div className="max-w-7xl mx-auto flex items-center justify-between py-3 px-4 sm:px-6">
+        <header className="w-full bg-background/80 dark:bg-background/80 backdrop-blur-lg sticky top-0 z-50 border-b fg-page justify-between flex">
+            <div className=" grow flex items-center justify-between py-3 ">
                 <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>
                     <Label className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-pink-900 cursor-pointer">
                         Foodagram
                     </Label>
                 </Link>
 
-                <div className="hidden sm:flex flex-1 mx-4 max-w-md">
-                    <div className="relative w-full">
-                        <Input
-                            type="search"
-                            placeholder="Search..."
-                            className="w-full pl-4 pr-10 py-2 rounded-full bg-muted/50 border-border focus:ring-primary focus:border-primary transition-shadow"
-                        />
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">
-                            <Search className="h-5 w-5" />
-                        </div>
-                    </div>
-                </div>
 
                 {/* Desktop Navigation */}
                 <nav className="hidden md:flex items-center space-x-2">
@@ -96,9 +84,6 @@ const Header = () => {
                         <>
                             <Button variant="ghost" onClick={() => goTo('login')}>
                                 Login
-                            </Button>
-                            <Button variant="default" onClick={() => goTo('register')}>
-                                Register
                             </Button>
                         </>
                     )}

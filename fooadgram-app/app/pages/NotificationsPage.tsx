@@ -28,6 +28,22 @@ const NotificationsPage = () => {
         }
     };
 
+    const getNavigationUrl = (notification: NotificationDto): [string, any] | null => {
+        const targetUrl = notification.targetUrl;
+
+        if (targetUrl) {
+            const [page, id] = targetUrl.split('/');
+
+            if (page === 'PostDetail') {
+                return ['PostDetail', { postId: id }];
+            } else if (page === 'Profile') {
+                return ['Profile', { userId: id }];
+            }
+        }
+
+        return null;
+    };
+
     useEffect(() => {
         fetchNotifications();
     }, [userData]);
@@ -45,8 +61,19 @@ const NotificationsPage = () => {
                     notifications.map((notification) => (
                         <TouchableOpacity
                             key={notification.id}
-                            style={styles.postItem}
-                            onPress={() => navigation.navigate(notification.targetUrl)}
+                            style={[styles.postItem, {backgroundColor: notification.notificationStatus === 'SENT' ? '#F0F8FF' : "#FFFFFF"}]}
+                            onPress={() => {
+                                setNotifications((prevNotifications) =>
+                                    prevNotifications.map((n) =>
+                                        n.id === notification.id ? { ...n, notificationStatus: 'READ' } : n
+                                    )
+                                );
+
+                                const navTarget = getNavigationUrl(notification);
+                                if (navTarget) {
+                                    navigation.navigate(navTarget[0], navTarget[1]);
+                                }
+                            }}
                         >
                             <Image
                                 source={{ uri: GlobalConstants.s3Url + notification.mediaUrl }}

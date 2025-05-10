@@ -12,6 +12,7 @@ import { ChatService } from '@/services/chat-service';
 import FGTabBar from '@/app/shared/FGTabBar';
 import ReportModal from '@/app/shared/content/ReportModalForChat';
 import { ReportType } from '@/models/content/dto/ReportType';
+import {formatPostDate} from "@/utils/dayjsConfig";
 
 const INPUT_BAR_HEIGHT = 52;
 const TAB_BAR_HEIGHT = 60;
@@ -145,6 +146,7 @@ export default function ChatRoomPage() {
                                 ]}
                             >
                                 <Text style={{ color: '#fff' }}>{item.content}</Text>
+                                <Text style={{ color: '#E8E8E8', fontSize: 10 }}>{formatPostDate(item.timestamp)}</Text>
                             </View>
                         </TouchableOpacity>
                     )}

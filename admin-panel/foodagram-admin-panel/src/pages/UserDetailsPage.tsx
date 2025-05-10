@@ -58,7 +58,7 @@ const UserDetailsPage: React.FC = () => {
     }
 
     return (
-        <div style={{ padding: '24px' }}>
+        <div style={{ paddingTop: '24px' }}>
             <h1>User Details</h1>
             <Space direction="vertical" size="large" style={{ width: '100%' }}>
                 <Card title="Profile Information">

@@ -106,7 +106,7 @@ const PostsPage: React.FC = () => {
     ];
 
     return (
-        <div style={{ padding: '24px' }}>
+        <div style={{ paddingTop: '24px' }}>
             <h1>Posts</h1>
             <Table
                 dataSource={posts}

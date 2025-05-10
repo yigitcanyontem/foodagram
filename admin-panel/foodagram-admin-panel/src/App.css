@@ -59,3 +59,26 @@ html, body {
 .width-full {
   width: 100%;
 }
+
+@media (min-width: 1440px) {
+  .fg-page {
+    display: flex;
+    flex-direction: column;
+    padding-left: calc((100vw - 1320px) / 2);
+    padding-right: calc((100vw - 1320px) / 2);
+  }
+}
+
+@media (max-width: 992px) {
+  .fg-page {
+    padding-left: 5%;
+    padding-right: 5%;
+  }
+}
+
+@media (max-width: 768px) {
+  .fg-page {
+    padding-left: 1%;
+    padding-right: 1%;
+  }
+}

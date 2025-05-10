@@ -12,13 +12,25 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface MessageRepository extends JpaRepository<Message, UUID> {
     Long countByConversationAndReadFalseAndSenderIdNot(Conversation conv, UUID userId);
+
     Optional<Message> findTop1ByConversationOrderByCreatedDateDesc(Conversation conv);
 
-    List<Message> findTop50ByConversationOrderByCreatedDateAsc(Conversation conv);
+    @Query("""
+      SELECT m 
+      FROM Message m 
+      WHERE m.conversation = :conversation 
+      ORDER BY m.createdDate DESC 
+      """)
+    List<Message> findMessagesByConversationWithPagination(
+            @Param("conversation") Conversation conversation,
+            Pageable pageable);
+
 
     @Transactional
     @Modifying

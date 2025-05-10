@@ -16,6 +16,9 @@ import com.foodagram.clients.users.dto.UsersDto;
 import com.foodagram.clients.users.profile.UsersProfileDto;
 import jakarta.ws.rs.ForbiddenException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -181,7 +184,7 @@ public class ChatService {
     }
 
 
-    public List<ChatMessageDto> getLast50(UUID conversationId, UUID myId) {
+    public List<ChatMessageDto> getMessagesWithPagination(UUID conversationId, UUID myId, int page, int size) {
         Conversation conv = convRepo.findById(conversationId)
                 .orElseThrow(() -> new RuntimeException("Conversation not found"));
 
@@ -189,14 +192,15 @@ public class ChatService {
                 ? conv.getParticipantB()
                 : conv.getParticipantA();
 
-        List<Message> msgs = msgRepo.findTop50ByConversationOrderByCreatedDateAsc(conv);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDate"));
+        List<Message> msgs = msgRepo.findMessagesByConversationWithPagination(conv, pageable);
 
         return msgs.stream()
                 .map(m -> ChatMessageDto.builder()
                         .id(m.getId())
                         .conversationId(conv.getId())
                         .senderId(m.getSenderId())
-                        .receiverId(m.getSenderId().equals(myId) ? otherId : myId) // fixed logic here
+                        .receiverId(m.getSenderId().equals(myId) ? otherId : myId)
                         .content(m.getContent())
                         .timestamp(m.getCreatedDate().toInstant(ZoneOffset.UTC))
                         .build())

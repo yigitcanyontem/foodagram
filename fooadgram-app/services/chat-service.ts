@@ -8,33 +8,59 @@ import ReportModal from "@/app/shared/content/ReportModal";
 import {ReportType} from "@/models/content/dto/ReportType";
 import { ReportReason } from "@/models/content/dto/ReportReason";
 
+
+
 export class ChatService {
     private static baseUrl = GlobalConstants.baseUrl + "chat/";
     private static auth(user: any) {
         return { Authorization: `Bearer ${user?.token ?? ""}` };
     }
 
-    /** REST – all conversations that already exist */
-    static getMyConversations(user: any): Promise<ConversationDto[]> {
+
+    /** REST – all conversations with pagination support */
+    static getMyConversations(user: any, page = 0, size = 10): Promise<ConversationDto[]> {
         return axios
-            .get(this.baseUrl + "/conversations", { headers: this.auth(user) })
-            .then((r) => r.data);
+            .get(this.baseUrl + "/conversations", {
+                headers: this.auth(user),
+                params: { page, size },
+            })
+            .then((r) => r.data)
+            .catch((e) => {
+                console.error("getMyConversations failed", e);
+                throw e;
+            });
     }
+
 
     /** Fallback – people I follow that do *not* yet have a conversation */
     static getStartableChats(user: any): Promise<UsersProfileDto[]> {
-        return UserService.getUserFollowing(user.id);
+        return UserService.getUserFollowing(user.id)
+            .catch((e) => {
+                console.error("getStartableChats failed", e);
+                return [];
+            });
     }
 
-    /** Last 50 historical messages */
-    static getHistory(user: any, convId: string) {
+
+    /** Historical messages with pagination support */
+    static getHistory(user: any, convId: string, page = 0, size = 50): Promise<ChatMessageDto[]> {
         return axios
             .get<ChatMessageDto[]>(
-                `${this.baseUrl}/${convId}/messages`,      //  ←  NO extra “/conversations”
-                { headers: this.auth(user) }
+                `${this.baseUrl}/${convId}/messages`,
+                {
+                    headers: this.auth(user),
+                    params: { page, size },
+                }
             )
-            .then((r) => r.data);
+            .then((r) => r.data)
+            .catch((e) => {
+                console.error("getHistory failed", e);
+                throw e;
+            });
     }
+
+
+    /** Delete a message */
 
     static deleteMessage(user: any, messageId: string): Promise<void> {
         return axios
@@ -48,10 +74,23 @@ export class ChatService {
             });
     }
 
-    static reportMessage(user: any, msgId: string,
-                         reason: ReportReason, notes = "") {
-        return axios.post(`${this.baseUrl}/messages/${msgId}/report`,
-            { reason, notes },
-            { headers: this.auth(user) });
+
+    /** Report a message */
+    static reportMessage(
+        user: any,
+        msgId: string,
+        reason: ReportReason,
+        notes = ""
+    ) {
+        return axios
+            .post(
+                `${this.baseUrl}/messages/${msgId}/report`,
+                { reason, notes },
+                { headers: this.auth(user) }
+            )
+            .catch((e) => {
+                console.error("reportMessage failed", e);
+                throw e;
+            });
     }
 }

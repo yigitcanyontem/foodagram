@@ -1,145 +1,159 @@
-import React, { useEffect, useRef, useState } from "react";
+// ChatRoomPage.tsx
+import React, { useEffect, useRef, useState } from 'react';
 import {
-    View,
-    FlatList,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    StyleSheet,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-} from "react-native";
-import { useRoute } from "@react-navigation/native";
-import { useAppContext } from "@/context/AppContext";
-import { chatSocket } from "@/services/chat-socket";
-import { ChatMessageDto } from "@/models/Chat/ChatMessageDto";
-import { ChatService } from "@/services/chat-service";
-import FGTabBar from "@/app/shared/FGTabBar";
+    View, FlatList, Text, TextInput, TouchableOpacity,
+    StyleSheet, KeyboardAvoidingView, Platform, SafeAreaView, Alert
+} from 'react-native';
+import { useRoute } from '@react-navigation/native';
+import { useAppContext } from '@/context/AppContext';
+import { chatSocket } from '@/services/chat-socket';
+import { ChatMessageDto } from '@/models/Chat/ChatMessageDto';
+import { ChatService } from '@/services/chat-service';
+import FGTabBar from '@/app/shared/FGTabBar';
+import ReportModal from '@/app/shared/content/ReportModalForChat';
+import { ReportType } from '@/models/content/dto/ReportType';
 
 const INPUT_BAR_HEIGHT = 52;
-const TAB_BAR_HEIGHT   = 60;
+const TAB_BAR_HEIGHT = 60;
 
 export default function ChatRoomPage() {
-    /* ---------- route & context ---------- */
     const { convId: convIdParam, receiverId } =
         useRoute().params as { convId: string | null; receiverId?: string };
-
     const { userData } = useAppContext();
 
-    /* ---------- local state ---------- */
-    const [convId,   setConvId]   = useState<string | null>(convIdParam);
-    const [wsReady,  setWsReady]  = useState(false);
-    const [text,     setText]     = useState("");
-    const [messages, setMessages] = useState<ChatMessageDto[]>([]);
-    const listRef                = useRef<FlatList>(null);
+    const [convId, setConvId]             = useState<string | null>(convIdParam);
+    const [wsReady, setWsReady]           = useState(false);
+    const [text,    setText]              = useState('');
+    const [messages, setMessages]         = useState<ChatMessageDto[]>([]);
+    const [reportingMessageId, setReportingMessageId] =
+        useState<string | null>(null);
 
-    /* ---------- helpers ---------- */
+    const listRef = useRef<FlatList>(null);
+
+    // append or update deleted flag
     const append = (m: ChatMessageDto) =>
-        setMessages((prev) =>
-            prev.some(
-                (x) =>
-                    x.timestamp === m.timestamp &&
-                    x.senderId  === m.senderId &&
-                    x.content   === m.content
-            ) ? prev : [...prev, m]    // dedupe
+        setMessages(prev =>
+            m.deleted
+                ? prev.map(x => x.id === m.id
+                    ? { ...x, deleted: true, content: m.content }
+                    : x
+                )
+                : prev.some(x => x.id === m.id)
+                    ? prev
+                    : [...prev, m]
         );
 
-    /* ---------- socket life‑cycle ---------- */
+    // WebSocket hookup…
     useEffect(() => {
         if (!userData) return;
-
         chatSocket.connect(userData.token, () => {
-            setWsReady(true);
+            setWsReady(true)
+        })
+    }, [userData?.token])
 
-            /* personal queue always first */
-            const personalSub = chatSocket.subscribeUserQueue((m) => {
-                /* first ever message → we learn the conversation id */
-                if (!convId && m.conversationId) {
-                    setConvId(m.conversationId);
-                    chatSocket.subscribe(m.conversationId, append);
-                }
-                append(m);
-            });
+    useEffect(() => {
+        if (!wsReady) return;
+        const personalSub = chatSocket.subscribeUserQueue(append)
+        return () => {
+            personalSub.unsubscribe()
+        }
+    }, [wsReady])
 
-            /* room topic (if we already know it) */
-            let roomSub: any = null;
-            if (convId) roomSub = chatSocket.subscribe(convId, append);
-            else if (receiverId) {
-                /* kick‑start the conversation */
-                chatSocket.sendMessage({
-                    conversationId: null,
-                    receiverId,
-                    content: "👋",
-                });
-            }
+    useEffect(() => {
+        if (!wsReady || !convId) return;
+        const roomSub = chatSocket.subscribe(convId, append)
+        return () => {
+            roomSub.unsubscribe()
+        }
+    }, [wsReady, convId])
 
-            return () => {
-                personalSub?.unsubscribe();
-                roomSub?.unsubscribe();
-            };
-        });
-    }, [userData?.token]);   // initialise **once** per login
-
-    /* ---------- fetch history once convId is known ---------- */
+    // fetch history once
     const fetchedRef = useRef(false);
     useEffect(() => {
         if (!userData || !convId || fetchedRef.current) return;
         fetchedRef.current = true;
-
         ChatService.getHistory(userData, convId)
-            .then((hist) => setMessages(hist))      // already oldest‑→newest from API
-            .catch((e) => console.warn("history", e));
+            .then(hist => setMessages(hist))
+            .catch(e => console.warn('history', e));
     }, [userData, convId]);
 
-    /* ---------- send ---------- */
+    // send
     const handleSend = () => {
         const trimmed = text.trim();
         if (!trimmed || !wsReady) return;
-
         chatSocket.sendMessage({
-            conversationId: convId,        // may be null the very first time
-            receiverId:    receiverId ?? "",
-            content:       trimmed,
+            conversationId: convId,
+            receiverId:     receiverId ?? '',
+            content:        trimmed,
         });
-
-        setText("");                     // we do *not* append optimistically anymore
+        setText('');
     };
 
-    /* always scroll to bottom */
-    useEffect(() => {
-        listRef.current?.scrollToEnd({ animated: true });
-    }, [messages]);
+    // long-press handler:
+    const onLongPress = (msg: ChatMessageDto) => {
+        if (msg.senderId === userData?.id) {
+            // ─── your delete flow ───
+            Alert.alert(
+                "Delete message?",
+                "This will remove the message for everyone.",
+                [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                        text: "Delete", style: "destructive",
+                        onPress: () =>
+                            ChatService.deleteMessage(userData, msg.id!)
+                                .then(() => {
+                                    // optimistic UI update:
+                                    setMessages(prev =>
+                                        prev.map(m =>
+                                            m.id === msg.id
+                                                ? { ...m, deleted: true, content: "Message deleted" }
+                                                : m
+                                        )
+                                    );
+                                })
+                                .catch(() => Alert.alert("Error", "Could not delete message"))
+                    }
+                ]
+            );
+        } else {
+            // ─── report other-person’s message ───
+            setReportingMessageId(msg.id!);
+        }
+    };
 
-    /* ---------- render ---------- */
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 keyboardVerticalOffset={TAB_BAR_HEIGHT}
             >
                 <FlatList
                     ref={listRef}
                     data={messages}
-                    keyExtractor={(_, i) => i.toString()}
+                    keyExtractor={m => m.id!}
                     renderItem={({ item }) => (
-                        <View
-                            style={[
-                                styles.bubble,
-                                item.senderId === userData?.id ? styles.mine : styles.theirs,
-                            ]}
+                        <TouchableOpacity
+                            activeOpacity={0.8}
+                            onLongPress={() => onLongPress(item)}
                         >
-                            <Text style={{ color: "#fff" }}>{item.content}</Text>
-                        </View>
+                            <View
+                                style={[
+                                    styles.bubble,
+                                    item.senderId === userData?.id ? styles.mine : styles.theirs
+                                ]}
+                            >
+                                <Text style={{ color: '#fff' }}>{item.content}</Text>
+                            </View>
+                        </TouchableOpacity>
                     )}
                     contentContainerStyle={{
                         padding: 16,
-                        paddingBottom: INPUT_BAR_HEIGHT + TAB_BAR_HEIGHT,
+                        paddingBottom: INPUT_BAR_HEIGHT + TAB_BAR_HEIGHT
                     }}
                 />
 
-                {/* input bar */}
                 <View style={[styles.bar, { marginBottom: TAB_BAR_HEIGHT }]}>
                     <TextInput
                         style={styles.input}
@@ -152,10 +166,20 @@ export default function ChatRoomPage() {
                         onPress={handleSend}
                         disabled={!wsReady}
                     >
-                        <Text style={{ color: "#fff", fontWeight: "600" }}>Send</Text>
+                        <Text style={{ color: '#fff', fontWeight: '600' }}>Send</Text>
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>
+
+            {/* ─── single controlled ReportModal ─── */}
+            {reportingMessageId && (
+                <ReportModal
+                    reportType={ReportType.CHAT_MESSAGE}
+                    reportedEntityId={reportingMessageId}
+                    isVisible={true}
+                    onClose={() => setReportingMessageId(null)}
+                />
+            )}
 
             <FGTabBar />
         </SafeAreaView>
@@ -167,25 +191,25 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         padding:       10,
         borderRadius:  12,
-        maxWidth:     "80%",
+        maxWidth:     '80%',
     },
-    mine:   { alignSelf: "flex-end", backgroundColor: "#3d5afe" },
-    theirs: { alignSelf: "flex-start", backgroundColor: "#455a64" },
+    mine:   { alignSelf: 'flex-end', backgroundColor: '#3d5afe' },
+    theirs: { alignSelf: 'flex-start', backgroundColor: '#455a64' },
     bar: {
-        height:          INPUT_BAR_HEIGHT,
-        flexDirection:  "row",
-        alignItems:     "center",
+        height:            INPUT_BAR_HEIGHT,
+        flexDirection:    'row',
+        alignItems:       'center',
         paddingHorizontal: 8,
         borderTopWidth:    0.5,
-        borderColor:   "#ccc",
-        backgroundColor: "#fff",
+        borderColor:      '#ccc',
+        backgroundColor:  '#fff',
     },
     input:  { flex: 1, padding: 8 },
     sendBtn: {
-        backgroundColor: "#3d5afe",
-        paddingHorizontal: 16,
-        paddingVertical:   10,
-        borderRadius:      8,
-        marginLeft:        8,
+        backgroundColor:  '#3d5afe',
+        paddingHorizontal:16,
+        paddingVertical:  10,
+        borderRadius:     8,
+        marginLeft:       8,
     },
 });

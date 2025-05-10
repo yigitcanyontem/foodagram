@@ -17,4 +17,5 @@ public class Message extends BaseEntity {
     @Column(nullable = false) private UUID senderId;
     @Column(nullable = false) private String content;
     private Boolean read = false;
+    private Boolean deleted = false;
 }

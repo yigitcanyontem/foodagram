@@ -16,5 +16,9 @@ public class Conversation extends BaseEntity {
     @Column(nullable = false) private UUID participantB;
     // helper for fast look‑ups
     public boolean involves(UUID userId) { return userId.equals(participantA) || userId.equals(participantB); }
+
+    public UUID getOtherParticipant(UUID me) {
+        return me.equals(participantA) ? participantB : participantA;
+    }
 }
 

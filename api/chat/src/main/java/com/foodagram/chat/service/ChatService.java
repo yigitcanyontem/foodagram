@@ -7,16 +7,20 @@ import com.foodagram.chat.repository.ConversationRepository;
 import com.foodagram.chat.repository.MessageRepository;
 import com.foodagram.clients.chat.dto.ChatMessageDto;
 import com.foodagram.clients.chat.dto.ConversationDto;
+import com.foodagram.clients.content.dto.ReportCreationDto;
+import com.foodagram.clients.content.enums.ReportReason;
+import com.foodagram.clients.content.enums.ReportType;
 import com.foodagram.clients.shared.dto.GenericRabbitMQMessage;
 import com.foodagram.clients.users.UsersClient;
 import com.foodagram.clients.users.dto.UsersDto;
 import com.foodagram.clients.users.profile.UsersProfileDto;
+import jakarta.ws.rs.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -33,7 +37,7 @@ public class ChatService {
     private final SimpMessagingTemplate  broker;
     private final UsersClient            usersClient;
 
-    private final ChatAMQPService amqp;
+    private final ChatAMQPService chatAmqpService;
 
     /* ------------------------------------------------------------------ */
     /*  Conversation helper – guarantees BOTH participants are present    */
@@ -73,10 +77,11 @@ public class ChatService {
                 .content(payload.getContent())
                 .build());
 
-        amqp.publishMessageCreated(
+        chatAmqpService.publishMessageCreated(
                 new GenericRabbitMQMessage(
                         "chatMessageCreated",
                         ChatMessageDto.builder()
+                                .id(conv.getId())
                                 .conversationId(conv.getId())
                                 .senderId(senderId)
                                 .receiverId(actualReceiverId)
@@ -91,6 +96,7 @@ public class ChatService {
         convRepo.save(conv);
 
         ChatMessageDto outbound = ChatMessageDto.builder()
+                .id(saved.getId())
                 .conversationId(conv.getId())
                 .senderId(senderId)
                 .receiverId(actualReceiverId)
@@ -187,6 +193,7 @@ public class ChatService {
 
         return msgs.stream()
                 .map(m -> ChatMessageDto.builder()
+                        .id(m.getId())
                         .conversationId(conv.getId())
                         .senderId(m.getSenderId())
                         .receiverId(m.getSenderId().equals(myId) ? otherId : myId) // fixed logic here
@@ -194,5 +201,57 @@ public class ChatService {
                         .timestamp(m.getCreatedDate().toInstant(ZoneOffset.UTC))
                         .build())
                 .toList();
+    }
+
+    /* ---------- DELETE -------------------------------------------------- */
+    public void deleteMessage(UUID messageId, UUID userId) {
+        Message msg = msgRepo.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+        if (!msg.getSenderId().equals(userId)) {
+            try {
+                throw new AccessDeniedException("Not your message");
+            } catch (AccessDeniedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        msg.setDeleted(true);
+        msg.setContent("Message deleted");
+        msgRepo.save(msg);
+
+        // broadcast the update so everyone’s socket sees it:
+        ChatMessageDto update = ChatMessageDto.builder()
+                .id(msg.getId())
+                .conversationId(msg.getConversation().getId())
+                .senderId(msg.getSenderId())
+                .receiverId(null)            // recipients infer from conversation
+                .content(msg.getContent())
+                .timestamp(msg.getCreatedDate().toInstant(ZoneOffset.UTC))
+                .deleted(true)
+                .build();
+        broker.convertAndSend("/topic/room." + msg.getConversation().getId(), update);
+        broker.convertAndSendToUser(
+                // let the other participant’s personal queue know too
+                msg.getConversation().getOtherParticipant(userId).toString(),
+                "/queue/chat",
+                update
+        );
+    }
+
+    /* ---------- REPORT -------------------------------------------------- */
+    public void reportMessage(UUID msgId, UsersDto reporter,
+                              ReportReason reason, String notes) {
+
+        GenericRabbitMQMessage payload = new GenericRabbitMQMessage(
+                "createReport",
+                new ReportCreationDto(
+                        reporter.getId(),
+                        reporter.getUsername(),
+                        ReportType.CHAT_MESSAGE,
+                        msgId,
+                        reason,
+                        notes
+                )
+        );
+        chatAmqpService.publishToNotificationQueue(payload);
     }
 }

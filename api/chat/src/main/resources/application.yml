@@ -45,3 +45,4 @@ rabbitmq:
   routing-keys:
     chat-command: chat.command.#
     chat-event:   chat.message.created
+    internal-notification: internal.notification.routing-key

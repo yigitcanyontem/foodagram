@@ -12,11 +12,15 @@ public class ChatAMQPService {
 
     private final RabbitMQMessageProducer rabbit;   // you already have this lib
 
+
     @Value("${rabbitmq.exchanges.internal}")
     private String exchange;
 
     @Value("${rabbitmq.routing-keys.chat-event}")
     private String chatEventRK;          // chat.message.created
+
+    @Value("${rabbitmq.routing-keys.internal-notification}")
+    private String internalNotificationRK;
 
     public void publishMessageCreated(GenericRabbitMQMessage payload) {
         try {
@@ -26,4 +30,16 @@ public class ChatAMQPService {
             log.error("Rabbit publish failed", e);
         }
     }
+
+    public void publishToNotificationQueue(GenericRabbitMQMessage payload) {
+        try {
+            rabbit.publish(payload,          // RabbitMQMessageProducer
+                    exchange,         // internal.exchange
+                    internalNotificationRK);
+            log.info("→ published to notification queue");
+        } catch (Exception e) {
+            log.error("Rabbit publish failed", e);
+        }
+    }
+
 }

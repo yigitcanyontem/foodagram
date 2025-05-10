@@ -19,4 +19,7 @@ export interface ConversationDto {
 
     /** Number of unread messages in this conversation */
     unreadCount: number;
+
+    deleted?: boolean;
+
 }

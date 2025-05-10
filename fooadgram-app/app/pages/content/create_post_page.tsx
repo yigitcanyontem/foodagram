@@ -1,6 +1,6 @@
-import {ScrollView, StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Switch, Platform, Modal, Button} from 'react-native';
+import {ScrollView, StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Switch, Platform, Modal, Button, FlatList, Animated, LayoutChangeEvent} from 'react-native';
 import {useNavigation} from "@react-navigation/native";
-import React, {useState} from "react";
+import React, { useState, useEffect } from 'react';
 import {useAppContext} from "@/context/AppContext";
 import FGTabBar from "@/app/shared/FGTabBar";
 import shared_styles from "@/shared_styles";
@@ -15,21 +15,21 @@ import Toast from "react-native-toast-message";
 import {AIService} from "@/services/ai-service";
 import { useRef } from 'react';
 import { useActionSheet } from '@expo/react-native-action-sheet';
+import rawCitiesData from '../../../cities.json';
+import cuisines from '../../../cuisines.json';
+import units from '../../../units.json';
 
 const visibilityColors = {
-    [Visibility.PUBLIC]: {
-        active: '#E74C3C',
-        inactive: '#FDEDEC'
-    },
-    [Visibility.PRIVATE]: {
-        active: '#8E44AD',
-        inactive: '#F5EEF8'
-    },
-    [Visibility.FOLLOWERS]: {
-        active: '#2ECC71',
-        inactive: '#EAFAF1'
-    }
+    PUBLIC: '#E74C3C',
+    PRIVATE: '#8E44AD',
+    FOLLOWERS: '#2ECC71',
 };
+
+const difficultyColors = {
+    EASY: '#E74C3C',
+    MODERATE: '#8E44AD',
+    HARD: '#2ECC71',
+}as const;
 
 
 const CreatePostPage = () => {
@@ -45,8 +45,11 @@ const CreatePostPage = () => {
     const [content, setContent] = useState('');
     const [tags, setTags] = useState('');
     const [location, setLocation] = useState('');
+    const [suggestions, setSuggestions] = useState<City[]>([]);
     const [prepTime, setPreptime] = useState('');
     const [visibility, setVisibility] = useState<Visibility>(Visibility.PUBLIC);
+    const visibilityOptions = Object.values(Visibility);
+    const [containerWidth, setContainerWidth] = useState(0);
     const [mediaUrls, setMediaUrls] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
@@ -55,21 +58,135 @@ const CreatePostPage = () => {
     const foodNameResolver = useRef<(name: string | null) => void>();
 
 
-
     // Recipe state
     const [includeRecipe, setIncludeRecipe] = useState(false);
     const [recipeTitle, setRecipeTitle] = useState('');
     const [recipeDescription, setRecipeDescription] = useState('');
     const [ingredients, setIngredients] = useState<IngredientCreateDto[]>([]);
     const [instructions, setInstructions] = useState<string[]>(['']);
-    const [difficulty, setDifficulty] = useState('');
     const [cuisine, setCuisine] = useState('');
+    const [filteredCuisines, setFilteredCuisines] = useState<string[]>([]);
+    type DifficultyLevel = 'EASY' | 'MODERATE' | 'HARD';
+    const difficultyOptions: DifficultyLevel[] = ['EASY', 'MODERATE', 'HARD'];
+    type DifficultyKey = keyof typeof difficultyColors;
+    const [difficulty, setDifficulty] = useState<DifficultyKey>('EASY');
+    const [difficultyContainerWidth, setDifficultyContainerWidth] = useState(0);
+    const difficultyTranslateX = useRef(new Animated.Value(0)).current;
 
 
     // Ingredient form state
     const [ingredientName, setIngredientName] = useState('');
     const [ingredientAmount, setIngredientAmount] = useState('');
     const [ingredientUnit, setIngredientUnit] = useState('');
+    const [filteredUnits, setFilteredUnits] = useState<string[]>([]);
+
+
+
+
+    type City = {
+        name: string;
+        country: string;
+    };
+
+    const cities: City[] = rawCitiesData as City[];
+
+    const handleChange = (text: string) => {
+        setLocation(text);
+
+        if (text.length < 2) {
+            setSuggestions([]);
+            return;
+        }
+
+        const matches = cities
+            .filter(city => city.name.toLowerCase().startsWith(text.toLowerCase()))
+            .slice(0, 10);
+
+        setSuggestions(matches);
+    };
+
+        const handleSelect = (city: City) => {
+            setLocation(`${city.name}, ${city.country}`);
+            setSuggestions([]);
+        };
+
+
+
+
+    interface Props {
+        options: string[];
+        selected: string;
+        onSelect: (option: string) => void;
+    }
+
+    const translateX = useRef(new Animated.Value(0)).current;
+
+    const animateSlider = (index: number) => {
+        Animated.timing(translateX, {
+            toValue: index * (containerWidth / visibilityOptions.length),
+            duration: 200,
+            useNativeDriver: true,
+        }).start();
+    };
+
+
+    useEffect(() => {
+        const index = visibilityOptions.indexOf(visibility);
+        animateSlider(index);
+    }, [containerWidth]);
+
+    const animateDifficultySlider = (index: number) => {
+        Animated.timing(difficultyTranslateX, {
+            toValue: index * (difficultyContainerWidth / difficultyOptions.length),
+            duration: 200,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    useEffect(() => {
+        const index = difficultyOptions.indexOf(difficulty);
+        animateDifficultySlider(index);
+    }, [difficultyContainerWidth]);
+
+
+
+
+    const handleCuisineChange = (text: string) => {
+        setCuisine(text);
+        if (text.length > 0) {
+            const filtered = cuisines.filter((item) =>
+                item.toLowerCase().includes(text.toLowerCase())
+            );
+            setFilteredCuisines(filtered);
+        } else {
+            setFilteredCuisines([]);
+        }
+    };
+
+    const handleSelectCuisine = (selected: string) => {
+        setCuisine(selected);
+        setFilteredCuisines([]);
+    };
+
+
+
+
+    const handleUnitChange = (text: string) => {
+        setIngredientUnit(text);
+        if (text.length > 0) {
+            const filtered = units.filter((u) =>
+                u.toLowerCase().includes(text.toLowerCase())
+            );
+            setFilteredUnits(filtered);
+        } else {
+            setFilteredUnits([]);
+        }
+    };
+
+    const handleSelectUnit = (unit: string) => {
+        setIngredientUnit(unit);
+        setFilteredUnits([]);
+    };
 
 
 
@@ -435,8 +552,7 @@ const CreatePostPage = () => {
     return (
         <View style={shared_styles.body_container}>
             <ScrollView contentContainerStyle={styles.container}>
-                <Text style={styles.title}>Create New Post</Text>
-
+                <Text style={styles.title}>New Post</Text>
                 {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
                 <View style={styles.inputContainer}>
@@ -466,12 +582,12 @@ const CreatePostPage = () => {
                 </View>
 
                 <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Content *</Text>
+                    <Text style={styles.label}>Caption *</Text>
                     <TextInput
                         style={[styles.input, {height: 150, textAlignVertical: 'top'}]}
                         value={content}
                         onChangeText={setContent}
-                        placeholder="Enter post content"
+                        placeholder="Enter post caption"
                         multiline
                     />
                 </View>
@@ -491,34 +607,58 @@ const CreatePostPage = () => {
                     <TextInput
                         style={styles.input}
                         value={location}
-                        onChangeText={setLocation}
+                        onChangeText={handleChange}
                         placeholder="Enter location"
                     />
+                    {suggestions.length > 0 && (
+                        <FlatList
+                            data={suggestions}
+                            style={styles.suggestionList}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity onPress={() => handleSelect(item)}>
+                                    <Text style={styles.suggestionItem}>
+                                        {item.name}, {item.country}
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+                        />
+                    )}
                 </View>
 
                 <View style={styles.inputContainer}>
                     <Text style={styles.label}>Visibility</Text>
-                    <View style={styles.visibilityContainer}>
-                        {Object.values(Visibility).map((v) => (
+                    <View
+                        style={styles.visibilityContainer}
+                        onLayout={(e) => {
+                            const width = e.nativeEvent.layout.width;
+                            setContainerWidth(width);
+                        }}
+                    >
+                        <Animated.View
+                            style={[
+                                styles.sliderBackground,
+                                {
+                                    width: containerWidth / visibilityOptions.length,
+                                    transform: [{ translateX }],
+                                    backgroundColor: visibilityColors[visibility],
+                                },
+                            ]}
+                        />
+                        {visibilityOptions.map((v, index) => (
                             <TouchableOpacity
                                 key={v}
-                                style={[
-                                    styles.visibilityButton,
-                                    visibility === v && {
-                                        backgroundColor: visibilityColors[v].active,
-                                        borderColor: visibilityColors[v].active,
-                                    },
-                                    visibility !== v && {
-                                        backgroundColor: visibilityColors[v].inactive,
-                                        borderColor: visibilityColors[v].inactive,
-                                    }
-                                ]}
-                                onPress={() => setVisibility(v)}
+                                style={styles.visibilityButton}
+                                onPress={() => {
+                                    setVisibility(v);
+                                    animateSlider(index);
+                                }}
                             >
-                                <Text style={[
-                                    styles.visibilityButtonText,
-                                    visibility === v && styles.visibilityButtonTextActive
-                                ]}>
+                                <Text
+                                    style={[
+                                        styles.visibilityButtonText,
+                                        visibility === v && styles.visibilityButtonTextActive,
+                                    ]}
+                                >
                                     {v}
                                 </Text>
                             </TouchableOpacity>
@@ -594,12 +734,26 @@ const CreatePostPage = () => {
                                         placeholder="Amount"
                                         keyboardType="numeric"
                                     />
-                                    <TextInput
-                                        style={[styles.input, styles.ingredientInput]}
-                                        value={ingredientUnit}
-                                        onChangeText={setIngredientUnit}
-                                        placeholder="Unit"
-                                    />
+                                    <View style={styles.inputContainer}>
+                                        <TextInput
+                                            style={[styles.input, styles.ingredientInput]}
+                                            value={ingredientUnit}
+                                            onChangeText={handleUnitChange}
+                                            placeholder="Unit"
+                                        />
+                                        {filteredUnits.length > 0 && (
+                                            <FlatList
+                                                data={filteredUnits}
+                                                keyExtractor={(item, index) => `${item}-${index}`}
+                                                style={styles.suggestionList}
+                                                renderItem={({ item }) => (
+                                                    <TouchableOpacity onPress={() => handleSelectUnit(item)}>
+                                                        <Text style={styles.suggestionItem}>{item}</Text>
+                                                    </TouchableOpacity>
+                                                )}
+                                            />
+                                        )}
+                                    </View>
                                     <TouchableOpacity
                                         style={styles.addButton}
                                         onPress={addIngredient}
@@ -640,12 +794,43 @@ const CreatePostPage = () => {
 
                             <View style={styles.inputContainer}>
                                 <Text style={styles.label}>Difficulty *</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    value={difficulty}
-                                    onChangeText={setDifficulty}
-                                    placeholder="e.g. Easy, Medium, Hard"
-                                />
+                                <View
+                                    style={styles.difficultyContainer}
+                                    onLayout={(e) => {
+                                        const width = e.nativeEvent.layout.width;
+                                        setDifficultyContainerWidth(width);
+                                    }}
+                                >
+                                    <Animated.View
+                                        style={[
+                                            styles.sliderBackground,
+                                            {
+                                                width: difficultyContainerWidth / difficultyOptions.length,
+                                                transform: [{ translateX: difficultyTranslateX }],
+                                                backgroundColor: difficultyColors[difficulty],
+                                            },
+                                        ]}
+                                    />
+                                    {difficultyOptions.map((level, index) => (
+                                        <TouchableOpacity
+                                            key={level}
+                                            style={styles.difficultyButton}
+                                            onPress={() => {
+                                                setDifficulty(level);
+                                                animateDifficultySlider(index);
+                                            }}
+                                        >
+                                            <Text
+                                                style={[
+                                                    styles.difficultyText,
+                                                    difficulty === level && styles.difficultyTextActive,
+                                                ]}
+                                            >
+                                                {level}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
                             </View>
 
                             <View style={styles.inputContainer}>
@@ -653,9 +838,21 @@ const CreatePostPage = () => {
                                 <TextInput
                                     style={styles.input}
                                     value={cuisine}
-                                    onChangeText={setCuisine}
+                                    onChangeText={handleCuisineChange}
                                     placeholder="e.g. Italian, Mexican, Asian"
                                 />
+                                {filteredCuisines.length > 0 && (
+                                    <FlatList
+                                        data={filteredCuisines}
+                                        keyExtractor={(item, index) => `${item}-${index}`}
+                                        style={styles.suggestionList}
+                                        renderItem={({ item }) => (
+                                            <TouchableOpacity onPress={() => handleSelectCuisine(item)}>
+                                                <Text style={styles.suggestionItem}>{item}</Text>
+                                            </TouchableOpacity>
+                                        )}
+                                    />
+                                )}
                             </View>
 
                             <View style={styles.inputContainer}>
@@ -681,7 +878,7 @@ const CreatePostPage = () => {
                     {isLoading ? (
                         <ActivityIndicator color="white" />
                     ) : (
-                        <Text style={styles.buttonText}>Create Post</Text>
+                        <Text style={styles.buttonText}>Share</Text>
                     )}
                 </TouchableOpacity>
 
@@ -758,6 +955,7 @@ const styles = StyleSheet.create({
     inputContainer: {
         width: "100%",
         marginBottom: 20,
+        marginVertical: 16,
     },
     label: {
         fontSize: 14,
@@ -808,28 +1006,28 @@ const styles = StyleSheet.create({
         fontFamily: "Roboto-Regular",
     },
     visibilityContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        width: "100%",
-        gap: 8,
+        flexDirection: 'row',
+        backgroundColor: '#f0f0f0',
+        borderRadius: 25,
+        overflow: 'hidden',
+        position: 'relative',
+        justifyContent: 'space-between',
     },
     visibilityButton: {
         flex: 1,
-        padding: 12,
-        borderWidth: 1,
-        borderRadius: 8,
-        alignItems: "center",
-        backgroundColor: '#F8F9FA', // Varsayılan arkaplan
-    },
-    visibilityButtonActive: {
-        borderColor: 'transparent',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1,
+        height: 40,
     },
     visibilityButtonText: {
-        color: "#7F8C8D",
-        fontWeight: "500",
+        color: '#333',
+        fontSize: 14,
+        fontWeight: '500',
     },
     visibilityButtonTextActive: {
-        color: "white",
+        color: '#fff',
+        fontWeight: 'bold',
     },
     mediaButton: {
         backgroundColor: "#E74C3C",
@@ -976,6 +1174,77 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
         shadowRadius: 12,
+    },
+    suggestionList: {
+        backgroundColor: '#fff',
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderTopWidth: 0,
+        maxHeight: 200
+    },
+    suggestionItem: {
+        padding: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee'
+    },
+    activeButton: {
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    slider: {
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        backgroundColor: '#4caf50',
+        borderRadius: 20,
+    },
+    option: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1,
+    },
+    optionText: {
+        color: '#333',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    optionTextSelected: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    sliderBackground: {
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        backgroundColor: '#4CAF50',
+        borderRadius: 35,
+        zIndex: 0,
+    },
+    difficultyContainer: {
+        flexDirection: 'row',
+        backgroundColor: '#f0f0f0',
+        borderRadius: 25,
+        overflow: 'hidden',
+        position: 'relative',
+    },
+    difficultyButton: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1,
+        height: 40,
+    },
+    difficultyText: {
+        color: '#333',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    difficultyTextActive: {
+        color: '#fff',
+        fontWeight: 'bold',
     },
 });
 

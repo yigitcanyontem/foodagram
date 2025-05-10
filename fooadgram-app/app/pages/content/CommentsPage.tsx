@@ -29,6 +29,7 @@ import ReportModal from "@/app/shared/content/ReportModal";
 import {ReportType} from "@/models/content/dto/ReportType";
 import Toast from 'react-native-toast-message';
 import {InfiniteScrollerList} from "react-native-infinite-scroller";
+import {UserService} from "@/services/user-service";
 
 type CommentsParams = {
     postId: string;
@@ -50,18 +51,37 @@ const CommentsPage = () => {
 
     const fetchComments = async () => {
         try {
-            setIsLoading(true)
+            setIsLoading(true);
+
             const commentsResponse = await CommentService.getCommentsByPost(postId, userData, page, pageSize);
-            if (comments.length == 0){
-                setComments(commentsResponse.data);
-            }else {
-                setComments((prevComments) => [...prevComments, ...commentsResponse.data]);
-            }
+
+            // Fetch profile pictures in parallel
+            const updatedComments = await Promise.all(
+                commentsResponse.data.map(async (comment: CommentResponseDto) => {
+                    try {
+                        const response = await UserService.getUserProfilePicture(comment.userId);
+                        return {
+                            ...comment,
+                            userProfilePicture: response.data,
+                        };
+                    } catch (error) {
+                        console.error(`Failed to fetch profile picture for user ${comment.userId}`, error);
+                        return comment; // fallback without profile picture
+                    }
+                })
+            );
+
+            // Update comment list
+            setComments((prevComments) =>
+                comments.length === 0 ? updatedComments : [...prevComments, ...updatedComments]
+            );
+
             setTotalPages(commentsResponse.totalPages);
             setTotalLength(commentsResponse.totalElements);
-            setIsLoading(false);
         } catch (error) {
             console.error("Failed to fetch comments", error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -130,7 +150,20 @@ const CommentsPage = () => {
         return (
             <View key={comment.id} style={styles.commentItem}>
                 <View style={shared_styles.titleContainer}>
-                    <Text style={styles.commentUsername}>{comment.createdByUsername}</Text>
+                    <View style={[shared_styles.row, {justifyContent: 'space-between', alignItems: 'center', gap: 10}]}>
+                        <TouchableOpacity
+                            onPress={() => navigation.navigate('UserProfile', {profileId: comment.userId})} key={comment.userId}>
+                            <Image
+                                source={
+                                    comment?.userProfilePicture ? { uri: GlobalConstants.s3Url + comment?.userProfilePicture}
+                                        : require('@/assets/images/dummy-profile.jpeg')
+                                }
+                                style={{width: 40, height: 40, borderRadius: 25}}
+                            />
+                        </TouchableOpacity>
+
+                        <Text style={styles.commentUsername}>{comment.createdByUsername}</Text>
+                    </View>
 
                     {/* right-side icons */}
                     <View style={{ flexDirection: 'row', gap: 8 }}>

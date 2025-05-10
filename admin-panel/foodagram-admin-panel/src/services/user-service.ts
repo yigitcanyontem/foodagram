@@ -4,14 +4,15 @@ import { UsersCompleteDto } from '../models/user/UsersCompleteDto';
 import { UsersDto } from '../models/auth/UsersDto';
 import { UsersProfileDto } from '../models/user/UsersProfileDto';
 import {UsersProfileUpdateDto} from "../models/user/UsersProfileUpdateDto.ts";
+import {AuthService} from "./auth-service.ts";
 
 export class UserService {
     static userBaseUrl: string = GlobalConstants.baseUrl + 'user';
     static userProfilesBaseUrl: string = GlobalConstants.baseUrl + 'user-profile';
     static userEngagementBaseUrl: string = GlobalConstants.baseUrl + 'user-engagement';
 
-    static getAuthHeaders(userData: any) {
-        return {Authorization: userData?.token ?? ''};
+    static getAuthHeaders() {
+        return {Authorization: AuthService.getUserData().token ?? ''};
     }
 
     static getLoggedInUser(userData: any): Promise<UsersCompleteDto> {
@@ -41,8 +42,8 @@ export class UserService {
             });
     }
 
-    static updateUserProfile(updateDto: UsersProfileUpdateDto, userData: any): Promise<UsersProfileDto> {
-        return axios.put(this.userProfilesBaseUrl, updateDto, {headers: this.getAuthHeaders(userData)})
+    static updateUserProfile(updateDto: UsersProfileUpdateDto): Promise<UsersProfileDto> {
+        return axios.put(this.userProfilesBaseUrl, updateDto, {headers: this.getAuthHeaders()})
             .then(response => response.data)
             .catch(error => {
                 console.error('Error while updating user profile:', error);
@@ -79,7 +80,7 @@ export class UserService {
     }
 
     static getAllUsersProfiles(): Promise<UsersCompleteDto[]> {
-        return axios.get(`${this.userBaseUrl}/all`)
+        return axios.get(`${this.userBaseUrl}/all`, {headers: this.getAuthHeaders()})
             .then(response => response.data)
             .catch(error => {
                 console.error('Error while fetching all users:', error);
@@ -87,8 +88,8 @@ export class UserService {
             });
     }
 
-    static deleteUser(userId: string, userData: any): Promise<void> {
-        return axios.delete(`${this.userBaseUrl}/${userId}`, {headers: this.getAuthHeaders(userData)})
+    static deleteUser(userId: string): Promise<void> {
+        return axios.delete(`${this.userBaseUrl}/${userId}`, {headers: this.getAuthHeaders()})
             .then(response => response.data)
             .catch(error => {
                 console.error('Error while deleting user:', error);

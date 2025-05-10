@@ -1,5 +1,5 @@
 export interface PaginatedResponse {
-    data: any;
+    data: any[];
     page: number;
     size: number;
     totalElements: number;

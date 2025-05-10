@@ -59,7 +59,9 @@ html, body {
 .width-full {
   width: 100%;
 }
-
+.fg-page {
+  background: white;
+}
 @media (min-width: 1440px) {
   .fg-page {
     display: flex;

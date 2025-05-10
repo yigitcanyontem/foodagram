@@ -17,6 +17,8 @@ import Toast from "react-native-toast-message";
 import {ReportReason} from "@/models/content/dto/ReportReason";
 import {ReportType} from "@/models/content/dto/ReportType";
 import ReportModal from "@/app/shared/content/ReportModal";
+import {UserService} from "@/services/user-service";
+import {PostResponseDto} from "@/models/content/dto/PostResponseDto";
 
 type PostDetailParams = {
     postId: string;
@@ -35,11 +37,18 @@ const PostDetailPage = () => {
     const carouselRef = useRef(null);
     const [activeSlide, setActiveSlide] = useState<number>(0);
     const videoRefs = useRef<{ [key: string]: Video | null }>({});
-
+    const [posterProfilePicture, setPosterProfilePicture] = useState<string | null>(null);
     const fetchPost = async () => {
         try {
             const postResponse = await ContentService.getPost(postId, userData);
             setPost(postResponse);
+            UserService.getUserProfilePicture(postResponse.userId)
+                .then((profilePicture) => {
+                    setPosterProfilePicture(profilePicture.data);
+                })
+                .catch(() => {
+                    setPosterProfilePicture(null);
+                });
             const liked = await ContentService.hasUserLikedPost(postId, userData);
             setHasLiked(liked);
             const saved = await ContentService.hasUserSavedPost(postId, userData);
@@ -177,10 +186,18 @@ const PostDetailPage = () => {
                     {/* Post Header */}
                     {/* Added navigation to profile page when clicked on username */}
                     <View style={styles.header}>
-                        <TouchableOpacity onPress={() => {
-                            console.log("Navigating to user profile with ID:", post?.userId);
-                            navigation.navigate('Profile', {userId: post?.userId});
+                        <TouchableOpacity
+                            style={[shared_styles.row,{alignItems: 'center', gap: 10}]}
+                            onPress={() => {
+                            navigation.navigate('UserProfile', {userId: post?.userId});
                         }}>
+                            <Image
+                                source={
+                                    posterProfilePicture ? { uri: GlobalConstants.s3Url + posterProfilePicture}
+                                        : require('@/assets/images/dummy-profile.jpeg')
+                                }
+                                style={{width: 40, height: 40, borderRadius: 25}}
+                            />
                             <Text style={[styles.username]}>{post?.username}</Text>
                         </TouchableOpacity>
 

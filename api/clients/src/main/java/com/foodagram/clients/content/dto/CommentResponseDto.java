@@ -28,4 +28,4 @@ public class CommentResponseDto {
     private boolean edited;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-} 
+}

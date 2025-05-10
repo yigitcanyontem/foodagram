@@ -46,7 +46,6 @@ const Header = () => {
         { label: 'Users', path: 'users' },
         { label: 'Posts', path: 'posts' },
         { label: 'Reports', path: 'reports' },
-        { label: 'Profile', path: 'profile' },
     ];
 
     return (
@@ -142,9 +141,6 @@ const Header = () => {
                             <>
                                 <Button variant="ghost" className="w-full justify-start" onClick={() => goTo('login')}>
                                     Login
-                                </Button>
-                                <Button variant="default" className="w-full justify-start" onClick={() => goTo('register')}>
-                                    Register
                                 </Button>
                             </>
                         )}

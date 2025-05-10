@@ -45,7 +45,7 @@ const UserDetailsPage: React.FC = () => {
 
     const handleUpdate = async (values: any) => {
         try {
-            await UserService.updateUserProfile(values, {}); // We'll need to pass userData here
+            await UserService.updateUserProfile(values); // We'll need to pass userData here
             message.success('User updated successfully');
             fetchUserDetails();
         } catch (error) {

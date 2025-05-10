@@ -80,10 +80,9 @@ public class UsersController {
     }
 
     @GetMapping("all")
-    public ResponseEntity<List<UsersCompleteDto>> getAllUsers(){
+    public ResponseEntity<List<UsersCompleteDto>> getAllUsers(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken){
         try {
-            //TODO check if user is admin
-            return new ResponseEntity<>(usersService.getAllUsers(), HttpStatus.OK);
+            return new ResponseEntity<>(usersService.getAllUsers(jwtToken), HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching all users: {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -95,7 +94,6 @@ public class UsersController {
             @PathVariable("id") UUID id,
             @RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken) {
         try {
-            //TODO check if user is admin
             usersService.deleteUser(id, jwtToken);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {

@@ -90,7 +90,12 @@ const ChatsPage = () => {
         <TouchableOpacity
             key={c.id}
             style={styles.row}
-            onPress={() => navigation.navigate("ChatRoom", { convId: c.id })}
+            onPress={() => navigation.navigate("ChatRoom", {
+                convId: c.id,
+                receiverId: c.otherUserId,
+                receiverName: c.otherUserName,
+                receiverAvatar: c.otherUserAvatar,
+            })}
         >
             <Image
                 source={{ uri: GlobalConstants.s3Url + c.otherUserAvatar }}

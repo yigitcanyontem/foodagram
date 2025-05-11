@@ -128,7 +128,7 @@ export default function RootLayout() {
                         <Stack.Screen name="Tag" component={TagPage} />
                         <Stack.Screen name="Notifications" component={NotificationsPage} />
                         <Stack.Screen name="Chats" component={ChatsPage}/>
-                        <Stack.Screen name="ChatRoom" component={ChatRoomPage}/>
+                        <Stack.Screen name="ChatRoom" component={ChatRoomPage} options={{ headerShown: false }}/>
                     </Stack.Navigator>
                 </ThemeProvider>
                 <Toast/>

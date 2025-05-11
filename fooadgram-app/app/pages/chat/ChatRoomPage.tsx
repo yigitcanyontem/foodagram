@@ -1,10 +1,10 @@
-// ChatRoomPage.tsx
 import React, {useEffect, useRef, useState} from 'react';
 import {
     View, FlatList, Text, TextInput, TouchableOpacity,
-    StyleSheet, KeyboardAvoidingView, Platform, SafeAreaView, Alert
+    StyleSheet, KeyboardAvoidingView, Platform, SafeAreaView, Alert,
+    Image
 } from 'react-native';
-import {useRoute} from '@react-navigation/native';
+import {useRoute, useNavigation} from '@react-navigation/native';
 import {useAppContext} from '@/context/AppContext';
 import {chatSocket} from '@/services/chat-socket';
 import {ChatMessageDto} from '@/models/Chat/ChatMessageDto';
@@ -12,20 +12,55 @@ import {ChatService} from '@/services/chat-service';
 import FGTabBar from '@/app/shared/FGTabBar';
 import ReportModal from '@/app/shared/content/ReportModalForChat';
 import {ReportType} from '@/models/content/dto/ReportType';
-import {formatPostDate} from "@/utils/dayjsConfig";
+import {formatPostDate,formatMessageTime} from "@/utils/dayjsConfig";
+import {GlobalConstants} from "@/utils/GlobalConstants";
+import { Ionicons } from '@expo/vector-icons';
+import shared_styles from "@/shared_styles";
 
 const INPUT_BAR_HEIGHT = 52;
-const TAB_BAR_HEIGHT = 60;
+const TAB_BAR_HEIGHT = 52;
+
+// Date utility functions
+const isSameDay = (date1: Date, date2: Date): boolean => {
+    return date1.getFullYear() === date2.getFullYear() &&
+        date1.getMonth() === date2.getMonth() &&
+        date1.getDate() === date2.getDate();
+};
+
+const isYesterday = (date: Date): boolean => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return isSameDay(date, yesterday);
+};
+
+const getDateHeader = (date: Date): string => {
+    if (isSameDay(date, new Date())) {
+        return 'Today';
+    } else if (isYesterday(date)) {
+        return 'Yesterday';
+    }
+    return date.toLocaleDateString();
+};
+
+interface MessageWithDateHeader extends ChatMessageDto {
+    dateHeader: string | null;
+}
 
 export default function ChatRoomPage() {
-    const {convId: convIdParam, receiverId} =
-        useRoute().params as { convId: string | null; receiverId?: string };
+    const {convId: convIdParam, receiverId, receiverName, receiverAvatar} =
+        useRoute().params as { 
+            convId: string | null; 
+            receiverId?: string;
+            receiverName?: string;
+            receiverAvatar?: string;
+        };
+    const navigation = useNavigation();
     const {userData} = useAppContext();
 
     const [convId, setConvId] = useState<string | null>(convIdParam);
     const [wsReady, setWsReady] = useState(false);
     const [text, setText] = useState('');
-    const [messages, setMessages] = useState<ChatMessageDto[]>([]);
+    const [messages, setMessages] = useState<MessageWithDateHeader[]>([]);
     const [reportingMessageId, setReportingMessageId] = useState<string | null>(null);
 
     const listRef = useRef<FlatList>(null);
@@ -34,6 +69,25 @@ export default function ChatRoomPage() {
     const [page, setPage] = useState(0);
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+
+    // Function to process messages and add date headers
+    const processMessagesWithDateHeaders = (newMessages: ChatMessageDto[]): MessageWithDateHeader[] => {
+        return newMessages.map((msg, index) => {
+            const currentDate = new Date(msg.timestamp);
+            const prevMessage = newMessages[index - 1];
+            
+            let dateHeader: string | null = null;
+            // Show date header if this is the first message or if the previous message is from a different day
+            if (index === 0 || !prevMessage || !isSameDay(currentDate, new Date(prevMessage.timestamp))) {
+                dateHeader = getDateHeader(currentDate);
+            }
+            
+            return {
+                ...msg,
+                dateHeader
+            };
+        });
+    };
 
     // Append or update messages
     const append = (m: ChatMessageDto, isNewMessage = false) => {
@@ -45,17 +99,20 @@ export default function ChatRoomPage() {
 
             if (tempMessageIndex !== -1) {
                 // Replace temp message with real one
-                return prev.map((x, index) =>
+                const updatedMessages = prev.map((x, index) =>
                     index === tempMessageIndex ? m : x
                 );
+                return processMessagesWithDateHeaders(updatedMessages);
             }
 
             // Regular append or update
             const existing = prev.find((x) => x.id === m.id);
             if (existing) {
-                return prev.map((x) => (x.id === m.id ? {...x, ...m} : x));
+                const updatedMessages = prev.map((x) => (x.id === m.id ? {...x, ...m} : x));
+                return processMessagesWithDateHeaders(updatedMessages);
             } else {
-                return isNewMessage ? [...prev, m] : [...prev, m];
+                const newMessages = isNewMessage ? [...prev, m] : [...prev, m];
+                return processMessagesWithDateHeaders(newMessages);
             }
         });
 
@@ -114,9 +171,11 @@ export default function ChatRoomPage() {
                         new Map(merged.map((m) => [m.id, m])).values()
                     );
 
-                    return uniqueMessages.sort(
+                    const sortedMessages = uniqueMessages.sort(
                         (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
                     );
+
+                    return processMessagesWithDateHeaders(sortedMessages);
                 });
                 setPage(newPage);
                 setHasMore(hist.length === 20);
@@ -124,9 +183,11 @@ export default function ChatRoomPage() {
                 setHasMore(false);
             }
 
-            // Always start at the bottom
-            if (listRef.current) {
-                setTimeout(() => listRef.current?.scrollToEnd({animated: false}), 50);
+            // Scroll to bottom after messages are loaded
+            if (listRef.current && !isLoadMore) {
+                setTimeout(() => {
+                    listRef.current?.scrollToOffset({ offset: 0, animated: false });
+                }, 100);
             }
         } catch (e) {
             console.warn("history", e);
@@ -134,6 +195,15 @@ export default function ChatRoomPage() {
             setLoading(false);
         }
     };
+
+    // Add an effect to scroll to bottom when messages change
+    useEffect(() => {
+        if (messages.length > 0 && listRef.current) {
+            setTimeout(() => {
+                listRef.current?.scrollToOffset({ offset: 0, animated: false });
+            }, 100);
+        }
+    }, [messages.length]);
 
     useEffect(() => {
         fetchMessages();
@@ -198,13 +268,36 @@ export default function ChatRoomPage() {
                 ]
             );
         } else {
-            // ─── report other-person’s message ───
+            // ─── report other-person's message ───
             setReportingMessageId(msg.id!);
         }
     };
 
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
+            <View style={styles.header}>
+                <TouchableOpacity 
+                    onPress={() => navigation.goBack()}
+                    style={styles.backButton}
+                >
+                    <Ionicons name="chevron-back" size={24} color="#000" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={() =>
+                        navigation.navigate('Profile', { userId: receiverId })
+                    }
+                    style={[shared_styles.row, {alignItems: 'center'}]}>
+                    {receiverAvatar && (
+                        <Image
+                            source={{ uri: GlobalConstants.s3Url + receiverAvatar }}
+                            style={styles.headerAvatar}
+                        />
+                    )}
+                    <View style={styles.headerTextContainer}>
+                        <Text style={styles.headerName}>{receiverName || 'Chat'}</Text>
+                    </View>
+                </TouchableOpacity>
+            </View>
             <KeyboardAvoidingView
                 style={{flex: 1}}
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -215,22 +308,33 @@ export default function ChatRoomPage() {
                     data={[...messages].reverse()} // Reverse messages for inverted list
                     keyExtractor={(item) => `${item.id}`}
                     renderItem={({item}) => (
-                        <TouchableOpacity
-                            activeOpacity={0.8}
-                            onLongPress={() => onLongPress(item)}
-                        >
-                            <View
-                                style={[
-                                    styles.bubble,
-                                    item.senderId === userData?.id ? styles.mine : styles.theirs
-                                ]}
+                        <View>
+                            {item.dateHeader && (
+                                <View style={styles.dateContainer}>
+                                    <Text style={styles.dateText}>
+                                        {item.dateHeader}
+                                    </Text>
+                                </View>
+                            )}
+                            <TouchableOpacity
+                                activeOpacity={0.8}
+                                onLongPress={() => onLongPress(item)}
                             >
-                                <Text style={{color: '#fff'}}>
-                                    {item.deleted ? "Message deleted" : item.content}
-                                </Text>
-                                <Text style={{color: '#E8E8E8', fontSize: 10}}>{formatPostDate(item.timestamp)}</Text>
-                            </View>
-                        </TouchableOpacity>
+                                <View
+                                    style={[
+                                        styles.bubble,
+                                        item.senderId === userData?.id ? styles.mine : styles.theirs
+                                    ]}
+                                >
+                                    <Text style={{color: '#fff'}}>
+                                        {item.deleted ? "Message deleted" : item.content}
+                                    </Text>
+                                    <Text style={{color: '#E8E8E8', fontSize: 10}}>
+                                        {item.timestamp.slice(11, 16)}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        </View>
                     )}
                     inverted // This makes the list start at the bottom
                     onEndReached={handleLoadMore} // Will load more when reaching the top (since it's inverted)
@@ -248,8 +352,9 @@ export default function ChatRoomPage() {
                         onChangeText={setText}
                         placeholder="Message..."
                     />
-                    <TouchableOpacity onPress={handleSend} disabled={!wsReady}>
-                        <Text style={{color: '#3d5afe', fontWeight: '600'}}>Send</Text>
+
+                    <TouchableOpacity style={styles.button} onPress={handleSend} disabled={!wsReady}>
+                        <Text style={styles.buttonText}>Send</Text>
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>
@@ -299,4 +404,60 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginLeft: 8,
     },
+    dateContainer: {
+        alignItems: 'center',
+        marginVertical: 10,
+    },
+    dateText: {
+        color: '#666',
+        fontSize: 12,
+        backgroundColor: '#f0f0f0',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+        backgroundColor: '#fff',
+    },
+    backButton: {
+        marginRight: 12,
+    },
+    headerAvatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 27,
+        marginRight: 14,
+    },
+    headerTextContainer: {
+        flex: 1,
+    },
+    headerName: {
+        fontWeight: '600',
+        fontSize: 15,
+        maxWidth: '70%',
+    },
+    button: {
+        borderColor: '#E8E8E8',
+        borderWidth: 1,
+        padding: 10,
+        borderRadius: 10,
+        alignItems: "center",
+        shadowColor: "#E74C3C",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+        elevation: 5,
+    },
+    buttonText: {
+        color: "#3d5afe",
+        fontSize: 15,
+        fontWeight: "600",
+        fontFamily: "Roboto-Bold",
+    }
 });

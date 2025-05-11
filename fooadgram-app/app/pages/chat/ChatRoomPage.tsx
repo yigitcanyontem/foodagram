@@ -205,65 +205,72 @@ export default function ChatRoomPage() {
 
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
-            <FlatList
-                ref={listRef}
-                data={[...messages].reverse()} // Reverse messages for inverted list
-                keyExtractor={(item) => `${item.id}`}
-                renderItem={({item}) => (
-                    <TouchableOpacity
-                        activeOpacity={0.8}
-                        onLongPress={() => onLongPress(item)}
-                    >
-                        <View
-                            style={[
-                                styles.bubble,
-                                item.senderId === userData?.id ? styles.mine : styles.theirs
-                            ]}
+            <KeyboardAvoidingView
+                style={{flex: 1}}
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                keyboardVerticalOffset={TAB_BAR_HEIGHT}
+            >
+                <FlatList
+                    ref={listRef}
+                    data={[...messages].reverse()} // Reverse messages for inverted list
+                    keyExtractor={(item) => `${item.id}`}
+                    renderItem={({item}) => (
+                        <TouchableOpacity
+                            activeOpacity={0.8}
+                            onLongPress={() => onLongPress(item)}
                         >
-                            <Text style={{color: '#fff'}}>
-                                {item.deleted ? "Message deleted" : item.content}
-                            </Text>
-                            <Text style={{color: '#E8E8E8', fontSize: 10}}>{formatPostDate(item.timestamp)}</Text>
-                        </View>
-                    </TouchableOpacity>
-                )}
-                inverted // This makes the list start at the bottom
-                onEndReached={handleLoadMore} // Will load more when reaching the top (since it's inverted)
-                onEndReachedThreshold={0.1}
-                ListFooterComponent={loading ? <Text>Loading...</Text> : null}
-                contentContainerStyle={{paddingBottom: INPUT_BAR_HEIGHT + TAB_BAR_HEIGHT}}
-            />
-
-            <View style={[styles.bar, {marginBottom: TAB_BAR_HEIGHT}]}>
-                <TextInput
-                    style={styles.input}
-                    value={text}
-                    onChangeText={setText}
-                    placeholder="Message..."
+                            <View
+                                style={[
+                                    styles.bubble,
+                                    item.senderId === userData?.id ? styles.mine : styles.theirs
+                                ]}
+                            >
+                                <Text style={{color: '#fff'}}>
+                                    {item.deleted ? "Message deleted" : item.content}
+                                </Text>
+                                <Text style={{color: '#E8E8E8', fontSize: 10}}>{formatPostDate(item.timestamp)}</Text>
+                            </View>
+                        </TouchableOpacity>
+                    )}
+                    inverted // This makes the list start at the bottom
+                    onEndReached={handleLoadMore} // Will load more when reaching the top (since it's inverted)
+                    onEndReachedThreshold={0.1}
+                    ListFooterComponent={loading ? <Text>Loading...</Text> : null}
+                    contentContainerStyle={{
+                        padding: 16,
+                        paddingBottom: INPUT_BAR_HEIGHT + TAB_BAR_HEIGHT}}
                 />
-                <TouchableOpacity onPress={handleSend} disabled={!wsReady}>
-                    <Text style={{color: '#3d5afe', fontWeight: '600'}}>Send</Text>
-                </TouchableOpacity>
-            </View>
-        </KeyboardAvoidingView>
 
-    {/* ─── single controlled ReportModal ─── */
-    }
-    {
-        reportingMessageId && (
-            <ReportModal
-                reportType={ReportType.CHAT_MESSAGE}
-                reportedEntityId={reportingMessageId}
-                isVisible={true}
-                onClose={() => setReportingMessageId(null)}
-            />
-        )
-    }
+                <View style={[styles.bar, {marginBottom: TAB_BAR_HEIGHT}]}>
+                    <TextInput
+                        style={styles.input}
+                        value={text}
+                        onChangeText={setText}
+                        placeholder="Message..."
+                    />
+                    <TouchableOpacity onPress={handleSend} disabled={!wsReady}>
+                        <Text style={{color: '#3d5afe', fontWeight: '600'}}>Send</Text>
+                    </TouchableOpacity>
+                </View>
+            </KeyboardAvoidingView>
 
-    <FGTabBar/>
-</SafeAreaView>
-)
-    ;
+            {/* ─── single controlled ReportModal ─── */
+            }
+            {
+                reportingMessageId && (
+                    <ReportModal
+                        reportType={ReportType.CHAT_MESSAGE}
+                        reportedEntityId={reportingMessageId}
+                        isVisible={true}
+                        onClose={() => setReportingMessageId(null)}
+                    />
+                )
+            }
+
+            <FGTabBar/>
+        </SafeAreaView>
+    )
+        ;
 }
 
 const styles = StyleSheet.create({

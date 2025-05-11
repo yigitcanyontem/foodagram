@@ -136,7 +136,7 @@ const ChatsPage = () => {
 
     /* ---------- JSX ---------- */
     return (
-        <View style={{ flex: 1, backgroundColor: "#fff" }}>
+        <View style={{ flex: 1, backgroundColor: "#fff", padding: 16}}>
             <Text style={styles.heading}>Messages</Text>
             <FlatList
                 data={conversations.length > 0 ? conversations : (following as any[])}

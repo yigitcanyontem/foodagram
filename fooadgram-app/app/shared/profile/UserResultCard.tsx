@@ -13,7 +13,7 @@ export default function UserResultCard({profile}: { profile: UsersProfileDto }) 
     return (
         <TouchableOpacity
             style={styles.resultItem}
-            onPress={() => navigation.navigate('UserProfile', {profileId: profile.usersId})} key={profile.id}>
+            onPress={() => navigation.navigate('Profile', {profileId: profile.usersId})} key={profile.id}>
             <Image
                 source={
                     profile?.profilePicture ? { uri: GlobalConstants.s3Url + profile?.profilePicture}

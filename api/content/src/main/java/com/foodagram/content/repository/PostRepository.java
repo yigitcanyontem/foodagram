@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,13 +22,26 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     List<Post> findAllByUserId(UUID userId);
     List<Post> findAllByUserIdAndVisibilityNotOrderByCreatedDateDesc(UUID userId, Visibility visibility);
 
+    @Query("""
+        SELECT p FROM Post p 
+        WHERE p.userId = :userId 
+        AND (
+            :isOwner = true 
+            OR (p.visibility = 'PUBLIC')
+            OR (p.visibility = 'FRIENDS' AND :isFollower = true)
+        )
+        ORDER BY p.createdDate DESC
+    """)
+    List<Post> findAllByUserIdWithVisibilityRules(
+        @Param("userId") UUID userId,
+        @Param("isOwner") boolean isOwner,
+        @Param("isFollower") boolean isFollower
+    );
 
     Page<Post> findAllByIdIn(List<UUID> ids,Pageable pageable);
     List<Post> findAllByIdIn(List<UUID> ids);
     Page<Post> findPostsByTagsContainingAndVisibilityNotOrderByCreatedDateDesc(String tag, Visibility visibility, Pageable pageable);
 
     Page<Post> findAllByUserIdNotAndVisibilityNotOrderByCreatedDateDesc(UUID userId, Visibility visibility, Pageable pageable);;
-
-
 
 }

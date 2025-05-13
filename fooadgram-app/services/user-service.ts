@@ -137,4 +137,15 @@ export class UserService {
                 throw error;
             });
     }
+
+    static getUserProfilePicture(userId: string): Promise<string> {
+        return axios.get(`${this.userProfilesBaseUrl}/profile-picture/${userId}`)
+            .then(response => {
+                return response.data;
+            })
+            .catch(error => {
+                console.error('Error while fetching user profile picture:', error);
+                throw error;
+            });
+    }
 }

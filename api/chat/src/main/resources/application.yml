@@ -46,3 +46,6 @@ rabbitmq:
     chat-command: chat.command.#
     chat-event:   chat.message.created
     internal-notification: internal.notification.routing-key
+
+aes:
+  secret: rqe8Sj3srjwD4xLSQ5EI68amU6CnpVXG

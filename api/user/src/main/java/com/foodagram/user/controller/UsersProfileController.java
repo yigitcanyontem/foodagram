@@ -1,5 +1,6 @@
 package com.foodagram.user.controller;
 
+import com.foodagram.clients.shared.dto.GenericResponse;
 import jakarta.ws.rs.core.HttpHeaders;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -100,6 +101,21 @@ public class UsersProfileController {
             return ResponseEntity.ok().build();
         }catch (Exception e) {
             log.error("Error while deleting user profile: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/profile-picture/{userId}")
+    public ResponseEntity<GenericResponse> getProfilePicture(@PathVariable String userId) {
+        try {
+            //TODO add cache
+            return ResponseEntity.ok(new GenericResponse(
+                    "Profile picture fetched successfully",
+                    usersProfileService.getProfilePicture(userId),
+                    true
+            ));
+        }catch (Exception e) {
+            log.error("Error while fetching profile picture: {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

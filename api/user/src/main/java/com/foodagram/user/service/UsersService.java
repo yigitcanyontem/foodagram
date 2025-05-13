@@ -2,12 +2,9 @@ package com.foodagram.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import com.foodagram.amqp.RabbitMQMessageProducer;
 import com.foodagram.clients.auth.AuthClient;
-import com.foodagram.clients.notification.NotificationCreateDto;
 import com.foodagram.clients.users.dto.UserRegisterDTO;
 import com.foodagram.clients.users.dto.UsersCompleteDto;
 import com.foodagram.clients.users.dto.UsersDto;
@@ -101,7 +98,12 @@ public class UsersService {
         return new UsersCompleteDto(usersDto, usersProfileDto);
     }
 
-    public List<UsersCompleteDto> getAllUsers() {
+    public List<UsersCompleteDto> getAllUsers(String jwtToken) {
+        UsersDto loggedusersDto = authClient.validateToken(jwtToken).getBody();
+        if (loggedusersDto == null || !loggedusersDto.getRole().equals("ADMIN")) {
+            throw new RuntimeException("Unauthorized");
+        }
+
         List<UsersCompleteDto> completeDtos = new ArrayList<>();
 
         List<UsersDto> usersDtos = usersRepository.findAll()

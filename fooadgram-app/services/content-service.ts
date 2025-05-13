@@ -39,8 +39,8 @@ export class ContentService {
     }
 
 
-    static getAllPostsByUser(userId: string): Promise<PostResponseDto[]> {
-        return axios.get(`${this.postsBaseUrl}/user/${userId}`)
+    static getAllPostsByUser(userId: string,userData: any): Promise<PostResponseDto[]> {
+        return axios.get(`${this.postsBaseUrl}/user/${userId}`, {headers: this.getAuthHeaders(userData)})
             .then(response => response.data)
             .catch(error => {
                 console.error('Error while fetching posts by user:', error);

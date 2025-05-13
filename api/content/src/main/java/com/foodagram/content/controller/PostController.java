@@ -55,9 +55,10 @@ public class PostController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<PostResponseDto>> getAllPostsByUser(@PathVariable UUID userId) {
+    public ResponseEntity<List<PostResponseDto>> getAllPostsByUser(@PathVariable UUID userId,@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken) {
         try {
-            return ResponseEntity.ok(postService.getAllPostsByUser(userId));
+            UsersDto user = usersUtil.throwIfJwtTokenIsInvalidElseReturnUser(jwtToken);
+            return ResponseEntity.ok(postService.getAllPostsByUser(userId, user));
         } catch (Exception e) {
             log.error("Error while fetching post by user: {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);

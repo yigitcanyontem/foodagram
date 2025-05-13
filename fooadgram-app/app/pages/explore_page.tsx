@@ -78,7 +78,7 @@ const ExplorePage = () => {
             setHasMore(true);
             fetchPosts(0);
         }
-    }, [userData, query]);
+    }, [userData?.id, query]);
 
     useEffect(() => {
         handleSearch();

@@ -248,4 +248,18 @@ public class UsersProfileService {
         List<UsersProfile> usersProfiles = usersProfileRepository.findAll();
         return usersProfiles.stream().map(this::mapDomainToDto).collect(Collectors.toList());
     }
+
+    public String getProfilePicture(String userId) {
+        try {
+            UUID uuid = UUID.fromString(userId);
+            UsersProfile usersProfile = usersProfileRepository.findUsersProfileByUsersIdId(uuid).orElse(null);
+            if (usersProfile != null) {
+                return getUserProfilePicture(usersProfile.getProfilePictureID());
+            }
+            return null;
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid UUID format: {}", e.getMessage());
+            return null;
+        }
+    }
 }

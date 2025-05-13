@@ -46,7 +46,7 @@ const UserProfile = ({profileId}) => {
 
     const getPostsByUser = async () => {
         try {
-            const postResponse = await ContentService.getAllPostsByUser(profileId);
+            const postResponse = await ContentService.getAllPostsByUser(profileId, userData);
             setPosts(postResponse);
         } catch (error) {
             console.error("Failed to fetch users posts", error);

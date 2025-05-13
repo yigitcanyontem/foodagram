@@ -19,7 +19,6 @@ const PostsSection: React.FC<PostsSectionProps> = ({ posts }) => {
             {posts.map((post, index) => {
                 const mediaUrl = GlobalConstants.s3Url + post.mediaUrls[0];
                 const isVideo = mediaUrl.toLowerCase().endsWith('.mp4')|| mediaUrl.includes('video');
-                console.log("Post media:", post.mediaUrls[0]);
 
                 return (
                     <TouchableOpacity

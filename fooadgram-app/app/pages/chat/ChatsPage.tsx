@@ -90,7 +90,12 @@ const ChatsPage = () => {
         <TouchableOpacity
             key={c.id}
             style={styles.row}
-            onPress={() => navigation.navigate("ChatRoom", { convId: c.id })}
+            onPress={() => navigation.navigate("ChatRoom", {
+                convId: c.id,
+                receiverId: c.otherUserId,
+                receiverName: c.otherUserName,
+                receiverAvatar: c.otherUserAvatar,
+            })}
         >
             <Image
                 source={{ uri: GlobalConstants.s3Url + c.otherUserAvatar }}
@@ -136,7 +141,7 @@ const ChatsPage = () => {
 
     /* ---------- JSX ---------- */
     return (
-        <View style={{ flex: 1, backgroundColor: "#fff" }}>
+        <View style={{ flex: 1, backgroundColor: "#fff", padding: 16}}>
             <Text style={styles.heading}>Messages</Text>
             <FlatList
                 data={conversations.length > 0 ? conversations : (following as any[])}

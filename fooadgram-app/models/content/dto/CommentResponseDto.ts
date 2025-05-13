@@ -1,4 +1,5 @@
 export interface CommentResponseDto {
+    userProfilePicture: string;
     id: string;
     postId: string;
     userId: string;

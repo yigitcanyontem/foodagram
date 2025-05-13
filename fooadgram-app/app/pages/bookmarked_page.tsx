@@ -50,7 +50,7 @@ const BookmarkedPage = () => {
         setPage(0);
         setHasMore(true);
         fetchPosts(0);
-    }, [userData]);
+    }, [userData?.id]);
 
     const renderItem = ({ item }: { item: PostResponseDto }) => (
         <View style={{ width: CARD_WIDTH, margin: CARD_MARGIN }}>

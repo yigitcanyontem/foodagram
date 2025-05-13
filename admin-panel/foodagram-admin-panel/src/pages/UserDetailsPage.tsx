@@ -45,7 +45,7 @@ const UserDetailsPage: React.FC = () => {
 
     const handleUpdate = async (values: any) => {
         try {
-            await UserService.updateUserProfile(values, {}); // We'll need to pass userData here
+            await UserService.updateUserProfile(values); // We'll need to pass userData here
             message.success('User updated successfully');
             fetchUserDetails();
         } catch (error) {
@@ -58,7 +58,7 @@ const UserDetailsPage: React.FC = () => {
     }
 
     return (
-        <div style={{ padding: '24px' }}>
+        <div style={{ paddingTop: '24px' }}>
             <h1>User Details</h1>
             <Space direction="vertical" size="large" style={{ width: '100%' }}>
                 <Card title="Profile Information">

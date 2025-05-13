@@ -25,8 +25,6 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -82,10 +80,26 @@ public class PostService {
         return responseDto;
     }
 
-    public List<PostResponseDto> getAllPostsByUser(UUID userId) {
-        return postRepository.findAllByUserIdAndVisibilityNotOrderByCreatedDateDesc(userId, Visibility.PRIVATE).stream()
-                .map(this::mapToResponseDto)
-                .collect(Collectors.toList());
+    public List<PostResponseDto> getAllPostsByUser(UUID userId, UsersDto user) {
+        // Check if the requesting user is the owner
+        boolean isOwner = user.getId().equals(userId);
+        
+        // If not owner, check if they are a follower
+        boolean isFollower = false;
+        if (!isOwner) {
+            var followingResponse = usersClient.getUserFollowing(user.getId());
+            if (followingResponse.getBody() != null) {
+                isFollower = followingResponse.getBody().stream()
+                    .anyMatch(following -> following.getUsersId().equals(userId));
+            }
+        }
+
+        // Get posts based on visibility rules
+        List<Post> posts = postRepository.findAllByUserIdWithVisibilityRules(userId, isOwner, isFollower);
+        
+        return posts.stream()
+            .map(this::mapToResponseDto)
+            .collect(Collectors.toList());
     }
 
 

@@ -17,7 +17,7 @@ export default function FGTabBar() {
         {key: 'Explore', name: 'Explore', icon: Search},
         {key: 'CreatePost', name: 'CreatePost', icon: BadgePlus},
         {key: 'Bookmarked', name: 'Bookmarked', icon: BookmarkCheck},
-        {key: 'Profile', name: 'Profile', icon: User},
+        {key: 'Profile', name: 'UserProfile', icon: User},
     ];
 
     // Get the current active index dynamically

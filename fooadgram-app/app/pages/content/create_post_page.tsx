@@ -960,6 +960,7 @@ const styles = StyleSheet.create({
         fontFamily: "Roboto-Bold",
     },
     inputContainer: {
+        width: "100%",
         marginBottom: 20,
         marginVertical: 16,
     },

@@ -40,8 +40,8 @@ export default function FGTabBar() {
                 const isFocused = activeIndex === index;
                 const onPress = () => {
                     if (!isFocused) {
-                        if (route.name === 'Profile') {
-                            navigation.navigate('Profile', { profileId: userData?.id });
+                        if (route.name === 'UserProfile') {
+                            navigation.navigate('UserProfile', { profileId: userData?.id });
                         } else {
                             navigation.navigate(route.name);
                         }

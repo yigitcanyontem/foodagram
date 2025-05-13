@@ -1,24 +1,39 @@
 // components/CustomHeader.js
 import React, {useEffect, useState} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet, Image} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {ParamListBase, useNavigation} from '@react-navigation/native';
 import {HeartIcon, MessageSquareIcon} from "lucide-react-native";
 import NotificationIcon from "@/icons/NotificationIcon";
 import MessageIcon from "@/icons/MessageIcon";
 import {NotificationService} from "@/services/notification-service";
 import {useAppContext} from "@/context/AppContext";
 import Toast from "react-native-toast-message";
+import {StackNavigationProp} from "@react-navigation/stack";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+interface HeaderProps {
+}
 
 export default function Header({title}) {
     const navigation = useNavigation();
     const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
     const {setUserData, userData} = useAppContext()
 
+    const checkUserLoggedIn = async () => {
+        const storedUserData = await AsyncStorage.getItem("userData");
+        if (!storedUserData) {
+            navigation.navigate("Login");
+        }
+    }
+
+    useEffect(() => {
+        checkUserLoggedIn()
+    }, []);
     const getUnreadNotificationsCount = () => {
         if (userData) {
             NotificationService.getUnreadNotificationCount(userData)
                 .then((response) => {
-                    if (response.data != unreadNotificationsCount){
+                    if (response.data != unreadNotificationsCount) {
                         setUnreadNotificationsCount(response.data);
                     }
                 })

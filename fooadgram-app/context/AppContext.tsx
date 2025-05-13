@@ -24,11 +24,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     setUserData(JSON.parse(storedUserData));
                     validateToken(JSON.parse(storedUserData));
                 }else {
-                    navigation.navigate("Login");
                 }
             } catch (error) {
                 logout();
-                navigation.navigate("Login");
             }
         };
 
@@ -45,7 +43,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 position: "bottom",
             })
             logout();
-            navigation.navigate("Login");
         }else{
             Toast.show({
                 type: "success",

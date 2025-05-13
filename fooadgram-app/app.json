@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "fooadgram",
-    "slug": "fooadgram",
+    "name": "Foodagram",
+    "slug": "Foodagram",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/foodagram_logo.png",

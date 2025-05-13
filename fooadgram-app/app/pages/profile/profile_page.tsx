@@ -11,9 +11,9 @@ const ProfilePage = () => {
     const route = useRoute();
 
     {/* Use the tapped userId if available, otherwise show the signed-in user */}
-    const profileId = route.params?.userId ?? userData?.id;
+    const { userId } = route.params || {};
 
-    if (!profileId) {
+    if (!userId) {
          {/* Still loading userData or no ID available */}
         return null;
     }
@@ -21,7 +21,7 @@ const ProfilePage = () => {
     return (
         <View style={shared_styles.body_container}>
             <ScrollView contentContainerStyle={styles.container}>
-                <UserProfile profileId={profileId} />
+                <UserProfile profileId={userId} />
             </ScrollView>
             <FGTabBar />
         </View>

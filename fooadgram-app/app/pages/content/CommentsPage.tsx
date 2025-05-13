@@ -152,7 +152,7 @@ const CommentsPage = () => {
                 <View style={shared_styles.titleContainer}>
                     <View style={[shared_styles.row, {justifyContent: 'space-between', alignItems: 'center', gap: 10}]}>
                         <TouchableOpacity
-                            onPress={() => navigation.navigate('Profile', {profileId: comment.userId})} key={comment.userId}>
+                            onPress={() => navigation.navigate('Profile', {userId: comment.userId})} key={comment.userId}>
                             <Image
                                 source={
                                     comment?.userProfilePicture ? { uri: GlobalConstants.s3Url + comment?.userProfilePicture}

@@ -726,38 +726,40 @@ const CreatePostPage = () => {
                                 ))}
 
                                 <View style={styles.ingredientForm}>
-                                    <TextInput
-                                        style={[styles.input, styles.ingredientInput]}
-                                        value={ingredientName}
-                                        onChangeText={setIngredientName}
-                                        placeholder="Name"
-                                    />
-                                    <TextInput
-                                        style={[styles.input, styles.ingredientInput]}
-                                        value={ingredientAmount}
-                                        onChangeText={setIngredientAmount}
-                                        placeholder="Amount"
-                                        keyboardType="numeric"
-                                    />
-                                    <View style={styles.inputContainer}>
+                                    <View style={[shared_styles.row]}>
                                         <TextInput
                                             style={[styles.input, styles.ingredientInput]}
-                                            value={ingredientUnit}
-                                            onChangeText={handleUnitChange}
-                                            placeholder="Unit"
+                                            value={ingredientName}
+                                            onChangeText={setIngredientName}
+                                            placeholder="Name"
                                         />
-                                        {filteredUnits.length > 0 && (
-                                            <FlatList
-                                                data={filteredUnits}
-                                                keyExtractor={(item, index) => `${item}-${index}`}
-                                                style={styles.suggestionList}
-                                                renderItem={({ item }) => (
-                                                    <TouchableOpacity onPress={() => handleSelectUnit(item)}>
-                                                        <Text style={styles.suggestionItem}>{item}</Text>
-                                                    </TouchableOpacity>
-                                                )}
+                                        <TextInput
+                                            style={[styles.input, styles.ingredientInput]}
+                                            value={ingredientAmount}
+                                            onChangeText={setIngredientAmount}
+                                            placeholder="Amount"
+                                            keyboardType="numeric"
+                                        />
+                                        <View style={{ position: 'relative' }}>
+                                            <TextInput
+                                                style={[styles.input, styles.ingredientInput]}
+                                                value={ingredientUnit}
+                                                onChangeText={handleUnitChange}
+                                                placeholder="Unit"
                                             />
-                                        )}
+                                            {filteredUnits.length > 0 && (
+                                                <FlatList
+                                                    data={filteredUnits}
+                                                    keyExtractor={(item, index) => `${item}-${index}`}
+                                                    style={[styles.suggestionList, { position: 'absolute', top: 50, zIndex: 10 }]} // adjust `top` as needed
+                                                    renderItem={({ item }) => (
+                                                        <TouchableOpacity onPress={() => handleSelectUnit(item)}>
+                                                            <Text style={styles.suggestionItem}>{item}</Text>
+                                                        </TouchableOpacity>
+                                                    )}
+                                                />
+                                            )}
+                                        </View>
                                     </View>
                                     <TouchableOpacity
                                         style={styles.addButton}
@@ -958,7 +960,6 @@ const styles = StyleSheet.create({
         fontFamily: "Roboto-Bold",
     },
     inputContainer: {
-        width: "100%",
         marginBottom: 20,
         marginVertical: 16,
     },
@@ -1111,15 +1112,15 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     ingredientForm: {
-        flexDirection: "row",
-        flexWrap: "wrap",
+        display: "flex",
+        flexDirection: 'column',
         justifyContent: "space-between",
-        marginTop: 12,
         gap: 8,
     },
     ingredientInput: {
-        width: "32%",
+        flex: 1,
         marginBottom: 0,
+        height: 50
     },
     instructionItem: {
         flexDirection: "row",
@@ -1164,6 +1165,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginTop: 10,
         alignSelf: "flex-start",
+        width: '100%'
     },
     addButtonText: {
         color: "white",

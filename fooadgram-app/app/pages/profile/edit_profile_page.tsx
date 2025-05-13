@@ -101,7 +101,7 @@ const EditProfilePage = () => {
                 await UserService.uploadProfilePicture(profilePicture, userData);
             }
             await UserService.updateUserProfile(formData, userData);
-            navigation.navigate("Profile");
+            navigation.navigate('UserProfile', { profileId: userData?.id });
         } catch (error) {
             console.error("Error updating profile:", error);
         }

@@ -141,26 +141,27 @@ const ChatsPage = () => {
 
     /* ---------- JSX ---------- */
     return (
-        <View style={{ flex: 1, backgroundColor: "#fff", padding: 16}}>
+        <View style={{ flex: 1, backgroundColor: "#fff"}}>
             <Text style={styles.heading}>Messages</Text>
-            <FlatList
-                data={conversations.length > 0 ? conversations : (following as any[])}
-                renderItem={(item) =>
-                    conversations.length > 0
-                        ? renderConversation(item as { item: ConversationDto })
-                        : renderFollowingRow(item as { item: UsersProfileDto })
-                }
-                keyExtractor={(item) =>
-                    item.otherUserId ?? item.userId ?? Math.random().toString()
-                }
-                onEndReached={loadMore}
-                onEndReachedThreshold={0.5}
-                ListFooterComponent={
-                    loading ? <ActivityIndicator size="large" color="#0000ff" /> : null
-                }
-                ListEmptyComponent={<Text style={styles.noChats}>No conversations yet.</Text>}
-            />
-
+            <View style={{ flex: 1, padding: 16 }}>
+                <FlatList
+                    data={conversations.length > 0 ? conversations : (following as any[])}
+                    renderItem={(item) =>
+                        conversations.length > 0
+                            ? renderConversation(item as { item: ConversationDto })
+                            : renderFollowingRow(item as { item: UsersProfileDto })
+                    }
+                    keyExtractor={(item) =>
+                        item.otherUserId ?? item.userId ?? Math.random().toString()
+                    }
+                    onEndReached={loadMore}
+                    onEndReachedThreshold={0.5}
+                    ListFooterComponent={
+                        loading ? <ActivityIndicator size="large" color="#0000ff" /> : null
+                    }
+                    ListEmptyComponent={<Text style={styles.noChats}>No conversations yet.</Text>}
+                />
+            </View>
             <FGTabBar />
         </View>
     );

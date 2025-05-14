@@ -189,7 +189,7 @@ const PostDetailPage = () => {
                         <TouchableOpacity
                             style={[shared_styles.row,{alignItems: 'center', gap: 10}]}
                             onPress={() => {
-                            navigation.navigate('UserProfile', {userId: post?.userId});
+                            navigation.navigate('Profile', {userId: post?.userId});
                         }}>
                             <Image
                                 source={

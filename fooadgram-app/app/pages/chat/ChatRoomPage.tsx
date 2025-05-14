@@ -12,7 +12,7 @@ import {ChatService} from '@/services/chat-service';
 import FGTabBar from '@/app/shared/FGTabBar';
 import ReportModal from '@/app/shared/content/ReportModalForChat';
 import {ReportType} from '@/models/content/dto/ReportType';
-import {formatPostDate,formatMessageTime} from "@/utils/dayjsConfig";
+import {formatPostDate} from "@/utils/dayjsConfig";
 import {GlobalConstants} from "@/utils/GlobalConstants";
 import { Ionicons } from '@expo/vector-icons';
 import shared_styles from "@/shared_styles";
@@ -48,8 +48,8 @@ interface MessageWithDateHeader extends ChatMessageDto {
 
 export default function ChatRoomPage() {
     const {convId: convIdParam, receiverId, receiverName, receiverAvatar} =
-        useRoute().params as { 
-            convId: string | null; 
+        useRoute().params as {
+            convId: string | null;
             receiverId?: string;
             receiverName?: string;
             receiverAvatar?: string;
@@ -75,13 +75,13 @@ export default function ChatRoomPage() {
         return newMessages.map((msg, index) => {
             const currentDate = new Date(msg.timestamp);
             const prevMessage = newMessages[index - 1];
-            
+
             let dateHeader: string | null = null;
             // Show date header if this is the first message or if the previous message is from a different day
             if (index === 0 || !prevMessage || !isSameDay(currentDate, new Date(prevMessage.timestamp))) {
                 dateHeader = getDateHeader(currentDate);
             }
-            
+
             return {
                 ...msg,
                 dateHeader
@@ -184,7 +184,7 @@ export default function ChatRoomPage() {
             }
 
             // Scroll to bottom after messages are loaded
-            if (listRef.current && !isLoadMore) {
+            if (listRef.current && !isLoadMore && page==0) {
                 setTimeout(() => {
                     listRef.current?.scrollToOffset({ offset: 0, animated: false });
                 }, 100);
@@ -197,13 +197,13 @@ export default function ChatRoomPage() {
     };
 
     // Add an effect to scroll to bottom when messages change
-    useEffect(() => {
+    /*useEffect(() => {
         if (messages.length > 0 && listRef.current) {
             setTimeout(() => {
                 listRef.current?.scrollToOffset({ offset: 0, animated: false });
             }, 100);
         }
-    }, [messages.length]);
+    }, [messages.length]); */
 
     useEffect(() => {
         fetchMessages();
@@ -215,6 +215,7 @@ export default function ChatRoomPage() {
             fetchMessages(true);
         }
     };
+    const canSend = text.trim().length > 0 && wsReady;
 
     // Send message function
     const handleSend = () => {
@@ -276,7 +277,7 @@ export default function ChatRoomPage() {
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
             <View style={styles.header}>
-                <TouchableOpacity 
+                <TouchableOpacity
                     onPress={() => navigation.goBack()}
                     style={styles.backButton}
                 >
@@ -353,8 +354,22 @@ export default function ChatRoomPage() {
                         placeholder="Message..."
                     />
 
-                    <TouchableOpacity style={styles.button} onPress={handleSend} disabled={!wsReady}>
-                        <Text style={styles.buttonText}>Send</Text>
+                    <TouchableOpacity
+                        style={[
+                            styles.buttonBase,
+                            canSend ? styles.buttonEnabled : styles.buttonDisabled,
+                        ]}
+                        disabled={!canSend}
+                        onPress={handleSend}
+                    >
+                        <Text
+                            style={[
+                                styles.buttonText,
+                                { color: canSend ? '#fff' : '#666' },
+                            ]}
+                        >
+                            Send
+                        </Text>
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>
@@ -459,5 +474,20 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: "600",
         fontFamily: "Roboto-Bold",
-    }
+    },
+    buttonBase: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 10,
+    },
+    buttonEnabled: {
+        backgroundColor: '#3d5afe',   // your blue
+    },
+    buttonDisabled: {
+        backgroundColor: '#E0E0E0',   // light-grey fallback
+    },
+    buttonText: {
+        fontSize: 15,
+        fontWeight: '600',
+    },
 });

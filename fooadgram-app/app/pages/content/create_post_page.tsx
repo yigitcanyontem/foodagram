@@ -15,9 +15,6 @@ import Toast from "react-native-toast-message";
 import {AIService} from "@/services/ai-service";
 import { useRef } from 'react';
 import { useActionSheet } from '@expo/react-native-action-sheet';
-import rawCitiesData from '../../../cities.json';
-import cuisines from '../../../cuisines.json';
-import units from '../../../units.json';
 
 const visibilityColors = {
     PUBLIC: '#E74C3C',
@@ -88,21 +85,9 @@ const CreatePostPage = () => {
         country: string;
     };
 
-    const cities: City[] = rawCitiesData as City[];
 
     const handleChange = (text: string) => {
         setLocation(text);
-
-        if (text.length < 2) {
-            setSuggestions([]);
-            return;
-        }
-
-        const matches = cities
-            .filter(city => city.name.toLowerCase().startsWith(text.toLowerCase()))
-            .slice(0, 10);
-
-        setSuggestions(matches);
     };
 
         const handleSelect = (city: City) => {
@@ -153,14 +138,6 @@ const CreatePostPage = () => {
 
     const handleCuisineChange = (text: string) => {
         setCuisine(text);
-        if (text.length > 0) {
-            const filtered = cuisines.filter((item) =>
-                item.toLowerCase().includes(text.toLowerCase())
-            );
-            setFilteredCuisines(filtered);
-        } else {
-            setFilteredCuisines([]);
-        }
     };
 
     const handleSelectCuisine = (selected: string) => {
@@ -173,14 +150,6 @@ const CreatePostPage = () => {
 
     const handleUnitChange = (text: string) => {
         setIngredientUnit(text);
-        if (text.length > 0) {
-            const filtered = units.filter((u) =>
-                u.toLowerCase().includes(text.toLowerCase())
-            );
-            setFilteredUnits(filtered);
-        } else {
-            setFilteredUnits([]);
-        }
     };
 
     const handleSelectUnit = (unit: string) => {

@@ -84,15 +84,28 @@ const ExplorePage = () => {
         handleSearch();
     }, [query]);
 
-    const renderPostItem = ({ item, index }: { item: PostResponseDto | null; index: number }) => {
-        if (!item) {
-            return <View style={{ width: CARD_SIZE, height: CARD_SIZE, marginBottom: 8 }} />;
+    const renderPostItem = ({
+                                item,
+                            }: {
+        item: PostResponseDto | null;
+    }) => {
+        if (item === null) {
+            return (
+                <View
+                    style={{
+                        width: CARD_SIZE,
+                        height: CARD_SIZE,
+                        marginBottom: 8,
+                    }}
+                />
+            );
         }
-
         return (
             <PostCard
                 post={item}
-                onPress={() => navigation.navigate('PostDetail', { postId: item.id })}
+                onPress={() =>
+                    navigation.navigate('PostDetail', { postId: item.id })
+                }
             />
         );
     };
@@ -112,13 +125,30 @@ const ExplorePage = () => {
         }
     };
     const getFilledPosts = () => {
-        const remainder = posts.length % 3;
-        if (remainder === 0 || posts.length === 0) return posts.filter(Boolean);  // Filter out null/undefined
+        const count = posts.length;
+        const remainder = count % 3;
 
+        // perfectly even rows or no posts → just return them
+        if (remainder === 0 || count === 0) {
+            return posts;
+        }
+
+        // how many blanks we need to round up to a multiple of 3
         const needed = 3 - remainder;
-        const fillPosts = posts.slice(0, needed);
-        return [...posts, ...fillPosts].filter(Boolean);  // Filter out null/undefined
+
+        // create that many null placeholders
+        const placeholders: (PostResponseDto | null)[] = Array(needed).fill(null);
+
+        // append nulls to the end, so FlatList will render blanks
+        return [...posts, ...placeholders];
     };
+    const keyExtractor = (
+        item: PostResponseDto | null,
+        index: number
+    ): string =>
+        item
+            ? `${item.id}-${index}`
+            : `placeholder-${index}`;
 
     return (
 
@@ -142,7 +172,7 @@ const ExplorePage = () => {
 
                     <FlatList
                         data={getFilledPosts()}
-                        keyExtractor={(item, index) => `${item.id}-${index}`}
+                        keyExtractor={keyExtractor}
                         renderItem={renderPostItem}
                         numColumns={3}
                         columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 8 }}

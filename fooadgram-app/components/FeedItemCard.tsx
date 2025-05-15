@@ -106,7 +106,7 @@ const FeedItemCard: React.FC<Props> = ({ post, user, setScrollEnabled }) => {
             <View key={uri} style={{ width: '100%', height: '100%' }}>
                 {isVideo ? (
                     <Video source={{ uri }} style={{ width: '100%', height: '100%', borderRadius: 12 }}
-                           useNativeControls resizeMode="cover" shouldPlay={false} isMuted
+                           useNativeControls resizeMode="cover" shouldPlay isMuted
                            isLooping={true}/>
                 ) : (
                     <Image source={{ uri }} style={{ width: '100%', height: '100%', borderRadius: 12 }} resizeMode="cover" />
@@ -127,22 +127,24 @@ const FeedItemCard: React.FC<Props> = ({ post, user, setScrollEnabled }) => {
                     <ReportModal reportType={ReportType.POST} reportedEntityId={post.id}/>
                 )}
             </View>
+            <TouchableOpacity onPress={() => navigation.navigate('PostDetail', { postId: post.id })}>
+                {/* content */}
+                <Text style={styles.content}>{post.content || '(no description)'}</Text>
 
-            {/* content */}
-            <Text style={styles.content}>{post.content || '(no description)'}</Text>
+                {/* carousel */}
+                {cardWidth && post.mediaUrls?.length ? (
+                    <View style={styles.carouselContainer}>
+                        <Carousel data={post.mediaUrls} renderItem={renderMedia}
+                                  containerWidth={cardWidth - 32} itemWidth={cardWidth - 32}
+                                  separatorWidth={8} onScrollBeginDrag={() => setScrollEnabled(false)}
+                                  onScrollEndDrag={() => setScrollEnabled(true)}
+                                  onMomentumScrollEnd={() => setScrollEnabled(true)}
+                                  inScrollView={false} style={styles.carousel}/>
 
-            {/* carousel */}
-            {cardWidth && post.mediaUrls?.length ? (
-                <View style={styles.carouselContainer}>
-                    <Carousel data={post.mediaUrls} renderItem={renderMedia}
-                              containerWidth={cardWidth - 32} itemWidth={cardWidth - 32}
-                              separatorWidth={8} onScrollBeginDrag={() => setScrollEnabled(false)}
-                              onScrollEndDrag={() => setScrollEnabled(true)}
-                              onMomentumScrollEnd={() => setScrollEnabled(true)}
-                              inScrollView={false} style={styles.carousel}/>
-                </View>
-            ) : null}
 
+                    </View>
+                ) : null}
+            </TouchableOpacity>
             {/* actions */}
             <View style={styles.footer}>
                 <TouchableOpacity onPress={toggleLike} style={styles.footerButton}>

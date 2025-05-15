@@ -33,6 +33,7 @@ const PostsSection: React.FC<PostsSectionProps> = ({ posts }) => {
                                 resizeMode={ResizeMode.COVER}
                                 isMuted
                                 shouldPlay={false}
+                                isLooping={true}
                             />
                         ) : (
                             <Image

@@ -106,7 +106,8 @@ const FeedItemCard: React.FC<Props> = ({ post, user, setScrollEnabled }) => {
             <View key={uri} style={{ width: '100%', height: '100%' }}>
                 {isVideo ? (
                     <Video source={{ uri }} style={{ width: '100%', height: '100%', borderRadius: 12 }}
-                           useNativeControls resizeMode="cover" shouldPlay={false} isMuted />
+                           useNativeControls resizeMode="cover" shouldPlay={false} isMuted
+                           isLooping={true}/>
                 ) : (
                     <Image source={{ uri }} style={{ width: '100%', height: '100%', borderRadius: 12 }} resizeMode="cover" />
                 )}

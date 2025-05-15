@@ -1,7 +1,7 @@
 // components/CustomHeader.js
 import React, {useEffect, useState} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet, Image} from 'react-native';
-import {ParamListBase, useNavigation} from '@react-navigation/native';
+import {ParamListBase, useNavigation, useRoute} from '@react-navigation/native';
 import {HeartIcon, MessageSquareIcon} from "lucide-react-native";
 import NotificationIcon from "@/icons/NotificationIcon";
 import MessageIcon from "@/icons/MessageIcon";
@@ -16,12 +16,15 @@ interface HeaderProps {
 
 export default function Header({title}) {
     const navigation = useNavigation();
+    const { name: routeName } = useRoute();
+
     const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
     const {setUserData, userData} = useAppContext()
 
     const checkUserLoggedIn = async () => {
         const storedUserData = await AsyncStorage.getItem("userData");
-        if (!storedUserData) {
+        const publicScreens = ["Login", "Register"];
+        if (!storedUserData && !publicScreens.includes(routeName)) {
             navigation.navigate("Login");
         }
     }

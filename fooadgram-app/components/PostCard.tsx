@@ -28,6 +28,7 @@ const PostCard: React.FC<Props> = ({ post, onPress }) => {
                     resizeMode="cover"
                     isMuted
                     shouldPlay={false}
+                    isLooping={true}
                 />
             ) : (
                 <Image

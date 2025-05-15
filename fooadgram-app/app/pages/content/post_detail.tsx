@@ -76,9 +76,11 @@ const PostDetailPage = () => {
                         resizeMode="contain"
                         muted
                         shouldPlay={isActive}
+                        isLooping={true}
                         onError={(e) => console.error('Video loading error', e)}
                         onLoadStart={() => console.log('Video loading started')}
                         onLoad={() => console.log('Video loaded successfully')}
+
                     />
                 </View>
             );

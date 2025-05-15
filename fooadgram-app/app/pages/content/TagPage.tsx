@@ -127,6 +127,7 @@ const renderMedia = (mediaPath: string) => {
                                     resizeMode="cover"
                                     isMuted
                                     shouldPlay={false}
+                                    isLooping={true}
                                 />
                             ) : (
                                 <Image

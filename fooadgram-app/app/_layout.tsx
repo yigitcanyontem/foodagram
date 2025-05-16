@@ -57,7 +57,13 @@ import ChatRoomPage from "@/app/pages/chat/ChatRoomPage";
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 const Stack = createStackNavigator();
+import { LogBox } from 'react-native';
 
+// Hides all yellow box warnings
+LogBox.ignoreAllLogs(true);
+
+// Disable red error screens
+ErrorUtils.setGlobalHandler(() => {});
 export default function RootLayout() {
     const colorScheme = useColorScheme();
     const [loaded] = useFonts({
